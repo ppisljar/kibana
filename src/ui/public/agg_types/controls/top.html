@@ -1,0 +1,39 @@
+<div class="form-group">
+  <label for="sort">
+    Sort On
+  </label>
+
+  <select
+    class="form-control"
+    name="sortField"
+    required
+    ng-model="agg.params.sortField"
+    ng-show="indexedFields.length"
+    auto-select-if-only-one="indexedFields"
+    ng-options="field as field.displayName group by field.type for field in indexedFields">
+  </select>
+</div>
+
+<div class="vis-editor-agg-form-row">
+  <div ng-if="agg.type.params.byName.order" class="form-group">
+    <label>Order</label>
+    <select
+      name="sortOrder"
+      ng-model="agg.params.sortOrder"
+      required
+      ng-options="opt as opt.display for opt in aggParam.options"
+      class="form-control">
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Size</label>
+    <input
+      name="size"
+      ng-model="agg.params.size"
+      required
+      class="form-control"
+      type="number"
+      min="0"
+    >
+  </div>
+</div>
