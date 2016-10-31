@@ -1,0 +1,78 @@
+<div>
+  <button ng-click="vis.params.ver = vis.params.ver + 1 || 1">update</button>
+  <style>
+    vis-editor-vis-options .vis-option-item h5 {
+      border-bottom: 1px solid black;
+      background-color: lightgray;
+      padding: 5px 0px 0px 5px;
+    }
+
+    vis-editor-vis-options .vis-editor-agg-header {
+      background: lightblue;
+      padding: 5px;
+    }
+
+    vis-editor-vis-options .vis-editor-agg-editor {
+      margin-left: 10px;
+    }
+  </style>
+
+  <!-- Global settings -->
+  <div class="kuiSideBarSection">
+    <div class="kuiSideBarSectionTitle">
+      <div class="kuiSideBarSectionTitle__text">
+        Global Settings
+      </div>
+    </div>
+
+    <div class="kuiSideBarFormRow">
+      <label class="kuiSideBarFormRow__label" for="showLegend">
+        Show Legend
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input class="kuiCheckBox" id="showLegend" type="checkbox" ng-model="vis.params.addLegend">
+      </div>
+    </div>
+
+    <div class="kuiSideBarFormRow">
+      <label class="kuiSideBarFormRow__label" for="legendPosition">
+        Legend Position
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <select
+          id="legendPosition"
+          class="kuiSelect kuiSideBarSelect"
+          ng-model="vis.params.legendPosition"
+          ng-options="position for position in ['top', 'left', 'right', 'bottom']"
+        ></select>
+      </div>
+    </div>
+
+    <div class="kuiSideBarFormRow">
+      <label class="kuiSideBarFormRow__label" for="showCursor">
+        Show Cursor
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input class="kuiCheckBox" id="showCursor" type="checkbox" ng-model="chart.show">
+      </div>
+    </div>
+
+    <div class="kuiSideBarFormRow">
+      <label class="kuiSideBarFormRow__label" for="showCursor">
+        Show Tooltip
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input class="kuiCheckBox" id="showCursor" type="checkbox" ng-model="vis.params.addTooltip">
+      </div>
+    </div>
+
+
+  </div>
+
+  <vislib-category-axis></vislib-category-axis>
+
+  <vislib-value-axes></vislib-value-axes>
+
+  <vislib-series></vislib-series>
+
+</div>

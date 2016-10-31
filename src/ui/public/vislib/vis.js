@@ -27,7 +27,7 @@ export default function VisFactory(Private) {
       super(arguments);
       this.el = $el.get ? $el.get(0) : $el;
       this.binder = new Binder();
-      this.visConfigArgs = visConfigArgs;
+      this.visConfigArgs = _.cloneDeep(visConfigArgs);
       this.visConfigArgs.el = this.el;
 
       // bind the resize function so it can be used as an event handler
@@ -149,6 +149,17 @@ export default function VisFactory(Private) {
       return this.visConfig.get(name);
     };
 
+    getConfig() {
+      const configValues =  _.cloneDeep(this.visConfig._values);
+      configValues.valueAxes = this.handler.valueAxes.map(axis => _.cloneDeep(axis.axisConfig._values));
+      configValues.categoryAxes = this.handler.categoryAxes.map(axis => _.cloneDeep(axis.axisConfig._values));
+      configValues.chart.series = configValues.chart.series.map(seri => {
+        delete seri.el;
+        delete seri.data.values;
+        return seri;
+      });
+      return configValues;
+    }
     /**
      * Turns on event listeners.
      *

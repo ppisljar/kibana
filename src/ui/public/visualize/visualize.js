@@ -149,6 +149,7 @@ uiModules
 
       $scope.$watchCollection('vis.params', prereq(function () {
         if ($scope.renderbot) $scope.renderbot.updateParams();
+        //$scope.editableVis.params.chart = _.cloneDeep($scope.vis.params.chart);
       }));
 
       $scope.$watch('searchSource', prereq(function (searchSource) {
@@ -178,7 +179,9 @@ uiModules
 
       $scope.$watch('esResp', prereq(function (resp, prevResp) {
         if (!resp) return;
-        $scope.renderbot.render(resp);
+        $scope.renderbot.render(resp).then(() => {
+          $scope.editableVis.params.chart = $scope.vis.params.chart;
+        });
       }));
 
       $scope.$watch('renderbot', function (newRenderbot, oldRenderbot) {

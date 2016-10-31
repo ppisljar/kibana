@@ -332,7 +332,7 @@ function VisEditor($scope, $route, timefilter, AppState, $location, kbnUrl, $tim
   };
 
   function transferVisState(fromVis, toVis, stage) {
-    return function () {
+    return function (ok = true) {
 
       //verify this before we copy the "new" state
       const isAggregationsChanged = !fromVis.aggs.jsonDataEquals(toVis.aggs);

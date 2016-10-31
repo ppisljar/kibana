@@ -1,0 +1,268 @@
+<div>
+  <div class="kuiSideBarCollapsibleTitle">
+    <div
+      class="kuiSideBarCollapsibleTitle__label"
+      ng-click="isCategoryAxisOpen = !isCategoryAxisOpen"
+    >
+      <span
+        aria-hidden="true"
+        ng-class="{ 'fa-caret-down': isCategoryAxisOpen, 'fa-caret-right': !isCategoryAxisOpen }"
+        class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+      ></span>
+      <span class="kuiSideBarCollapsibleTitle__text">
+        Category Axis
+      </span>
+    </div>
+  </div>
+
+  <div ng-show="isCategoryAxisOpen" class="kuiSideBarCollapsibleSection">
+    <!-- General -->
+    <div class="kuiSideBarSection">
+      <div class="kuiSideBarFormRow">
+        <label class="kuiSideBarFormRow__label" for="categoryAxisTitle">
+          Title
+        </label>
+        <div class="kuiSideBarFormRow__control">
+          <input
+            id="categoryAxisTitle"
+            class="kuiInput kuiSideBarInput"
+            type="text"
+            ng-model="vis.params.categoryAxes[0].title.text"
+          >
+        </div>
+      </div>
+
+      <div class="kuiSideBarFormRow">
+        <label class="kuiSideBarFormRow__label" for="categoryAxisPosition">
+          Position
+        </label>
+        <div class="kuiSideBarFormRow__control">
+          <select
+            id="categoryAxisPosition"
+            class="kuiSelect kuiSideBarSelect"
+            ng-model="vis.params.categoryAxes[0].position"
+            ng-options="mode for mode in vis.type.params.positions"
+          ></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced options -->
+    <div class="kuiSideBarSection">
+      <a
+        href=""
+        class="kuiSideBarOptionsLink"
+        ng-click="isCategoryAxisAdvancedOptionsOpen = !isCategoryAxisAdvancedOptionsOpen"
+      >
+        <span
+          aria-hidden="true"
+          ng-class="{ 'fa-caret-down': isCategoryAxisAdvancedOptionsOpen, 'fa-caret-right': !isCategoryAxisAdvancedOptionsOpen }"
+          class="fa fa-caret-right kuiSideBarOptionsLink__caret"
+        ></span>
+        <span class="kuiSideBarOptionsLink__text">
+          <span ng-show="!isCategoryAxisAdvancedOptionsOpen">
+            Show
+          </span>
+          <span ng-show="isCategoryAxisAdvancedOptionsOpen">
+            Hide
+          </span>
+          Advanced Options
+        </span>
+      </a>
+
+      <div ng-show="isCategoryAxisAdvancedOptionsOpen">
+        <!-- Style -->
+        <div class="kuiSideBarSection">
+          <h6 class="kuiSideBarFormSectionTitle">
+            Style
+          </h6>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="categoryAxisColor">
+              Color
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="categoryAxisColor"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].style.color"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="categoryAxisColor">
+              Line Width
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="categoryAxisColor"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].style.lineWidth"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="categoryAxisColor">
+              Tick Color
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="categoryAxisColor"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].style.tickColor"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="categoryAxisColor">
+              Tick Width
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="categoryAxisColor"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].style.tickWidth"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="categoryAxisColor">
+              Tick Length
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="categoryAxisColor"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].style.tickLength"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Labels -->
+        <div class="kuiSideBarSection">
+          <h6 class="kuiSideBarFormSectionTitle">
+            Labels
+          </h6>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="showLabels">
+              Show Labels
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiCheckBox" id="showLabels" type="checkbox" ng-model="vis.params.categoryAxes[0].labels.show">
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="showFilter">
+              Show Filter
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiCheckBox" id="showFilter" type="checkbox" ng-model="vis.params.categoryAxes[0].labels.filter">
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="rotateLabels">
+              Rotate
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="rotateLabels"
+                class="kuiInput kuiSideBarInput"
+                type="number"
+                ng-model="vis.params.categoryAxes[0].labels.rotate"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="rotateAnchor">
+              Rotate Anchor
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <select
+                id="rotateAnchor"
+                class="kuiSelect kuiSideBarSelect"
+                ng-model="vis.params.categoryAxes[0].labels.rotateAnchor"
+                ng-options="mode for mode in vis.type.params.rotateAnchor"
+              ></select>
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="truncateLabels">
+              Truncate
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="truncateLabels"
+                class="kuiInput kuiSideBarInput"
+                type="number"
+                ng-model="vis.params.categoryAxes[0].labels.truncate"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Labels style -->
+        <div class="kuiSideBarSection">
+          <h6 class="kuiSideBarFormSectionTitle">
+            Labels Style
+          </h6>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="styleColor">
+              Color
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="styleColor"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].labels.color"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="styleFont">
+              Font
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="styleFont"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].labels.font"
+              >
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="styleFontSize">
+              Font Size
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input
+                id="styleFontSize"
+                class="kuiInput kuiSideBarInput"
+                type="text"
+                ng-model="vis.params.categoryAxes[0].labels.fontSize"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
