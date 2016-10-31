@@ -1,0 +1,119 @@
+<div class="vis-editor-agg-group">
+  <div class="vis-editor-agg-wrapper">
+    <!-- agg.html - controls for aggregation -->
+    <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
+      <div class="vis-editor-agg-header">
+        <!-- open/close editor -->
+        <button aria-label="Open Editor" ng-click="editorOpen5 = !editorOpen5" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+          <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen5, 'fa-caret-right': !editorOpen5 }" class="fa fa-caret-right"></i>
+        </button>
+
+        <!-- title -->
+        <span class="vis-editor-agg-header-title">Category Axis</span>
+      </div>
+
+      <div group-name="groupName" ng-show="editorOpen5" class="vis-editor-agg-editor">
+        <div class="vis-option-item form-group">
+          <label>
+            Position
+          </label>
+          <select class="form-control" ng-model="vis.params.categoryAxes[0].position" ng-options="mode for mode in vis.type.params.positions"></select>
+
+          <div>
+            <h5>Style</h5>
+            <label>
+              Color
+            </label>
+            <div>
+              <input type="text" ng-model="vis.params.categoryAxes[0].style.color" class="form-control">
+            </div>
+            <label>
+              Line Width
+            </label>
+            <div>
+              <input type="text" ng-model="vis.params.categoryAxes[0].style.lineWidth" class="form-control">
+            </div>
+            <label>
+              Tick Color
+            </label>
+            <div>
+              <input type="text" ng-model="vis.params.categoryAxes[0].style.tickColor" class="form-control">
+            </div>
+            <label>
+              Tick Width
+            </label>
+            <div>
+              <input type="text" ng-model="vis.params.categoryAxes[0].style.tickWidth" class="form-control">
+            </div>
+            <label>
+              Tick Length
+            </label>
+            <div>
+              <input type="text" ng-model="vis.params.categoryAxes[0].style.tickLength" class="form-control">
+            </div>
+          </div>
+
+          <div>
+            <h5>Labels</h5>
+            <label>
+              <input type="checkbox" ng-model="vis.params.categoryAxes[0].labels.show">
+              Show
+            </label><br>
+            <label>
+              <input type="checkbox" ng-model="vis.params.categoryAxes[0].labels.filter">
+              Filter
+            </label><br>
+            <label>
+              Rotate
+            </label>
+            <div>
+              <input type="number" ng-model="vis.params.categoryAxes[0].labels.rotate" class="form-control">
+            </div>
+            <label>
+              Rotate Anchor
+            </label>
+            <select class="form-control" ng-model="vis.params.categoryAxes[0].labels.rotateAnchor" ng-options="mode for mode in vis.type.params.rotateAnchor"></select>
+            <label>
+              Truncate
+            </label>
+            <div>
+              <input type="number" ng-model="vis.params.categoryAxes[0].labels.truncate" class="form-control">
+            </div>
+
+            <div>
+              <h5>Style</h5>
+              <label>
+                Color
+              </label>
+              <div>
+                <input type="text" ng-model="vis.params.categoryAxes[0].labels.color" class="form-control">
+              </div>
+              <label>
+                Font
+              </label>
+              <div>
+                <input type="text" ng-model="vis.params.categoryAxes[0].labels.font" class="form-control">
+              </div>
+              <label>
+                Font Size
+              </label>
+              <div>
+                <input type="text" ng-model="vis.params.categoryAxes[0].labels.fontSize" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h5>Title</h5>
+            <label>
+              Text
+            </label>
+            <div>
+              <input type="text" ng-model="vis.params.categoryAxes[0].title.text" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-form>
+  </div>
+</div>

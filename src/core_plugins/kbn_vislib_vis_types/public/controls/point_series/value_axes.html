@@ -1,0 +1,141 @@
+<div>
+  <div class="sidebar-item-title">
+    Value Axes
+
+    <div class="vis-editor-agg-header-controls btn-group" style="float: right;">
+      <!-- remove button -->
+      <button aria-label="Add value axis" ng-click="addValueAxis()" tooltip="Add value axis" tooltip-append-to-body="true" type="button" class="btn btn-xs btn-primary ng-scope">
+        <i aria-hidden="true" class="fa fa-plus"></i>
+      </button>
+    </div>
+  </div>
+  <div ng-repeat="axis in vis.params.valueAxes track by axis.id" class="vis-editor-agg-group">
+  <div class="vis-editor-agg-wrapper">
+    <!-- agg.html - controls for aggregation -->
+    <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
+      <div class="vis-editor-agg-header">
+        <!-- open/close editor -->
+        <button aria-label="Open Editor" ng-click="editorOpen7 = !editorOpen7" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+          <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen7, 'fa-caret-right': !editorOpen7 }" class="fa fa-caret-right"></i>
+        </button>
+
+        <!-- title -->
+        <span class="vis-editor-agg-header-title">{{axis.id}}</span>
+
+        <div class="vis-editor-agg-header-controls btn-group">
+          <!-- remove button -->
+          <button ng-if="vis.params.valueAxes.length > 1" aria-label="Remove value axis" ng-click="removeValueAxis(axis)" tooltip="Remove value axis" tooltip-append-to-body="true" type="button" class="btn btn-xs btn-danger ng-scope">
+            <i aria-hidden="true" class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div group-name="groupName" ng-show="editorOpen7" class="vis-editor-agg-editor">
+        <div class="vis-option-item form-group">
+          <label>
+            Position
+          </label>
+          <select class="form-control" ng-model="axis.position" ng-options="mode for mode in vis.type.params.positions"></select>
+          <label>
+            Mode
+          </label>
+          <select class="form-control" ng-model="axis.scale.mode" ng-options="mode for mode in vis.type.params.axisModes"></select>
+          <div>
+            <h5>Style</h5>
+            <label>
+              Color
+            </label>
+            <div>
+              <input type="text" ng-model="axis.style.color" class="form-control">
+            </div>
+            <label>
+              Line Width
+            </label>
+            <div>
+              <input type="text" ng-model="axis.style.lineWidth" class="form-control">
+            </div>
+            <label>
+              Tick Color
+            </label>
+            <div>
+              <input type="text" ng-model="axis.style.tickColor" class="form-control">
+            </div>
+            <label>
+              Tick Width
+            </label>
+            <div>
+              <input type="text" ng-model="axis.style.tickWidth" class="form-control">
+            </div>
+            <label>
+              Tick Length
+            </label>
+            <div>
+              <input type="text" ng-model="axis.style.tickLength" class="form-control">
+            </div>
+          </div>
+
+          <div>
+            <h5>Labels</h5>
+            <label>
+              <input type="checkbox" ng-model="axis.labels.show">
+              Show
+            </label><br>
+            <label>
+              <input type="checkbox" ng-model="axis.labels.filter">
+              Filter
+            </label><br>
+            <label>
+              Rotate
+            </label>
+            <div>
+              <input type="number" ng-model="axis.labels.rotate" class="form-control">
+            </div>
+            <label>
+              Rotate Anchor
+            </label>
+            <select class="form-control" ng-model="axis.labels.rotateAnchor" ng-options="mode for mode in vis.type.params.rotateAnchor"></select>
+            <label>
+              Truncate
+            </label>
+            <div>
+              <input type="number" ng-model="axis.labels.truncate" class="form-control">
+            </div>
+
+            <div>
+              <h5>Style</h5>
+              <label>
+                Color
+              </label>
+              <div>
+                <input type="text" ng-model="axis.labels.color" class="form-control">
+              </div>
+              <label>
+                Font
+              </label>
+              <div>
+                <input type="text" ng-model="axis.labels.font" class="form-control">
+              </div>
+              <label>
+                Font Size
+              </label>
+              <div>
+                <input type="text" ng-model="axis.labels.fontSize" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h5>Title</h5>
+            <label>
+              Text
+            </label>
+            <div>
+              <input type="text" ng-model="axis.title.text" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-form>
+  </div>
+</div>
+</div>

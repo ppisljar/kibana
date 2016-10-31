@@ -1,0 +1,162 @@
+
+<div class="sidebar-item">
+  <button ng-click="vis.params.ver = vis.params.ver + 1 || 1">update</button>
+  <style>
+    vis-editor-vis-options .vis-option-item h5 {
+      border-bottom: 1px solid black;
+      background-color: lightgray;
+      padding: 5px 0px 0px 5px;
+    }
+
+    vis-editor-vis-options .vis-editor-agg-header {
+      background: lightblue;
+      padding: 5px;
+    }
+
+    vis-editor-vis-options .vis-editor-agg-editor {
+      margin-left: 10px;
+    }
+  </style>
+
+  <div class="sidebar-item-title ng-binding">
+    Global Settings
+  </div>
+
+  <div class="vis-editor-agg-group">
+    <div class="vis-editor-agg-wrapper">
+      <!-- agg.html - controls for aggregation -->
+      <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
+        <div class="vis-editor-agg-header">
+          <!-- open/close editor -->
+          <button aria-label="Open Editor" ng-click="editorOpen = !editorOpen" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+            <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen, 'fa-caret-right': !editorOpen }" class="fa fa-caret-right"></i>
+          </button>
+
+          <!-- title -->
+          <span class="vis-editor-agg-header-title">Legend Settings</span>
+        </div>
+
+        <div group-name="groupName" ng-show="editorOpen" class="vis-editor-agg-editor">
+          <div class="vis-option-item form-group">
+            <label>
+              <input type="checkbox" ng-model="vis.params.addLegend">
+              Show
+            </label><br>
+            <label>
+              Legend Position
+              <select
+                class="form-control"
+                ng-model="vis.params.legendPosition"
+                ng-options="position for position in ['top', 'left', 'right', 'bottom']"
+              >
+              </select>
+            </label>
+          </div>
+
+        </div>
+      </ng-form>
+    </div>
+  </div>
+
+  <div class="vis-editor-agg-group">
+    <div class="vis-editor-agg-wrapper">
+      <!-- agg.html - controls for aggregation -->
+      <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
+        <div class="vis-editor-agg-header">
+          <!-- open/close editor -->
+          <button aria-label="Open Editor" ng-click="editorOpen1 = !editorOpen1" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+            <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen1, 'fa-caret-right': !editorOpen1 }" class="fa fa-caret-right"></i>
+          </button>
+
+          <!-- title -->
+          <span class="vis-editor-agg-header-title">Cursor Settings</span>
+        </div>
+
+        <div group-name="groupName" ng-show="editorOpen1" class="vis-editor-agg-editor">
+          <div class="vis-option-item form-group">
+            <label>
+              <input type="checkbox" ng-model="chart.show">
+              Show
+            </label><br>
+          </div>
+        </div>
+      </ng-form>
+    </div>
+  </div>
+
+  <div class="vis-editor-agg-group">
+    <div class="vis-editor-agg-wrapper">
+      <!-- agg.html - controls for aggregation -->
+      <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
+        <div class="vis-editor-agg-header">
+          <!-- open/close editor -->
+          <button aria-label="Open Editor" ng-click="editorOpen2 = !editorOpen2" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+            <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen2, 'fa-caret-right': !editorOpen2 }" class="fa fa-caret-right"></i>
+          </button>
+
+          <!-- title -->
+          <span class="vis-editor-agg-header-title">Tooltip Settings</span>
+        </div>
+
+        <div group-name="groupName" ng-show="editorOpen2" class="vis-editor-agg-editor">
+          <div class="vis-option-item form-group">
+            <label>
+              <input type="checkbox" ng-model="vis.params.addTooltip">
+              Show
+            </label><br>
+          </div>
+        </div>
+      </ng-form>
+    </div>
+  </div>
+
+  <vislib-category-axis></vislib-category-axis>
+
+  <vislib-value-axes></vislib-value-axes>
+
+  <div class="sidebar-item-title ng-binding">
+    Series
+  </div>
+  <div ng-repeat="chart in vis.params.chart.series" class="vis-editor-agg-group">
+    <div class="vis-editor-agg-wrapper">
+      <!-- agg.html - controls for aggregation -->
+      <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
+        <div class="vis-editor-agg-header">
+          <!-- open/close editor -->
+          <button aria-label="Open Editor" ng-click="editorOpen3 = !editorOpen3" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+            <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen3, 'fa-caret-right': !editorOpen3 }" class="fa fa-caret-right"></i>
+          </button>
+
+          <!-- title -->
+          <span class="vis-editor-agg-header-title">{{chart.data.label}}</span>
+        </div>
+
+        <div group-name="groupName" ng-show="editorOpen3" class="vis-editor-agg-editor">
+          <div class="vis-option-item form-group">
+            <label>
+              <input type="checkbox" ng-model="chart.show">
+              Show
+            </label><br>
+            <label>
+              Type
+            </label>
+            <select class="form-control" ng-model="chart.type" ng-options="mode for mode in vis.type.params.chartTypes"></select>
+            <label>
+              Mode
+            </label>
+            <select class="form-control" ng-model="chart.mode" ng-options="mode for mode in vis.type.params.chartModes"></select>
+          </div>
+          <div class="vis-option-item form-group">
+            <label>
+              Value Axis
+            </label>
+            <select class="form-control" ng-model="chart.valueAxis" ng-options="axis.id as axis.id for axis in vis.params.valueAxes track by axis.id"></select>
+          </div>
+        </div>
+      </ng-form>
+    </div>
+  </div>
+
+  <vislib-trend-lines></vislib-trend-lines>
+
+</div>
