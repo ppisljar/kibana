@@ -808,5 +808,28 @@ fieldset {
     flex: 1 1 60%;
   }
 
+/**
+ * 1. Override .sidebar-item styles.
+ */
+.kuiSideBarOptionsLink {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #328CAA !important; // 1
+
+  &:hover {
+    color: #105A73 !important; // 1
+  }
+}
+
+  .kuiSideBarOptionsLink__caret {
+    width: 10px;
+    height: 10px;
+  }
+
+  .kuiSideBarOptionsLink__text {
+    margin-left: 2px;
+  }
 
 @import "~dragula/dist/dragula.css";
