@@ -726,6 +726,10 @@ fieldset {
 }
 
 .kuiSideBarSectionTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
   border-bottom: 1px solid #D4D4D4;
 }
 
@@ -733,6 +737,20 @@ fieldset {
     font-size: 14px;
     font-weight: 700;
     color: #5A5A5A;
+  }
+
+  /**
+   * 1. Override Bootstrap button styles.
+   */
+  .kuiSideBarSectionTitle__action {
+    background-color: transparent; // 1
+    padding: 0; // 1
+    cursor: pointer;
+    color: #328CAA;
+
+    &:hover {
+      color: #105A73;
+    }
   }
 
 /**

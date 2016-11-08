@@ -1,141 +1,303 @@
-<div>
-  <div class="sidebar-item-title">
-    Value Axes
-
-    <div class="vis-editor-agg-header-controls btn-group" style="float: right;">
-      <!-- remove button -->
-      <button aria-label="Add value axis" ng-click="addValueAxis()" tooltip="Add value axis" tooltip-append-to-body="true" type="button" class="btn btn-xs btn-primary ng-scope">
-        <i aria-hidden="true" class="fa fa-plus"></i>
-      </button>
+<div class="kuiSideBarSection">
+  <div class="kuiSideBarSectionTitle">
+    <div class="kuiSideBarSectionTitle__text">
+      Value Axes
     </div>
+
+    <button
+      aria-label="Add value axis"
+      ng-click="addValueAxis()"
+      tooltip="Add value axis"
+      tooltip-append-to-body="true"
+      type="button"
+      class="fa fa-plus kuiSideBarSectionTitle__action"
+    ></button>
   </div>
-  <div ng-repeat="axis in vis.params.valueAxes track by axis.id" class="vis-editor-agg-group">
-  <div class="vis-editor-agg-wrapper">
-    <!-- agg.html - controls for aggregation -->
-    <ng-form name="aggForm" class="vis-editor-agg"><!-- header -->
-      <div class="vis-editor-agg-header">
-        <!-- open/close editor -->
-        <button aria-label="Open Editor" ng-click="editorOpen7 = !editorOpen7" type="button" class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
-          <i aria-hidden="true" ng-class="{ 'fa-caret-down': editorOpen7, 'fa-caret-right': !editorOpen7 }" class="fa fa-caret-right"></i>
-        </button>
 
-        <!-- title -->
-        <span class="vis-editor-agg-header-title">{{axis.id}}</span>
+  <div
+    ng-repeat="axis in vis.params.valueAxes track by axis.id"
+    class="kuiSideBarSection"
+  >
+    <button
+      class="kuiSideBarCollapsibleTitle"
+      aria-label="Open Editor"
+      ng-click="isValueAxisOpen = !isValueAxisOpen"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+        ng-class="{ 'fa-caret-down': isValueAxisOpen, 'fa-caret-right': !isValueAxisOpen }"
+        class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+      ></span>
+      <span class="kuiSideBarCollapsibleTitle__text">
+        {{axis.id}}
+      </span>
+    </button>
 
-        <div class="vis-editor-agg-header-controls btn-group">
-          <!-- remove button -->
-          <button ng-if="vis.params.valueAxes.length > 1" aria-label="Remove value axis" ng-click="removeValueAxis(axis)" tooltip="Remove value axis" tooltip-append-to-body="true" type="button" class="btn btn-xs btn-danger ng-scope">
-            <i aria-hidden="true" class="fa fa-times"></i>
-          </button>
+    <div ng-show="isValueAxisOpen" class="kuiSideBarCollapsibleSection">
+      <!-- General -->
+      <div class="kuiSideBarSection">
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="categoryAxisTitle">
+            Title
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input
+              id="categoryAxisTitle"
+              class="kuiInput kuiSideBarInput"
+              type="text"
+              ng-model="axis.title.text"
+            >
+          </div>
         </div>
-      </div>
 
-      <div group-name="groupName" ng-show="editorOpen7" class="vis-editor-agg-editor">
-        <div class="vis-option-item form-group">
-          <label>
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisPosition' + $index }}">
             Position
           </label>
-          <select class="form-control" ng-model="axis.position" ng-options="mode for mode in vis.type.params.positions"></select>
-          <label>
+          <div class="kuiSideBarFormRow__control">
+            <select
+              id="{{ 'valueAxisPosition' + $index }}"
+              class="kuiSelect kuiSideBarSelect"
+              ng-model="axis.position"
+              ng-options="mode for mode in vis.type.params.positions"
+            ></select>
+          </div>
+        </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisMode' + $index }}">
             Mode
           </label>
-          <select class="form-control" ng-model="axis.scale.mode" ng-options="mode for mode in vis.type.params.axisModes"></select>
-          <div>
-            <h5>Style</h5>
-            <label>
-              Color
-            </label>
-            <div>
-              <input type="text" ng-model="axis.style.color" class="form-control">
+          <div class="kuiSideBarFormRow__control">
+            <select
+              id="{{ 'valueAxisMode' + $index }}"
+              class="kuiSelect kuiSideBarSelect"
+              ng-model="axis.scale.mode"
+              ng-options="mode for mode in vis.type.params.axisModes"
+            ></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style -->
+      <div class="kuiSideBarSection">
+        <h6 class="kuiSideBarFormSectionTitle">
+          Style
+        </h6>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisColor' + $index }}">
+            Color
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input
+              id="{{ 'valueAxisColor' + $index }}"
+              class="kuiInput kuiSideBarInput"
+              type="text"
+              ng-model="axis.style.color"
+            >
+          </div>
+        </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisLineWidth' + $index }}">
+            Line Width
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input
+              id="{{ 'valueAxisLineWidth' + $index }}"
+              class="kuiInput kuiSideBarInput"
+              type="text"
+              ng-model="axis.style.lineWidth"
+            >
+          </div>
+        </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickColor' + $index }}">
+            Tick Color
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input
+              id="{{ 'valueAxisTickColor' + $index }}"
+              class="kuiInput kuiSideBarInput"
+              type="text"
+              ng-model="axis.style.tickColor"
+            >
+          </div>
+        </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickWidth' + $index }}">
+            Tick Width
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input
+              id="{{ 'valueAxisTickWidth' + $index }}"
+              class="kuiInput kuiSideBarInput"
+              type="text"
+              ng-model="axis.style.tickWidth"
+            >
+          </div>
+        </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickLength' + $index }}">
+            Tick Length
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input
+              id="{{ 'valueAxisTickLength' + $index }}"
+              class="kuiInput kuiSideBarInput"
+              type="text"
+              ng-model="axis.style.tickLength"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced options -->
+      <div class="kuiSideBarSection">
+        <a
+          href=""
+          class="kuiSideBarOptionsLink"
+          ng-click="isValueAxisAdvancedOptionsOpen = !isValueAxisAdvancedOptionsOpen"
+        >
+          <span
+            aria-hidden="true"
+            ng-class="{ 'fa-caret-down': isValueAxisAdvancedOptionsOpen, 'fa-caret-right': !isValueAxisAdvancedOptionsOpen }"
+            class="fa fa-caret-right kuiSideBarOptionsLink__caret"
+          ></span>
+          <span class="kuiSideBarOptionsLink__text">
+            <span ng-show="!isValueAxisAdvancedOptionsOpen">
+              Show
+            </span>
+            <span ng-show="isValueAxisAdvancedOptionsOpen">
+              Hide
+            </span>
+            Advanced Options
+          </span>
+        </a>
+
+        <div ng-show="isValueAxisAdvancedOptionsOpen">
+          <!-- Labels -->
+          <div class="kuiSideBarSection">
+            <h6 class="kuiSideBarFormSectionTitle">
+              Labels
+            </h6>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="showLabels">
+                Show Labels
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input class="kuiCheckBox" id="showLabels" type="checkbox" ng-model="axis.labels.show">
+              </div>
             </div>
-            <label>
-              Line Width
-            </label>
-            <div>
-              <input type="text" ng-model="axis.style.lineWidth" class="form-control">
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="showFilter">
+                Show Filter
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input class="kuiCheckBox" id="showFilter" type="checkbox" ng-model="axis.labels.filter">
+              </div>
             </div>
-            <label>
-              Tick Color
-            </label>
-            <div>
-              <input type="text" ng-model="axis.style.tickColor" class="form-control">
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="rotateLabels">
+                Rotate
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="rotateLabels"
+                  class="kuiInput kuiSideBarInput"
+                  type="number"
+                  ng-model="axis.labels.rotate"
+                >
+              </div>
             </div>
-            <label>
-              Tick Width
-            </label>
-            <div>
-              <input type="text" ng-model="axis.style.tickWidth" class="form-control">
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="rotateAnchor">
+                Rotate Anchor
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <select
+                  id="rotateAnchor"
+                  class="kuiSelect kuiSideBarSelect"
+                  ng-model="axis.labels.rotateAnchor"
+                  ng-options="mode for mode in vis.type.params.rotateAnchor"
+                ></select>
+              </div>
             </div>
-            <label>
-              Tick Length
-            </label>
-            <div>
-              <input type="text" ng-model="axis.style.tickLength" class="form-control">
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="truncateLabels">
+                Truncate
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="truncateLabels"
+                  class="kuiInput kuiSideBarInput"
+                  type="number"
+                  ng-model="axis.labels.truncate"
+                >
+              </div>
             </div>
           </div>
 
-          <div>
-            <h5>Labels</h5>
-            <label>
-              <input type="checkbox" ng-model="axis.labels.show">
-              Show
-            </label><br>
-            <label>
-              <input type="checkbox" ng-model="axis.labels.filter">
-              Filter
-            </label><br>
-            <label>
-              Rotate
-            </label>
-            <div>
-              <input type="number" ng-model="axis.labels.rotate" class="form-control">
-            </div>
-            <label>
-              Rotate Anchor
-            </label>
-            <select class="form-control" ng-model="axis.labels.rotateAnchor" ng-options="mode for mode in vis.type.params.rotateAnchor"></select>
-            <label>
-              Truncate
-            </label>
-            <div>
-              <input type="number" ng-model="axis.labels.truncate" class="form-control">
-            </div>
+          <!-- Labels style -->
+          <div class="kuiSideBarSection">
+            <h6 class="kuiSideBarFormSectionTitle">
+              Labels Style
+            </h6>
 
-            <div>
-              <h5>Style</h5>
-              <label>
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="styleColor">
                 Color
               </label>
-              <div>
-                <input type="text" ng-model="axis.labels.color" class="form-control">
-              </div>
-              <label>
-                Font
-              </label>
-              <div>
-                <input type="text" ng-model="axis.labels.font" class="form-control">
-              </div>
-              <label>
-                Font Size
-              </label>
-              <div>
-                <input type="text" ng-model="axis.labels.fontSize" class="form-control">
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="styleColor"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.labels.color"
+                >
               </div>
             </div>
-          </div>
 
-          <div>
-            <h5>Title</h5>
-            <label>
-              Text
-            </label>
-            <div>
-              <input type="text" ng-model="axis.title.text" class="form-control">
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="styleFont">
+                Font
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="styleFont"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.labels.font"
+                >
+              </div>
+            </div>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="styleFontSize">
+                Font Size
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="styleFontSize"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.labels.fontSize"
+                >
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </ng-form>
+    </div>
   </div>
-</div>
 </div>
