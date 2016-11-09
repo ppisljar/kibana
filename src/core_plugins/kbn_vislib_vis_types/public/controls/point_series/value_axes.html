@@ -32,6 +32,15 @@
       <span class="kuiSideBarCollapsibleTitle__text">
         {{axis.id}}
       </span>
+
+      <button
+        aria-label="Remove value axis"
+        ng-click="removeValueAxis(axis)"
+        tooltip="Remove value axis"
+        tooltip-append-to-body="true"
+        type="button"
+        class="fa fa-remove kuiSideBarSectionTitle__action"
+      ></button>
     </button>
 
     <div ng-show="isValueAxisOpen" class="kuiSideBarCollapsibleSection">
@@ -80,83 +89,6 @@
         </div>
       </div>
 
-      <!-- Style -->
-      <div class="kuiSideBarSection">
-        <h6 class="kuiSideBarFormSectionTitle">
-          Style
-        </h6>
-
-        <div class="kuiSideBarFormRow">
-          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisColor' + $index }}">
-            Color
-          </label>
-          <div class="kuiSideBarFormRow__control">
-            <input
-              id="{{ 'valueAxisColor' + $index }}"
-              class="kuiInput kuiSideBarInput"
-              type="text"
-              ng-model="axis.style.color"
-            >
-          </div>
-        </div>
-
-        <div class="kuiSideBarFormRow">
-          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisLineWidth' + $index }}">
-            Line Width
-          </label>
-          <div class="kuiSideBarFormRow__control">
-            <input
-              id="{{ 'valueAxisLineWidth' + $index }}"
-              class="kuiInput kuiSideBarInput"
-              type="text"
-              ng-model="axis.style.lineWidth"
-            >
-          </div>
-        </div>
-
-        <div class="kuiSideBarFormRow">
-          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickColor' + $index }}">
-            Tick Color
-          </label>
-          <div class="kuiSideBarFormRow__control">
-            <input
-              id="{{ 'valueAxisTickColor' + $index }}"
-              class="kuiInput kuiSideBarInput"
-              type="text"
-              ng-model="axis.style.tickColor"
-            >
-          </div>
-        </div>
-
-        <div class="kuiSideBarFormRow">
-          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickWidth' + $index }}">
-            Tick Width
-          </label>
-          <div class="kuiSideBarFormRow__control">
-            <input
-              id="{{ 'valueAxisTickWidth' + $index }}"
-              class="kuiInput kuiSideBarInput"
-              type="text"
-              ng-model="axis.style.tickWidth"
-            >
-          </div>
-        </div>
-
-        <div class="kuiSideBarFormRow">
-          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickLength' + $index }}">
-            Tick Length
-          </label>
-          <div class="kuiSideBarFormRow__control">
-            <input
-              id="{{ 'valueAxisTickLength' + $index }}"
-              class="kuiInput kuiSideBarInput"
-              type="text"
-              ng-model="axis.style.tickLength"
-            >
-          </div>
-        </div>
-      </div>
-
       <!-- Advanced options -->
       <div class="kuiSideBarSection">
         <a
@@ -181,6 +113,83 @@
         </a>
 
         <div ng-show="isValueAxisAdvancedOptionsOpen">
+          <!-- Style -->
+          <div class="kuiSideBarSection">
+            <h6 class="kuiSideBarFormSectionTitle">
+              Style
+            </h6>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisColor' + $index }}">
+                Color
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="{{ 'valueAxisColor' + $index }}"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.style.color"
+                >
+              </div>
+            </div>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisLineWidth' + $index }}">
+                Line Width
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="{{ 'valueAxisLineWidth' + $index }}"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.style.lineWidth"
+                >
+              </div>
+            </div>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickColor' + $index }}">
+                Tick Color
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="{{ 'valueAxisTickColor' + $index }}"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.style.tickColor"
+                >
+              </div>
+            </div>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickWidth' + $index }}">
+                Tick Width
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="{{ 'valueAxisTickWidth' + $index }}"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.style.tickWidth"
+                >
+              </div>
+            </div>
+
+            <div class="kuiSideBarFormRow">
+              <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTickLength' + $index }}">
+                Tick Length
+              </label>
+              <div class="kuiSideBarFormRow__control">
+                <input
+                  id="{{ 'valueAxisTickLength' + $index }}"
+                  class="kuiInput kuiSideBarInput"
+                  type="text"
+                  ng-model="axis.style.tickLength"
+                >
+              </div>
+            </div>
+          </div>
+
           <!-- Labels -->
           <div class="kuiSideBarSection">
             <h6 class="kuiSideBarFormSectionTitle">
