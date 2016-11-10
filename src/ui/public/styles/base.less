@@ -753,25 +753,24 @@ fieldset {
     }
   }
 
-/**
- * 1. Undo Bootstrap button styles.
- */
 .kuiSideBarCollapsibleTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  text-align: left;
-  border: 0; // 1
-  background-color: transparent; // 1
-  padding: 0; // 1
   margin-bottom: 4px;
   border-bottom: 1px solid #E8E8E8;
 }
+
+  .kuiSideBarCollapsibleTitle__label {
+    display: flex;
+    align-items: center;
+  }
 
   /**
    * 1. Override FontAwesome .fa styles.
    */
   .kuiSideBarCollapsibleTitle__caret {
-    display: inline-block;
-    vertical-align: middle;
     width: 12px;
     height: 12px;
     font-size: 12px !important; // 1
@@ -780,11 +779,23 @@ fieldset {
   }
 
   .kuiSideBarCollapsibleTitle__text {
-    display: inline-block;
-    vertical-align: middle;
     font-size: 12px;
     font-weight: 700;
     color: #5A5A5A;
+  }
+
+  /**
+   * 1. Override Bootstrap button styles.
+   */
+  .kuiSideBarCollapsibleTitle__action {
+    background-color: transparent; // 1
+    padding: 0; // 1
+    cursor: pointer;
+    color: #328CAA;
+
+    &:hover {
+      color: #105A73;
+    }
   }
 
 .kuiSideBarCollapsibleSection {

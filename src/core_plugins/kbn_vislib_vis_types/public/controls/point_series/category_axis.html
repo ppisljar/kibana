@@ -1,19 +1,19 @@
 <div>
-  <button
-    class="kuiSideBarCollapsibleTitle"
-    aria-label="Open Editor"
-    ng-click="isCategoryAxisOpen = !isCategoryAxisOpen"
-    type="button"
-  >
-    <span
-      aria-hidden="true"
-      ng-class="{ 'fa-caret-down': isCategoryAxisOpen, 'fa-caret-right': !isCategoryAxisOpen }"
-      class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
-    ></span>
-    <span class="kuiSideBarCollapsibleTitle__text">
-      Category Axis
-    </span>
-  </button>
+  <div class="kuiSideBarCollapsibleTitle">
+    <div
+      class="kuiSideBarCollapsibleTitle__label"
+      ng-click="isCategoryAxisOpen = !isCategoryAxisOpen"
+    >
+      <span
+        aria-hidden="true"
+        ng-class="{ 'fa-caret-down': isCategoryAxisOpen, 'fa-caret-right': !isCategoryAxisOpen }"
+        class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+      ></span>
+      <span class="kuiSideBarCollapsibleTitle__text">
+        Category Axis
+      </span>
+    </div>
+  </div>
 
   <div ng-show="isCategoryAxisOpen" class="kuiSideBarCollapsibleSection">
     <!-- General -->

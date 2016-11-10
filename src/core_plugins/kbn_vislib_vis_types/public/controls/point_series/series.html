@@ -9,21 +9,21 @@
     ng-repeat="chart in vis.params.chart.series"
     class="kuiSideBarSection"
   >
-    <button
-      class="kuiSideBarCollapsibleTitle"
-      aria-label="Open Editor"
-      ng-click="isSeriesOpen = !isSeriesOpen"
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-        ng-class="{ 'fa-caret-down': isSeriesOpen, 'fa-caret-right': !isSeriesOpen }"
-        class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
-      ></span>
-      <span class="kuiSideBarCollapsibleTitle__text">
-        {{chart.data.label}}
-      </span>
-    </button>
+    <div class="kuiSideBarCollapsibleTitle">
+      <div
+        class="kuiSideBarCollapsibleTitle__label"
+        ng-click="isSeriesOpen = !isSeriesOpen"
+      >
+        <span
+          aria-hidden="true"
+          ng-class="{ 'fa-caret-down': isSeriesOpen, 'fa-caret-right': !isSeriesOpen }"
+          class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+        ></span>
+        <span class="kuiSideBarCollapsibleTitle__text">
+          {{chart.data.label}}
+        </span>
+      </div>
+    </div>
 
     <div ng-show="isSeriesOpen" class="kuiSideBarCollapsibleSection">
       <!-- General -->

@@ -18,30 +18,31 @@
     ng-repeat="axis in vis.params.valueAxes track by axis.id"
     class="kuiSideBarSection"
   >
-    <button
-      class="kuiSideBarCollapsibleTitle"
-      aria-label="Open Editor"
-      ng-click="isValueAxisOpen = !isValueAxisOpen"
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-        ng-class="{ 'fa-caret-down': isValueAxisOpen, 'fa-caret-right': !isValueAxisOpen }"
-        class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
-      ></span>
-      <span class="kuiSideBarCollapsibleTitle__text">
-        {{axis.id}}
-      </span>
+    <div class="kuiSideBarCollapsibleTitle">
+      <div
+        class="kuiSideBarCollapsibleTitle__label"
+        ng-click="isValueAxisOpen = !isValueAxisOpen"
+      >
+        <span
+          aria-hidden="true"
+          ng-class="{ 'fa-caret-down': isValueAxisOpen, 'fa-caret-right': !isValueAxisOpen }"
+          class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+        ></span>
+        <span class="kuiSideBarCollapsibleTitle__text">
+          {{axis.id}}
+        </span>
+      </div>
 
       <button
+        ng-hide="vis.params.valueAxes.length === 1"
         aria-label="Remove value axis"
         ng-click="removeValueAxis(axis)"
         tooltip="Remove value axis"
         tooltip-append-to-body="true"
         type="button"
-        class="fa fa-remove kuiSideBarSectionTitle__action"
+        class="fa fa-remove kuiSideBarCollapsibleTitle__action"
       ></button>
-    </button>
+    </div>
 
     <div ng-show="isValueAxisOpen" class="kuiSideBarCollapsibleSection">
       <!-- General -->
