@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import errors from 'ui/errors';
 
 export default function ColumnHandler(Private) {
 
@@ -101,6 +102,8 @@ export default function ColumnHandler(Private) {
         config.charts = createCharts(cfg, data.data);
       }
 
+      if (typeof config.enableHover === 'undefined') config.enableHover = true;
+
       return config;
     };
   }
@@ -137,6 +140,24 @@ export default function ColumnHandler(Private) {
           }
         }
       ]
-    })
+    }),
+
+    heatmap: (cfg, data) => {
+      const defaults = create()(cfg, data);
+      defaults.valueAxes[0].show = false;
+      defaults.categoryAxes.push({
+        id: 'CategoryAxis-2',
+        type: 'category',
+        position: 'left',
+        values: data.getLabels(),
+        labels: {
+          axisFormatter: val => val
+        },
+        title: {
+          text: data.get('yAxisLabel')
+        }
+      });
+      return defaults;
+    }
   };
 };

@@ -3,6 +3,7 @@ import html from 'ui/visualize/visualize_legend.html';
 import VislibLibDataProvider from 'ui/vislib/lib/data';
 import VislibComponentsColorColorProvider from 'ui/vislib/components/color/color';
 import FilterBarFilterBarClickHandlerProvider from 'ui/filter_bar/filter_bar_click_handler';
+import colorFunc from 'ui/vislib/components/color/heatmap_color';
 import uiModules from 'ui/modules';
 
 
@@ -23,6 +24,16 @@ uiModules.get('kibana')
       $scope.$watch('renderbot.chartData', function (data) {
         if (!data) return;
         $scope.data = data;
+        refresh();
+      });
+
+      if ($scope.vis.type.name === 'heatmap') {
+        $scope.$watch('vis.params.colorsNumber', () => refresh(true));
+        $scope.$watch('vis.params.colorSchema', () => refresh(true));
+        $scope.$watch('vis.params.setColorRange', () => refresh());
+      }
+      $scope.$watch('vis.params.addLegend', (newVal) => {
+        if (newVal !== $scope.open) $scope.toggleLegend();
         refresh();
       });
 
@@ -97,22 +108,24 @@ uiModules.get('kibana')
         '#E0F9D7', '#FCEACA', '#CFFAFF', '#F9E2D2', '#FCE2DE', '#BADFF4', '#F9D9F9', '#DEDAF7'  //7
       ];
 
-      function refresh() {
+      function refresh(refreshColors = false) {
+        if (!$scope.renderbot) return;
         let vislibVis = $scope.renderbot.vislibVis;
 
         if ($scope.uiState.get('vis.legendOpen') == null && $scope.vis.params.addLegend != null) {
           $scope.open = $scope.vis.params.addLegend;
         }
 
-        $scope.labels = getLabels($scope.data, vislibVis.visConfigArgs.type);
+        $scope.labels = getLabels($scope.data, vislibVis.visConfigArgs.type, refreshColors);
         $scope.getColor = colorPalette(_.pluck($scope.labels, 'label'), $scope.uiState.get('vis.colors'));
       }
 
       // Most of these functions were moved directly from the old Legend class. Not a fan of this.
-      function getLabels(data, type) {
+      function getLabels(data, type, refreshColors) {
         if (!data) return [];
         data = data.columns || data.rows || [data];
         if (type === 'pie') return Data.prototype.pieNames(data);
+        else if (type === 'heatmap') return getHeatmapLabels(refreshColors);
         return getSeriesLabels(data);
       }
 
@@ -126,7 +139,33 @@ uiModules.get('kibana')
         return _.compact(_.uniq(values, 'label'));
       }
 
+      function getHeatmapLabels(refreshColors) {
+        const colorsNumber = $scope.vis.params.colorsNumber;
+        const labels = [];
+        const colors = {};
+        for (let i = 0; i < colorsNumber; i++) {
+          let label;
+          let color;
+          const val = Math.ceil(i * (100 / colorsNumber));
+          if ($scope.vis.params.setColorRange) {
+            const greaterThan = $scope.vis.params.colorsRange[i].value;
+            color = $scope.vis.params.colorsRange[i].color;
+            label = `> ${greaterThan}`;
+          } else {
+            const nextVal = Math.ceil((i + 1) * (100 / colorsNumber));
+            label = `${val}% - ${nextVal}%`;
+          }
+          labels.push({
+            label: label
+          });
+          colors[label] = colorFunc(color || Math.ceil(val / 10), $scope.vis.params.colorSchema);
+        }
+        if (refreshColors || !$scope.uiState.get('vis.colors')) {
+          $scope.uiState.set('vis.colors', colors);
+        }
 
+        return labels;
+      }
     }
   };
 });
