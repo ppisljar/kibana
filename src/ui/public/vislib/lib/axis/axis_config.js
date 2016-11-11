@@ -134,8 +134,8 @@ export default function AxisConfigFactory() {
       this.set('scale.stacked', stacked);
     };
 
-    get(property, defaults = null) {
-      if (_.has(this._values, property)) {
+    get(property, defaults) {
+      if (typeof defaults !== 'undefined' || _.has(this._values, property)) {
         return _.get(this._values, property, defaults);
       } else {
         throw new Error(`Accessing invalid config property: ${property}`);
