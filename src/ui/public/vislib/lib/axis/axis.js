@@ -213,11 +213,11 @@ export default function AxisFactory(Private) {
     }
 
     adjustSize() {
-      const self = this;
       const config = this.axisConfig;
       const xAxisPadding = 15;
       const style = config.get('style');
       const margin = this.visConfig.get('style.margin');
+      const chartEl = this.visConfig.get('el');
       const position = config.get('position');
 
       return function (selection) {
@@ -242,6 +242,11 @@ export default function AxisFactory(Private) {
             .attr('transform', `translate(0, ${length - parseInt(style.lineWidth)})`);
             selection.select('path')
             .attr('transform', 'translate(1,0)');
+          }
+          if (config.get('type') === 'value') {
+            const spacerNodes = $(chartEl).find(`.y-axis-spacer-block-${position}`);
+            const elHeight = $(chartEl).find(`.axis-wrapper-${position}`).height();
+            spacerNodes.height(elHeight);
           }
         } else {
           const axisSpacing = 2;
