@@ -148,7 +148,7 @@ export default function ColumnHandler(Private) {
         position: 'left',
         values: data.getLabels(),
         labels: {
-          axisFormatter: data.data.yAxisFormatter || data.get('yAxisFormatter')
+          axisFormatter: val => val
         },
         title: {
           text: data.get('yAxisLabel')
