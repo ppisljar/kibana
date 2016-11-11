@@ -27,7 +27,7 @@ export default function VisFactory(Private) {
       super(arguments);
       this.el = $el.get ? $el.get(0) : $el;
       this.binder = new Binder();
-      this.visConfigArgs = visConfigArgs;
+      this.visConfigArgs = _.cloneDeep(visConfigArgs);
       this.visConfigArgs.el = this.el;
 
       // bind the resize function so it can be used as an event handler
