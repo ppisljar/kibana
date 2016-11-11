@@ -3,6 +3,7 @@ import html from 'ui/visualize/visualize_legend.html';
 import VislibLibDataProvider from 'ui/vislib/lib/data';
 import VislibComponentsColorColorProvider from 'ui/vislib/components/color/color';
 import FilterBarFilterBarClickHandlerProvider from 'ui/filter_bar/filter_bar_click_handler';
+import colorFunc from 'ui/vislib/components/color/heatmap_color';
 import uiModules from 'ui/modules';
 
 
@@ -24,7 +25,19 @@ uiModules.get('kibana')
         if (!data) return;
         $scope.data = data;
         refresh();
+
+        if ($scope.renderbot.vislibVis.visConfigArgs.type === 'heatmap') {
+          $scope.$watch('vis.params.colorsNumber', () => {
+            refresh();
+          });
+
+          $scope.$watch('vis.params.colorSchema', () => {
+            refresh();
+          });
+        }
       });
+
+
 
       $scope.highlight = function (event) {
         let el = event.currentTarget;
@@ -102,7 +115,9 @@ uiModules.get('kibana')
         }
 
         $scope.labels = getLabels($scope.data, vislibVis.visConfigArgs.type);
-        $scope.getColor = colorPalette(_.pluck($scope.labels, 'label'), $scope.uiState.get('vis.colors'));
+        if (vislibVis.visConfigArgs.type !== 'heatmap') {
+          $scope.getColor = colorPalette(_.pluck($scope.labels, 'label'), $scope.uiState.get('vis.colors'));
+        }
       }
 
       // Most of these functions were moved directly from the old Legend class. Not a fan of this.
@@ -110,6 +125,7 @@ uiModules.get('kibana')
         if (!data) return [];
         data = data.columns || data.rows || [data];
         if (type === 'pie') return Data.prototype.pieNames(data);
+        else if (type === 'heatmap') return getHeatmapLabels();
         return getSeriesLabels(data);
       }
 
@@ -123,7 +139,24 @@ uiModules.get('kibana')
         return _.compact(_.uniq(values, 'label'));
       }
 
-
+      function getHeatmapLabels() {
+        const colorsNumber = $scope.vis.params.colorsNumber;
+        const labels = [];
+        const colors = {};
+        for (let i = 0; i < colorsNumber; i++) {
+          const val = Math.ceil(i * (100 / colorsNumber));
+          const nextVal = Math.ceil((i + 1) * (100 / colorsNumber));
+          const label = `${val}% - ${nextVal}%`;
+          labels.push({
+            label: label
+          });
+          colors[label] = colorFunc(Math.ceil(val / 10), $scope.vis.params.colorSchema);
+        }
+        $scope.getColor = label => {
+          return colors[label];
+        };
+        return labels;
+      }
     }
   };
 });

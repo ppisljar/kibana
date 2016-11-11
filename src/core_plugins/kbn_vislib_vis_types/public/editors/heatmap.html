@@ -1,0 +1,22 @@
+<!-- vis type specific options -->
+<div class="vis-option-item form-group">
+  <label>
+    Color schema
+  </label>
+  <select class="form-control" ng-model="vis.params.colorSchema" ng-options="mode for mode in vis.type.params.colorSchemas"></select>
+</div>
+<div class="vis-option-item form-group">
+  <label>
+    Number of colors
+    </kbn-info>
+  </label>
+  <input type="range" step="1" min="3" max="10" class="form-control" ng-model="vis.params.colorsNumber" />
+</div>
+<div class="vis-option-item form-group">
+  <label>
+    Z-Axis Scale
+  </label>
+  <select class="form-control" ng-model="vis.params.scale" ng-options="mode for mode in vis.type.params.scales"></select>
+</div>
+<point-series-options></point-series-options>
+<vislib-basic-options></vislib-basic-options>

@@ -137,6 +137,24 @@ export default function ColumnHandler(Private) {
           }
         }
       ]
-    })
+    }),
+
+    heatmap: (cfg, data) => {
+      const defaults = create()(cfg, data);
+      defaults.valueAxes[0].show = false;
+      defaults.categoryAxes.push({
+        id: 'CategoryAxis-2',
+        type: 'category',
+        position: 'left',
+        values: data.getLabels(),
+        labels: {
+          axisFormatter: data.data.yAxisFormatter || data.get('yAxisFormatter')
+        },
+        title: {
+          text: data.get('yAxisLabel')
+        }
+      });
+      return defaults;
+    }
   };
 };

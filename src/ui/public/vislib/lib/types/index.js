@@ -16,6 +16,7 @@ export default function TypeFactory(Private) {
     pie: Private(VislibLibTypesPieProvider),
     area: pointSeries.area,
     tile_map: Private(VislibLibTypesTileMapProvider),
-    point_series: pointSeries.line
+    point_series: pointSeries.line,
+    heatmap: pointSeries.heatmap,
   };
 };
