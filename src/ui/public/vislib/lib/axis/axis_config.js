@@ -72,7 +72,7 @@ export default function AxisConfigFactory() {
       this.data = chartConfig.data;
       if (this._values.type === 'category') {
         if (!this._values.values) {
-          this.values = this.data.xValues();
+          this.values = this.data.xValues(chartConfig.get('orderBucketsBySum', false));
           this.ordered = this.data.get('ordered');
         } else {
           this.values = this._values.values;

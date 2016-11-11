@@ -124,7 +124,7 @@ export default function DataFactory(Private) {
           matchingSeries.push(series[i]);
         }
       });
-      return this.injectZeros(matchingSeries);
+      return matchingSeries;
     };
 
     stackChartData(handler, data, chartConfig) {
@@ -132,6 +132,7 @@ export default function DataFactory(Private) {
       handler.valueAxes.forEach((axis, i) => {
         const id = axis.axisConfig.get('id');
         stackedData[id] = this.getStackedSeries(chartConfig, axis, data, i === 0);
+        stackedData[id] = this.injectZeros(stackedData[id], handler.visConfig.get('orderBucketsBySum', false));
         axis.stack(_.map(stackedData[id], 'values'));
       });
       return stackedData;
@@ -372,8 +373,8 @@ export default function DataFactory(Private) {
      * @method injectZeros
      * @returns {Object} Data object with zeros injected
      */
-    injectZeros(data) {
-      return injectZeros(data, this.data);
+    injectZeros(data, orderBucketsBySum = false) {
+      return injectZeros(data, this.data, orderBucketsBySum);
     };
 
     /**
@@ -382,8 +383,8 @@ export default function DataFactory(Private) {
      * @method xValues
      * @returns {Array} Array of x axis values
      */
-    xValues() {
-      return orderKeys(this.data, this._attr.orderBucketsBySum);
+    xValues(orderBucketsBySum = false) {
+      return orderKeys(this.data, orderBucketsBySum);
     };
 
     /**

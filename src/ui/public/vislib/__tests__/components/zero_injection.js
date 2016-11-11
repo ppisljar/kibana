@@ -316,8 +316,8 @@ describe('Vislib Zero Injection Module Test Suite', function () {
 
     it('should return an array of values ordered by their sum when orderBucketsBySum is true', function () {
       const orderBucketsBySum = true;
-      results = orderXValues(multiSeriesData, orderBucketsBySum);
-      numberedResults = orderXValues(multiSeriesNumberedData, orderBucketsBySum);
+      results = orderXValues(multiSeriesDataObj, orderBucketsBySum);
+      numberedResults = orderXValues(multiSeriesNumberedDataObj, orderBucketsBySum);
 
       expect(results[0]).to.be('3');
       expect(results[1]).to.be('1');

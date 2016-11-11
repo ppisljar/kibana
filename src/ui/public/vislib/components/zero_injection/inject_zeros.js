@@ -19,8 +19,8 @@ export default function ZeroInjectionUtilService(Private) {
    * and injects zeros where needed.
    */
 
-  return function (obj, data) {
-    const keys = orderXValues(data); //_(obj).map('values').flatten().map('x').uniq().value();//
+  return function (obj, data, orderBucketsBySum = false) {
+    const keys = orderXValues(data, orderBucketsBySum); //_(obj).map('values').flatten().map('x').uniq().value();//
 
     obj.forEach(function (series) {
       const zeroArray = createZeroFilledArray(keys, series.label);
@@ -30,4 +30,3 @@ export default function ZeroInjectionUtilService(Private) {
     return obj;
   };
 };
-vis._attr.orderBucketsBySum
