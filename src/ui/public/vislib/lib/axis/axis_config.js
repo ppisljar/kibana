@@ -45,17 +45,23 @@ export default function AxisConfigFactory() {
   const categoryDefaults = {
     type: 'category',
     position: 'bottom',
-    labels: {
-      rotate: 0,
-      rotateAnchor: 'end',
-      filter: true,
-      truncate: 0,
-    }
   };
 
   const valueDefaults = {
     labels: {
       axisFormatter: d3.format('n')
+    }
+  };
+
+  const horizontalDefaults = {
+    labels: {
+      rotateAnchor: 'end',
+    }
+  };
+
+  const verticalDefaults = {
+    labels: {
+      rotateAnchor: 'center',
     }
   };
 
@@ -65,6 +71,8 @@ export default function AxisConfigFactory() {
       // _.defaultsDeep mutates axisConfigArgs nested values so we clone it first
       const axisConfigArgsClone = _.cloneDeep(axisConfigArgs);
       this._values = _.defaultsDeep({}, axisConfigArgsClone, typeDefaults, defaults);
+
+      _.merge(this._values, this.isHorizontal() ? horizontalDefaults : verticalDefaults);
 
       this._values.elSelector = this._values.elSelector.replace('{pos}', this._values.position);
       this._values.rootEl = chartConfig.get('el');

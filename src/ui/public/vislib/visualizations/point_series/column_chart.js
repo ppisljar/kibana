@@ -36,8 +36,9 @@ export default function ColumnChartFactory(Private) {
 
       const layer = svg.append('g')
       .attr('class', function (d, i) {
-        return 'series ' + i;
-      });
+        return `series series-${i}`;
+      })
+      .attr('clip-path', 'url(#' + this.baseChart.clipPathId + ')');
 
       const bars = layer.selectAll('rect')
       .data(data.values);
@@ -50,9 +51,8 @@ export default function ColumnChartFactory(Private) {
       .enter()
       .append('rect')
       .attr('data-label', data.label)
-      .attr('fill', () => {
-        return color(data.label);
-      });
+      .attr('fill', () => color(data.label))
+      .attr('stroke', () => color(data.label));
 
       self.updateBars(bars);
 
@@ -91,36 +91,46 @@ export default function ColumnChartFactory(Private) {
       const xScale = this.getCategoryAxis().getScale();
       const yScale = this.getValueAxis().getScale();
       const isHorizontal = this.getCategoryAxis().axisConfig.isHorizontal();
+      const isTimeScale = this.getCategoryAxis().axisConfig.isTimeDomain();
       const height = yScale.range()[0];
       const yMin = yScale.domain()[0];
+      const groupSpacingPercentage = 0.15;
+      const groupCount = this.getGroupedCount();
+      const groupNum = this.getGroupedNum(this.chartData);
 
       let barWidth;
-      if (this.getCategoryAxis().axisConfig.isTimeDomain()) {
-        const { min, interval } = this.handler.data.get('ordered');
-        const start = min;
-        const end = moment(min).add(interval).valueOf();
+      if (isTimeScale) {
+        const {min, interval} = this.handler.data.get('ordered');
+        let groupWidth = xScale(min + interval) - xScale(min);
+        if (!isHorizontal) groupWidth *= -1;
+        const groupSpacing = groupWidth * groupSpacingPercentage;
 
-        barWidth = xScale(end) - xScale(start);
-        if (!isHorizontal) barWidth *= -1;
-        barWidth = barWidth - Math.min(barWidth * 0.25, 15);
+        barWidth = (groupWidth - groupSpacing) / groupCount;
       }
 
       function x(d) {
-        return xScale(d.x);
+        if (isTimeScale) {
+          return xScale(d.x) + barWidth * groupNum;
+        }
+        return xScale(d.x) + xScale.rangeBand() / groupCount * groupNum;
       }
 
       function y(d) {
+        if ((isHorizontal && d.y < 0) || (!isHorizontal && d.y > 0)) {
+          return yScale(0);
+        }
+        if (!isHorizontal && d.y < 0) return yScale(d.y);
         return yScale(d.y0 + d.y);
       }
 
       function widthFunc() {
-        return barWidth || xScale.rangeBand();
+        if (isTimeScale) {
+          return barWidth;
+        }
+        return xScale.rangeBand() / groupCount;
       }
 
       function heightFunc(d) {
-        if (d.y < 0) {
-          return Math.abs(yScale(d.y0 + d.y) - yScale(d.y0));
-        }
         // todo:
         // Due to an issue with D3 not returning zeros correctly when using
         // an offset='expand', need to add conditional statement to handle zeros
@@ -140,9 +150,7 @@ export default function ColumnChartFactory(Private) {
 
       // update
       bars
-      .attr('x', isHorizontal ? x : function (d) {
-        return yScale(d.y0);
-      })
+      .attr('x', isHorizontal ? x : y)
       .attr('width', isHorizontal ? widthFunc : heightFunc)
       .attr('y', isHorizontal ? y : x)
       .attr('height', isHorizontal ? heightFunc : widthFunc);
@@ -160,8 +168,8 @@ export default function ColumnChartFactory(Private) {
     addGroupedBars(bars) {
       const xScale = this.getCategoryAxis().getScale();
       const yScale = this.getValueAxis().getScale();
-      const n = this.getGroupedCount();
-      const j = this.getGroupedNum(this.chartData);
+      const groupCount = this.getGroupedCount();
+      const groupNum = this.getGroupedNum(this.chartData);
       const height = yScale.range()[0];
       const groupSpacingPercentage = 0.15;
       const isTimeScale = this.getCategoryAxis().axisConfig.isTimeDomain();
@@ -176,18 +184,18 @@ export default function ColumnChartFactory(Private) {
         if (!isHorizontal) groupWidth *= -1;
         const groupSpacing = groupWidth * groupSpacingPercentage;
 
-        barWidth = (groupWidth - groupSpacing) / n;
+        barWidth = (groupWidth - groupSpacing) / groupCount;
       }
 
       function x(d) {
         if (isTimeScale) {
-          return xScale(d.x) + barWidth * j;
+          return xScale(d.x) + barWidth * groupNum;
         }
-        return xScale(d.x) + xScale.rangeBand() / n * j;
+        return xScale(d.x) + xScale.rangeBand() / groupCount * groupNum;
       }
 
       function y(d) {
-        if (d.y < 0) {
+        if ((isHorizontal && d.y < 0) || (!isHorizontal && d.y > 0)) {
           return yScale(0);
         }
 
@@ -202,7 +210,7 @@ export default function ColumnChartFactory(Private) {
         if (isTimeScale) {
           return barWidth;
         }
-        return xScale.rangeBand() / n;
+        return xScale.rangeBand() / groupCount;
       }
 
       function heightFunc(d) {
@@ -212,7 +220,7 @@ export default function ColumnChartFactory(Private) {
 
       // update
       bars
-      .attr('x', isHorizontal ? x : 0)
+      .attr('x', isHorizontal ? x : y)
       .attr('width', isHorizontal ? widthFunc : heightFunc)
       .attr('y', isHorizontal ? y : x)
       .attr('height', isHorizontal ? heightFunc : widthFunc);
