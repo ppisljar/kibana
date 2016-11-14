@@ -14,7 +14,7 @@ module.directive('vislibSeries', function ($parse, $compile) {
           show: true,
           mode: 'normal',
           type: 'line',
-          showLines: true,
+          drawLinesBetweenPoints: true,
           showCircles: true,
           smoothLines: false,
           data: {

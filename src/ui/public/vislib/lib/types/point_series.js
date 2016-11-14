@@ -4,9 +4,10 @@ export default function ColumnHandler(Private) {
 
   const createSerieFromParams = (cfg, seri) => {
     // todo this wont work with splits ... same issue exists in dispatch
-    const matchingSeriParams = cfg.seriesParams.find(seriConfig => {
+    const matchingSeriParams = cfg.seriesParams ? cfg.seriesParams.find(seriConfig => {
       return seri.label.includes(seriConfig.data.label);
-    });
+    }) : null;
+
 
     if (!matchingSeriParams) {
       const stacked = ['stacked', 'percentage', 'wiggle', 'silhouette'].includes(cfg.mode);
