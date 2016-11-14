@@ -1,10 +1,10 @@
 import _ from 'lodash';
 import moment from 'moment';
 import errors from 'ui/errors';
-import VislibVisualizationsPointSeriProvider from 'ui/vislib/visualizations/point_series/_point_seri';
+import VislibVisualizationsPointSeriesProvider from './_point_series';
 export default function ColumnChartFactory(Private) {
 
-  const PointSeri = Private(VislibVisualizationsPointSeriProvider);
+  const PointSeries = Private(VislibVisualizationsPointSeriesProvider);
 
   const defaults = {
     mode: 'normal',
@@ -22,7 +22,7 @@ export default function ColumnChartFactory(Private) {
    * @param el {HTMLElement} HTML element to which the chart will be appended
    * @param chartData {Object} Elasticsearch query results for this specific chart
    */
-  class ColumnChart extends PointSeri {
+  class ColumnChart extends PointSeries {
     constructor(handler, chartEl, chartData, seriesConfigArgs) {
       super(handler, chartEl, chartData, seriesConfigArgs);
       this.seriesConfig = _.defaults(seriesConfigArgs || {}, defaults);

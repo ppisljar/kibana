@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import VisTypesProvider from 'ui/vislib/lib/types';
-import VislibLibDataProvider from 'ui/vislib/lib/data';
+import VisTypesProvider from './types';
+import VislibLibDataProvider from './data';
 
 
 export default function VisConfigFactory(Private) {

@@ -1,11 +1,10 @@
 import d3 from 'd3';
 import _ from 'lodash';
 import $ from 'jquery';
-import errors from 'ui/errors';
-import VislibVisualizationsPointSeriProvider from 'ui/vislib/visualizations/point_series/_point_seri';
+import VislibVisualizationsPointSeriesProvider from './_point_series';
 export default function AreaChartFactory(Private) {
 
-  const PointSeri = Private(VislibVisualizationsPointSeriProvider);
+  const PointSeries = Private(VislibVisualizationsPointSeriesProvider);
 
   const defaults = {
     mode: 'normal',
@@ -28,7 +27,7 @@ export default function AreaChartFactory(Private) {
    * @param chartData {Object} Elasticsearch query results for this specific
    * chart
    */
-  class AreaChart extends PointSeri {
+  class AreaChart extends PointSeries {
     constructor(handler, chartEl, chartData, seriesConfigArgs) {
       super(handler, chartEl, chartData, seriesConfigArgs);
 

@@ -1,7 +1,7 @@
 import d3 from 'd3';
 import _ from 'lodash';
-import ErrorHandlerProvider from 'ui/vislib/lib/_error_handler';
-import TooltipProvider from 'ui/vislib/components/tooltip';
+import ErrorHandlerProvider from './_error_handler';
+import TooltipProvider from '../components/tooltip';
 export default function ChartTitleFactory(Private) {
   const ErrorHandler = Private(ErrorHandlerProvider);
   const Tooltip = Private(TooltipProvider);

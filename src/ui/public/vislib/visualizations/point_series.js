@@ -2,10 +2,10 @@ import d3 from 'd3';
 import _ from 'lodash';
 import $ from 'jquery';
 import errors from 'ui/errors';
-import TooltipProvider from 'ui/vislib/components/tooltip';
-import VislibVisualizationsChartProvider from 'ui/vislib/visualizations/_chart';
-import VislibVisualizationsTimeMarkerProvider from 'ui/vislib/visualizations/time_marker';
-import VislibVisualizationsSeriTypesProvider from 'ui/vislib/visualizations/point_series/seri_types';
+import TooltipProvider from '../components/tooltip';
+import VislibVisualizationsChartProvider from './_chart';
+import VislibVisualizationsTimeMarkerProvider from './time_marker';
+import VislibVisualizationsSeriTypesProvider from './point_series/series_types';
 
 export default function PointSeriesFactory(Private) {
 
@@ -13,7 +13,7 @@ export default function PointSeriesFactory(Private) {
   const Tooltip = Private(TooltipProvider);
   const TimeMarker = Private(VislibVisualizationsTimeMarkerProvider);
   const seriTypes = Private(VislibVisualizationsSeriTypesProvider);
-  const touchdownTmpl = _.template(require('ui/vislib/partials/touchdown.tmpl.html'));
+  const touchdownTmpl = _.template(require('../partials/touchdown.tmpl.html'));
   /**
    * Line Chart Visualization
    *
@@ -168,7 +168,6 @@ export default function PointSeriesFactory(Private) {
     };
 
     draw() {
-      // todo: do we need to handle width and height here ?
       let self = this;
       let $elem = $(this.chartEl);
       let margin = this.handler.visConfig.get('style.margin');

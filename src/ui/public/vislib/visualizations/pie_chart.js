@@ -2,7 +2,7 @@ import d3 from 'd3';
 import _ from 'lodash';
 import $ from 'jquery';
 import errors from 'ui/errors';
-import VislibVisualizationsChartProvider from 'ui/vislib/visualizations/_chart';
+import VislibVisualizationsChartProvider from './_chart';
 export default function PieChartFactory(Private) {
 
   const Chart = Private(VislibVisualizationsChartProvider);

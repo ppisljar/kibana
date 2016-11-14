@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import VislibComponentsZeroInjectionOrderedXKeysProvider from 'ui/vislib/components/zero_injection/ordered_x_keys';
-import VislibComponentsZeroInjectionZeroFilledArrayProvider from 'ui/vislib/components/zero_injection/zero_filled_array';
-import VislibComponentsZeroInjectionZeroFillDataArrayProvider from 'ui/vislib/components/zero_injection/zero_fill_data_array';
+import VislibComponentsZeroInjectionOrderedXKeysProvider from './ordered_x_keys';
+import VislibComponentsZeroInjectionZeroFilledArrayProvider from './zero_filled_array';
+import VislibComponentsZeroInjectionZeroFillDataArrayProvider from './zero_fill_data_array';
 export default function ZeroInjectionUtilService(Private) {
 
   const orderXValues = Private(VislibComponentsZeroInjectionOrderedXKeysProvider);

@@ -1,7 +1,7 @@
-import VislibLibLayoutSplitsColumnChartChartSplitProvider from 'ui/vislib/lib/layout/splits/column_chart/chart_split';
-import VislibLibLayoutSplitsColumnChartYAxisSplitProvider from 'ui/vislib/lib/layout/splits/column_chart/y_axis_split';
-import VislibLibLayoutSplitsColumnChartXAxisSplitProvider from 'ui/vislib/lib/layout/splits/column_chart/x_axis_split';
-import VislibLibLayoutSplitsColumnChartChartTitleSplitProvider from 'ui/vislib/lib/layout/splits/column_chart/chart_title_split';
+import VislibLibLayoutSplitsColumnChartChartSplitProvider from '../splits/column_chart/chart_split';
+import VislibLibLayoutSplitsColumnChartYAxisSplitProvider from '../splits/column_chart/y_axis_split';
+import VislibLibLayoutSplitsColumnChartXAxisSplitProvider from '../splits/column_chart/x_axis_split';
+import VislibLibLayoutSplitsColumnChartChartTitleSplitProvider from '../splits/column_chart/chart_title_split';
 export default function ColumnLayoutFactory(Private) {
 
   const chartSplit = Private(VislibLibLayoutSplitsColumnChartChartSplitProvider);
@@ -89,12 +89,6 @@ export default function ColumnLayoutFactory(Private) {
                     class: 'x-axis-div-wrapper',
                     splits: xAxisSplit
                   }
-                  /*{
-                    type: 'div',
-                    class: 'x-axis-chart-title',
-                    splits: chartTitleSplit
-                  },*/
-
                 ]
               },
               {
@@ -145,11 +139,6 @@ export default function ColumnLayoutFactory(Private) {
                     class: 'y-axis-div-wrapper',
                     splits: yAxisSplit
                   },
-                  /*{
-                    type: 'div',
-                    class: 'y-axis-chart-title',
-                    splits: chartTitleSplit
-                  },*/
                   {
                     type: 'div',
                     class: 'y-axis-title axis-title'

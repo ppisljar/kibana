@@ -2,11 +2,11 @@ import _ from 'lodash';
 import d3 from 'd3';
 import Binder from 'ui/binder';
 import errors from 'ui/errors';
-import 'ui/vislib/styles/main.less';
-import VislibLibResizeCheckerProvider from 'ui/vislib/lib/resize_checker';
 import EventsProvider from 'ui/events';
-import VisConifgProvider from 'ui/vislib/lib/vis_config';
-import VisHandlerProvider from 'ui/vislib/lib/handler';
+import './styles/main.less';
+import VislibLibResizeCheckerProvider from './lib/resize_checker';
+import VisConifgProvider from './lib/vis_config';
+import VisHandlerProvider from './lib/handler';
 
 export default function VisFactory(Private) {
   const ResizeChecker = Private(VislibLibResizeCheckerProvider);

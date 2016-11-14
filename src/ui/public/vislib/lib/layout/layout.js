@@ -1,7 +1,7 @@
 import d3 from 'd3';
 import _ from 'lodash';
 import $ from 'jquery';
-import VislibLibLayoutLayoutTypesProvider from 'ui/vislib/lib/layout/layout_types';
+import VislibLibLayoutLayoutTypesProvider from './layout_types';
 import AxisProvider from 'ui/vislib/lib/axis';
 export default function LayoutFactory(Private) {
 

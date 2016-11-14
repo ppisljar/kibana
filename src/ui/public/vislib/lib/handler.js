@@ -2,11 +2,11 @@ import d3 from 'd3';
 import _ from 'lodash';
 import errors from 'ui/errors';
 import Binder from 'ui/binder';
-import VislibLibLayoutLayoutProvider from 'ui/vislib/lib/layout/layout';
-import VislibLibChartTitleProvider from 'ui/vislib/lib/chart_title';
-import VislibLibAlertsProvider from 'ui/vislib/lib/alerts';
-import VislibAxisProvider from 'ui/vislib/lib/axis';
-import VislibVisualizationsVisTypesProvider from 'ui/vislib/visualizations/vis_types';
+import VislibLibLayoutLayoutProvider from './layout/layout';
+import VislibLibChartTitleProvider from './chart_title';
+import VislibLibAlertsProvider from './alerts';
+import VislibAxisProvider from './axis/axis';
+import VislibVisualizationsVisTypesProvider from '../visualizations/vis_types';
 
 export default function HandlerBaseClass(Private) {
   const chartTypes = Private(VislibVisualizationsVisTypesProvider);
@@ -41,6 +41,10 @@ export default function HandlerBaseClass(Private) {
 
       if (visConfig.get('type') === 'point_series') {
         this.data.stackData(this);
+      }
+
+      if (visConfig.get('resize', false)) {
+        this.resize = visConfig.get('resize');
       }
 
       this.layout = new Layout(visConfig);

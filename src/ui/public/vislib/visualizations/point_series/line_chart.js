@@ -1,9 +1,9 @@
 import d3 from 'd3';
 import _ from 'lodash';
-import VislibVisualizationsPointSeriProvider from 'ui/vislib/visualizations/point_series/_point_seri';
+import VislibVisualizationsPointSeriesProvider from './_point_series';
 export default function LineChartFactory(Private) {
 
-  const PointSeri = Private(VislibVisualizationsPointSeriProvider);
+  const PointSeries = Private(VislibVisualizationsPointSeriesProvider);
 
   const defaults = {
     mode: 'normal',
@@ -25,7 +25,7 @@ export default function LineChartFactory(Private) {
    * @param el {HTMLElement} HTML element to which the chart will be appended
    * @param chartData {Object} Elasticsearch query results for this specific chart
    */
-  class LineChart extends PointSeri {
+  class LineChart extends PointSeries {
     constructor(handler, chartEl, chartData, seriesConfigArgs) {
       super(handler, chartEl, chartData, seriesConfigArgs);
       this.seriesConfig = _.defaults(seriesConfigArgs || {}, defaults);

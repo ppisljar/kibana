@@ -1,6 +1,6 @@
-import VislibLibTypesPointSeriesProvider from 'ui/vislib/lib/types/point_series';
-import VislibLibTypesPieProvider from 'ui/vislib/lib/types/pie';
-import VislibLibTypesTileMapProvider from 'ui/vislib/lib/types/tile_map';
+import VislibLibTypesPointSeriesProvider from './point_series';
+import VislibLibTypesPieProvider from './pie';
+import VislibLibTypesTileMapProvider from './tile_map';
 
 export default function TypeFactory(Private) {
   const pointSeries = Private(VislibLibTypesPointSeriesProvider);

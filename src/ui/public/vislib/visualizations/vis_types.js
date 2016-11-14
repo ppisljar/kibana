@@ -1,6 +1,6 @@
-import VislibVisualizationsPointSeriesProvider from 'ui/vislib/visualizations/point_series';
-import VislibVisualizationsPieChartProvider from 'ui/vislib/visualizations/pie_chart';
-import VislibVisualizationsTileMapProvider from 'ui/vislib/visualizations/tile_map';
+import VislibVisualizationsPointSeriesProvider from './point_series';
+import VislibVisualizationsPieChartProvider from './pie_chart';
+import VislibVisualizationsTileMapProvider from './tile_map';
 
 export default function VisTypeFactory(Private) {
 

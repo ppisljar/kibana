@@ -7,11 +7,11 @@ export default function MapHandlerProvider(Private) {
       });
     }
 
-    /*MapHandler.resize = function () {
+    config.resize = function () {
       this.charts.forEach(function (chart) {
         chart.resizeArea();
       });
-    };*/
+    };
 
     return config;
   };
