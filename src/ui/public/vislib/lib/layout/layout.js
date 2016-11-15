@@ -78,7 +78,7 @@ export default function LayoutFactory(Private) {
 
       if (axis.axisConfig.isHorizontal()) {
         const spacerNodes = $(this.el).find(`.y-axis-spacer-block-${position}`);
-        el.find('.x-axis-div-wrapper').height(`${height}px`);
+        el.height(`${height}px`);
         spacerNodes.height(el.height());
       } else {
         el.find('.y-axis-div-wrapper').width(`${width}px`);
