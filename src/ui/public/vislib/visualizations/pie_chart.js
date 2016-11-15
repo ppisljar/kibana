@@ -10,8 +10,8 @@ export default function PieChartFactory(Private) {
   const defaults = {
     isDonut: false,
     showTooltip: true,
-    color: undefined, // todo
-    fillColor: undefined, // todo
+    color: undefined,
+    fillColor: undefined,
     xValue: function (d) { return d.x; },
     yValue: function (d) { return d.y; }
   };

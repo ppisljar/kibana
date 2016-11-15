@@ -12,8 +12,8 @@ export default function LineChartFactory(Private) {
     showLines: true,
     smoothLines: false,
     interpolate: 'linear',
-    color: undefined, // todo
-    fillColor: undefined // todo
+    color: undefined,
+    fillColor: undefined
   };
   /**
    * Line Chart Visualization

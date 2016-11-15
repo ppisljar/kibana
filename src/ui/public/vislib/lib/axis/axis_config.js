@@ -9,7 +9,7 @@ export default function AxisConfigFactory() {
     position: 'left',
     scale: {
       type: 'linear',
-      expandLastBucket: true, //TODO: rename ... bucket has nothing to do with vis
+      expandLastBucket: true,
       inverted: false,
       setYExtents: null,
       defaultYExtents: null,
@@ -32,7 +32,7 @@ export default function AxisConfigFactory() {
       rotateAnchor: 'center',
       filter: false,
       color: '#ddd',
-      font: '"Open Sans", "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif', // TODO
+      font: '"Open Sans", "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif',
       fontSize: '8pt',
       truncate: 30
     },

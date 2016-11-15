@@ -75,7 +75,6 @@ export default function AxisLabelsFactory(Private) {
 
         selection.selectAll('.tick text')
         .text(function () {
-          // TODO: add title to trancuated labels
           return self.truncateLabel(this, config.get('labels.truncate'));
         });
       };

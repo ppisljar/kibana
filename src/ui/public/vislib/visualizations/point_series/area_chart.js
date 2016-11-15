@@ -13,8 +13,8 @@ export default function AreaChartFactory(Private) {
     showLines: true,
     smoothLines: false,
     interpolate: 'linear',
-    color: undefined, // todo
-    fillColor: undefined, // todo
+    color: undefined,
+    fillColor: undefined,
   };
   /**
    * Area chart visualization
@@ -35,7 +35,6 @@ export default function AreaChartFactory(Private) {
       this.isOverlapping = (this.seriesConfig.mode !== 'stacked');
       if (this.isOverlapping) {
 
-        // todo ... default opacity handler should check what the opacity is and then move back to it on mouseout
         // Default opacity should return to 0.6 on mouseout
         const defaultOpacity = 0.6;
         this.seriesConfig.defaultOpacity = defaultOpacity;

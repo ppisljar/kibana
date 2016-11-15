@@ -9,8 +9,8 @@ export default function ColumnChartFactory(Private) {
   const defaults = {
     mode: 'normal',
     showTooltip: true,
-    color: undefined, // todo
-    fillColor: undefined // todo
+    color: undefined,
+    fillColor: undefined
   };
   /**
    * Vertical Bar Chart Visualization: renders vertical and/or stacked bars

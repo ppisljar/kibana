@@ -74,7 +74,6 @@ export default function VisFactory(Private) {
      */
     resize() {
       if (!this.data) {
-        // TODO: need to come up with a solution for resizing when no data is available
         return;
       }
 
