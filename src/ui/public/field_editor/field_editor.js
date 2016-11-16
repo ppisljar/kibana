@@ -6,16 +6,17 @@ import RegistryFieldFormatsProvider from 'ui/registry/field_formats';
 import IndexPatternsFieldProvider from 'ui/index_patterns/_field';
 import uiModules from 'ui/modules';
 import fieldEditorTemplate from 'ui/field_editor/field_editor.html';
-import chrome from 'ui/chrome';
 import IndexPatternsCastMappingTypeProvider from 'ui/index_patterns/_cast_mapping_type';
 import { scriptedFields as docLinks } from '../documentation_links/documentation_links';
 import './field_editor.less';
+import { GetScriptingLangsProvider } from 'ui/scripting_langs';
 
 uiModules
 .get('kibana', ['colorpicker.module'])
 .directive('fieldEditor', function (Private, $sce) {
   let fieldFormats = Private(RegistryFieldFormatsProvider);
   let Field = Private(IndexPatternsFieldProvider);
+  const getScriptingLangs = Private(GetScriptingLangsProvider);
 
   const fieldTypesByLang = {
     painless: ['number', 'string', 'date', 'boolean'],
@@ -31,7 +32,7 @@ uiModules
       getField: '&field'
     },
     controllerAs: 'editor',
-    controller: function ($scope, Notifier, kbnUrl, $http, $q) {
+    controller: function ($scope, Notifier, kbnUrl, $http) {
       let self = this;
       let notify = new Notifier({ location: 'Field Editor' });
 
@@ -156,15 +157,6 @@ uiModules
       function getFieldFormatType() {
         if (self.selectedFormatId) return fieldFormats.getType(self.selectedFormatId);
         else return fieldFormats.getDefaultType(self.field.type);
-      }
-
-      function getScriptingLangs() {
-        return $http.get(chrome.addBasePath('/api/kibana/scripts/languages'))
-        .then((res) => res.data)
-        .catch(() => {
-          notify.error('Error getting available scripting languages from Elasticsearch');
-          return [];
-        });
       }
 
       function initDefaultFormat() {
