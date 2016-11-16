@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import moment from 'moment';
-import errors from 'ui/errors';
 import VislibVisualizationsPointSeriProvider from 'ui/vislib/visualizations/point_series/_point_seri';
 import colorFunc from 'ui/vislib/components/color/heatmap_color';
 
@@ -72,9 +71,10 @@ export default function HeatmapChartFactory(Private) {
       const max = zScale.domain()[1];
       function z(d) {
         //return color based on the value
+        const colorsInScheme = 10;
         let val = d.y / max; /* get val from 0 - 1 */
-        val = parseInt(val * 100 / (100 / colorsNumber)) * (100 / colorsNumber);
-        val = parseInt(val / 10);
+        val = parseInt(val * (colorsNumber - 1));
+        val = parseInt(val * colorsInScheme / colorsNumber);
         return colorFunc(val, colorSchema);
       }
 
