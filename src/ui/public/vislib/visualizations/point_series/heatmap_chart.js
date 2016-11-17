@@ -39,7 +39,7 @@ export default function HeatmapChartFactory(Private) {
       const colorSchema = this.handler.visConfig.get('colorSchema');
 
       const layer = svg.append('g')
-        .attr('class', 'points line');
+        .attr('class', 'series');
 
       const squares = layer
         .selectAll('rect')
@@ -68,11 +68,11 @@ export default function HeatmapChartFactory(Private) {
         return yScale(d.series);
       }
 
-      const max = zScale.domain()[1];
+      const [min, max] = zScale.domain();
       function z(d) {
         //return color based on the value
         const colorsInScheme = 10;
-        let val = d.y / max; /* get val from 0 - 1 */
+        let val = (d.y - min) / (max - min); /* get val from 0 - 1 */
         val = parseInt(val * (colorsNumber - 1));
         val = parseInt(val * colorsInScheme / colorsNumber);
         return colorFunc(val, colorSchema);

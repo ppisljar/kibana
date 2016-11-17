@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 const reds = [
   '#99000E', '#A41926', '#AF333E', '#BB4C56', '#C6666E', '#D17F86', '#DD999E', '#E8B2B6', '#F3CCCE', '#FFE6E6'
 ];
@@ -11,20 +13,23 @@ const yellowtored = [
   '#F8F840', '#EEDA35', '#E4BC2A', '#DB9F1F', '#D18114', '#C8640A', '#D05415', '#D84520', '#E0362B', '#E82736'
 ];
 
-export default function (percent, colorSchema) {
+export default function (value, colorSchema) {
+  if (!_.isNumber(value) || value < 0 || value > 9) {
+    throw new Error('heatmap_color expects a number from 0 to 9 as first parameter');
+  }
   switch (colorSchema) {
     case 'reds':
-      return reds[9 - percent];
+      return reds[9 - value];
     case 'greens':
-      return greens[percent];
+      return greens[value];
     case 'blues':
-      return blues[percent];
+      return blues[value];
     case 'yellow to red':
-      return yellowtored[percent];
+      return yellowtored[value];
     default:
       const start = 120;
       const end = 360;
-      const c = start + (end - start) * percent * 10;
+      const c = start + (end - start) * (value * 10);
 
       return `hsl(${c},60%,50%)`;
   }
