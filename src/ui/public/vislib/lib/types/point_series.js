@@ -142,9 +142,6 @@ export default function ColumnHandler(Private) {
 
     heatmap: (cfg, data) => {
       const defaults = create()(cfg, data);
-      if (defaults.charts.length > 50) {
-        throw new errors.VislibError('There are too many series defined.');
-      }
       defaults.valueAxes[0].show = false;
       defaults.categoryAxes.push({
         id: 'CategoryAxis-2',
