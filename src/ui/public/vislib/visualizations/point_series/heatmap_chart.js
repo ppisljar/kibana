@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import moment from 'moment';
-import VislibVisualizationsPointSeriProvider from 'ui/vislib/visualizations/point_series/_point_seri';
+import VislibVisualizationsPointSeriesProvider from './_point_series';
 import colorFunc from 'ui/vislib/components/color/heatmap_color';
 
 export default function HeatmapChartFactory(Private) {
 
-  const PointSeri = Private(VislibVisualizationsPointSeriProvider);
+  const PointSeries = Private(VislibVisualizationsPointSeriesProvider);
 
   const defaults = {
     color: undefined, // todo
@@ -21,7 +21,7 @@ export default function HeatmapChartFactory(Private) {
    * @param el {HTMLElement} HTML element to which the chart will be appended
    * @param chartData {Object} Elasticsearch query results for this specific chart
    */
-  class HeatmapChart extends PointSeri {
+  class HeatmapChart extends PointSeries {
     constructor(handler, chartEl, chartData, seriesConfigArgs) {
       super(handler, chartEl, chartData, seriesConfigArgs);
       this.seriesConfig = _.defaults(seriesConfigArgs || {}, defaults);
