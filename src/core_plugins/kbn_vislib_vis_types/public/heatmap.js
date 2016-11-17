@@ -25,6 +25,19 @@ export default function HeatmapVisType(Private) {
         colorsNumber: 4,
         colorSchema: 'yellow to red',
       },
+      legendPositions: [{
+        value: 'left',
+        text: 'left',
+      }, {
+        value: 'right',
+        text: 'right',
+      }, {
+        value: 'top',
+        text: 'top',
+      }, {
+        value: 'bottom',
+        text: 'bottom',
+      }],
       scales: ['linear', 'log', 'square root'],
       colorSchemas: ['yellow to red', 'reds', 'greens', 'blues'],
       editor: heatmapTemplate
