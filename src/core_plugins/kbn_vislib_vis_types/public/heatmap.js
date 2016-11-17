@@ -33,7 +33,7 @@ export default function HeatmapVisType(Private) {
       {
         group: 'metrics',
         name: 'metric',
-        title: 'Y-Axis',
+        title: 'Value',
         min: 1,
         aggFilter: '!std_dev',
         defaults: [
@@ -51,7 +51,7 @@ export default function HeatmapVisType(Private) {
       {
         group: 'buckets',
         name: 'group',
-        title: 'Split Bars',
+        title: 'Y-Axis',
         min: 0,
         max: 1,
         aggFilter: '!geohash_grid'
