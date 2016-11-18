@@ -51,6 +51,7 @@ export default function HeatmapVisType(Private) {
         name: 'metric',
         title: 'Value',
         min: 1,
+        max: 1,
         aggFilter: '!std_dev',
         defaults: [
           { schema: 'metric', type: 'count' }
