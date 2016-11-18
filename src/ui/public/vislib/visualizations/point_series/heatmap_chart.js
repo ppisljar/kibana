@@ -37,6 +37,9 @@ export default function HeatmapChartFactory(Private) {
       const isHorizontal = this.getCategoryAxis().axisConfig.isHorizontal();
       const colorsNumber = this.handler.visConfig.get('colorsNumber');
       const colorSchema = this.handler.visConfig.get('colorSchema');
+      const setColorRange = this.handler.visConfig.get('setColorRange');
+      const colorsRange = this.handler.visConfig.get('colorsRange');
+      const colorsInScheme = 10;
 
       const layer = svg.append('g')
         .attr('class', 'series');
@@ -69,13 +72,42 @@ export default function HeatmapChartFactory(Private) {
       }
 
       const [min, max] = zScale.domain();
+      function getColorBucket(d) {
+        let val = 0;
+        if (setColorRange && colorsRange.length) {
+          if (d.y < colorsRange[0].value) return -1;
+          while (val + 1 < colorsRange.length && d.y > colorsRange[val + 1].value) val++;
+        } else {
+          if (isNaN(min) || isNaN(max)) {
+            val = colorsNumber - 1;
+          } else {
+            val = (d.y - min) / (max - min); /* get val from 0 - 1 */
+            val = Math.floor(val * (colorsNumber - 1));
+          }
+        }
+        return val;
+      }
+
       function z(d) {
         //return color based on the value
-        const colorsInScheme = 10;
-        let val = (d.y - min) / (max - min); /* get val from 0 - 1 */
-        val = parseInt(val * (colorsNumber - 1));
-        val = parseInt(val * colorsInScheme / colorsNumber);
+        const colorBucket = getColorBucket(d);
+        if (colorBucket < 0) return 'transparent';
+        const val = colorBucket * Math.floor(colorsInScheme / colorsNumber);
         return colorFunc(val, colorSchema);
+      }
+
+      function label(d) {
+        const colorBucket = getColorBucket(d);
+        if (colorBucket < 0) return '';
+        const val = Math.ceil(colorBucket * (100 / colorsNumber));
+        if (setColorRange) {
+          const greaterThan = colorsRange[colorBucket].value;
+          label = `> ${greaterThan}`;
+        } else {
+          const nextVal = Math.ceil((colorBucket + 1) * (100 / colorsNumber));
+          label = `${val}% - ${nextVal}%`;
+        }
+        return label;
       }
 
       function widthFunc() {
@@ -93,7 +125,9 @@ export default function HeatmapChartFactory(Private) {
         .attr('width', isHorizontal ? widthFunc : heightFunc)
         .attr('y', isHorizontal ? y : x)
         .attr('height', isHorizontal ? heightFunc : widthFunc)
-        .attr('fill', z);
+        .attr('data-label', label)
+        .attr('fill', z)
+        .attr('style', 'cursor: pointer');
 
       if (isTooltip) {
         squares.call(tooltip.render());

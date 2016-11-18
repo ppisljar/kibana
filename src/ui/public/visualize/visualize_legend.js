@@ -37,8 +37,6 @@ uiModules.get('kibana')
         }
       });
 
-
-
       $scope.highlight = function (event) {
         let el = event.currentTarget;
         let handler = $scope.renderbot.vislibVis.handler;
@@ -144,13 +142,21 @@ uiModules.get('kibana')
         const labels = [];
         const colors = {};
         for (let i = 0; i < colorsNumber; i++) {
+          let label;
+          let color;
           const val = Math.ceil(i * (100 / colorsNumber));
-          const nextVal = Math.ceil((i + 1) * (100 / colorsNumber));
-          const label = `${val}% - ${nextVal}%`;
+          if ($scope.vis.params.setColorRange) {
+            const greaterThan = $scope.vis.params.colorsRange[i].value;
+            color = $scope.vis.params.colorsRange[i].color;
+            label = `> ${greaterThan}`;
+          } else {
+            const nextVal = Math.ceil((i + 1) * (100 / colorsNumber));
+            label = `${val}% - ${nextVal}%`;
+          }
           labels.push({
             label: label
           });
-          colors[label] = colorFunc(Math.ceil(val / 10), $scope.vis.params.colorSchema);
+          colors[label] = colorFunc(color || Math.ceil(val / 10), $scope.vis.params.colorSchema);
         }
         $scope.getColor = label => {
           return colors[label];

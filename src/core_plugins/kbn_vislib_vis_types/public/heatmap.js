@@ -10,12 +10,13 @@ export default function HeatmapVisType(Private) {
     name: 'heatmap',
     title: 'Heatmap chart',
     icon: 'fa-barcode',
-    description: 'The goto chart for oh-so-many needs. Great for time and non-time data. Stacked or grouped, ' +
-    'exact numbers or percentages. If you are not sure which chart you need, you could do worse than to start here.',
+    description: 'A heat map is a graphical representation of data' +
+    ' where the individual values contained in a matrix are represented as colors. ',
     params: {
       defaults: {
         addTooltip: true,
         addLegend: true,
+        enableHover: false,
         legendPosition: 'right',
         scale: 'linear',
         times: [],
@@ -24,6 +25,8 @@ export default function HeatmapVisType(Private) {
         setYExtents: false,
         colorsNumber: 4,
         colorSchema: 'yellow to red',
+        setColorRange: false,
+        colorsRange: [],
       },
       legendPositions: [{
         value: 'left',
