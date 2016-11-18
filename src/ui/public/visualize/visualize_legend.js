@@ -63,7 +63,7 @@ uiModules.get('kibana')
       };
 
       $scope.toggleLegend = function () {
-        let bwcAddLegend = $scope.renderbot.vislibVis.hasLegend();
+        let bwcAddLegend = $scope.vis.type.addLegend;
         let bwcLegendStateDefault = bwcAddLegend == null ? true : bwcAddLegend;
         $scope.open = !$scope.uiState.get('vis.legendOpen', bwcLegendStateDefault);
         $scope.uiState.set('vis.legendOpen', $scope.open);
@@ -106,6 +106,7 @@ uiModules.get('kibana')
       ];
 
       function refresh() {
+        if (!$scope.renderbot) return;
         let vislibVis = $scope.renderbot.vislibVis;
 
         if ($scope.uiState.get('vis.legendOpen') == null && vislibVis.hasLegend()) {
