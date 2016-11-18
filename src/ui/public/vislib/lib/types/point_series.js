@@ -102,6 +102,8 @@ export default function ColumnHandler(Private) {
         config.charts = createCharts(cfg, data.data);
       }
 
+      if (typeof config.enableHover === 'undefined') config.enableHover = true;
+
       return config;
     };
   }
