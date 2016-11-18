@@ -24,6 +24,15 @@
   </div>
 
   <div class="kuiSideBarFormRow">
+    <label class="kuiSideBarFormRow__label" for="addLegend">
+      Show Legend
+    </label>
+    <div class="kuiSideBarFormRow__control">
+      <input class="kuiCheckBox" id="addLegend" type="checkbox" ng-model="vis.params.addLegend">
+    </div>
+  </div>
+
+  <div class="kuiSideBarFormRow" ng-show="vis.params.addLegend">
     <label class="kuiSideBarFormRow__label" for="legendPosition">
       Legend Position
     </label>

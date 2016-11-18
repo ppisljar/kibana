@@ -25,16 +25,16 @@ uiModules.get('kibana')
         if (!data) return;
         $scope.data = data;
         refresh();
+      });
 
-        if ($scope.renderbot.vislibVis.visConfigArgs.type === 'heatmap') {
-          $scope.$watch('vis.params.colorsNumber', () => {
-            refresh();
-          });
-
-          $scope.$watch('vis.params.colorSchema', () => {
-            refresh();
-          });
-        }
+      if ($scope.vis.type.name === 'heatmap') {
+        $scope.$watch('vis.params.colorsNumber', () => refresh());
+        $scope.$watch('vis.params.colorSchema', () => refresh());
+        $scope.$watch('vis.params.setColorRange', () => refresh());
+      }
+      $scope.$watch('vis.params.addLegend', (newVal) => {
+        if (newVal !== $scope.open) $scope.toggleLegend();
+        refresh();
       });
 
       $scope.highlight = function (event) {
