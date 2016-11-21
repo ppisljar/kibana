@@ -34,7 +34,7 @@ export default function AxisConfigFactory() {
       color: '#ddd',
       font: '"Open Sans", "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif',
       fontSize: '8pt',
-      truncate: 30
+      truncate: 100
     },
     title: {
       text: '',
