@@ -103,7 +103,8 @@ export default function PointSeriesFactory(Private) {
         w: isHorizontal ? Math.max(xScale(ordered.min), 0) : height - Math.max(xScale(ordered.min), 0)
       };
 
-      const rightLastVal = xAxis.expandLastBucket ? ordered.max : Math.min(ordered.max, _.last(xAxis.values));
+      const expandLastBucket = xAxis.axisConfig.get('scale.expandLastBucket');
+      const rightLastVal = expandLastBucket ? ordered.max : Math.min(ordered.max, _.last(xAxis.values));
       const rightStart = rightLastVal + oneUnit;
       const rightEndzone = {
         x: isHorizontal ? xScale(rightStart) : 0,
