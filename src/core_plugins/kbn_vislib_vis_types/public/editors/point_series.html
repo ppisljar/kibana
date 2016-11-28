@@ -40,6 +40,27 @@
         <input class="kuiCheckBox" id="showCursor" type="checkbox" ng-model="vis.params.addTooltip">
       </div>
     </div>
+
+    <div class="kuiSideBarFormRow" ng-show="vis.hasSchemaAgg('segment', 'date_histogram')">
+      <label class="kuiSideBarFormRow__label" for="currentTimeMarker">
+        Current time marker
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input class="kuiCheckBox" id="currentTimeMarker" type="checkbox"
+               ng-model="vis.params.addTimeMarker"
+               ng-checked="vis.params.addTimeMarker"
+        >
+      </div>
+    </div>
+
+    <div class="kuiSideBarFormRow" ng-show="!vis.hasSchemaAgg('segment', 'date_histogram')">
+      <label class="kuiSideBarFormRow__label" for="orderBuckets">
+        Order buckets by sum
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input class="kuiCheckBox" id="orderBuckets" type="checkbox" ng-model="vis.params.orderBucketsBySum">
+      </div>
+    </div>
   </div>
 
   <vislib-category-axis></vislib-category-axis>

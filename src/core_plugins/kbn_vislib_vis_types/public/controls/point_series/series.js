@@ -19,16 +19,20 @@ module.directive('vislibSeries', function ($parse, $compile) {
           smoothLines: false,
           data: {
             label: label
-          }
+          },
+          valueAxis: ''
         };
       }
+
       $scope.series = $scope.vis.params.seriesParams;
-      $scope.$watchCollection('vis.aggs', aggs => {
+      $scope.$watch(() => {
+        return $scope.vis.aggs.map(agg => agg.makeLabel()).join();
+      }, () => {
         let serieCount = 0;
-        aggs.forEach(agg => {
-          const aggType = agg.__type;
-          if (!aggType) return;
-          if (aggType.type !== 'metrics') return;
+        $scope.vis.aggs.forEach(agg => {
+          if (!agg.type) return;
+          if (agg.schema.title !== 'Y-Axis') return;
+          if (agg.type.type !== 'metrics') return;
           if ($scope.series[serieCount]) {
             $scope.series[serieCount].data.label = agg.makeLabel();
           } else {

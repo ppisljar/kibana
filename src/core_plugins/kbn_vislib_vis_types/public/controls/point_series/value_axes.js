@@ -39,6 +39,13 @@ module.directive('vislibValueAxes', function ($parse, $compile) {
           return valAxis.id === axis.id;
         });
       };
+
+      $scope.updateExtents = function (axis) {
+        if (!axis.scale.setYExtents) {
+          delete axis.scale.min;
+          delete axis.scale.max;
+        }
+      };
     }
   };
 });

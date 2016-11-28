@@ -27,7 +27,6 @@ export default function PointSeriesVisType(Private) {
             labels: {
               show: true,
               rotate: 0,
-              rotateAnchor: 'end',
               filter: true,
               truncate: 100
             }
@@ -46,7 +45,6 @@ export default function PointSeriesVisType(Private) {
             labels: {
               show: true,
               rotate: 0,
-              rotateAnchor: 'center',
               filter: false,
               truncate: 100
             },
@@ -73,8 +71,7 @@ export default function PointSeriesVisType(Private) {
       scales: ['linear', 'log', 'square root'],
       positions: ['top', 'left', 'right', 'bottom'],
       chartTypes: ['line', 'area', 'histogram'],
-      rotateAnchor: ['start', 'center', 'end'],
-      axisModes: ['normal', 'percentage', 'wiggle', 'silluete'],
+      axisModes: ['normal', 'percentage', 'wiggle', 'silhouette'],
       chartModes: ['normal', 'stacked'],
       editor: pointSeriesTemplate
     },
