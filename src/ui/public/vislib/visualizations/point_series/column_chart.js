@@ -36,7 +36,7 @@ export default function ColumnChartFactory(Private) {
 
       const layer = svg.append('g')
       .attr('class', function (d, i) {
-        return 'series ' + i;
+        return `series series-${i}`;
       })
       .attr('clip-path', 'url(#' + this.baseChart.clipPathId + ')');
 
@@ -51,9 +51,8 @@ export default function ColumnChartFactory(Private) {
       .enter()
       .append('rect')
       .attr('data-label', data.label)
-      .attr('fill', () => {
-        return color(data.label);
-      });
+      .attr('fill', () => color(data.label))
+      .attr('stroke', () => color(data.label));
 
       self.updateBars(bars);
 

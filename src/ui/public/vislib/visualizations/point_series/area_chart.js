@@ -74,15 +74,14 @@ export default function AreaChartFactory(Private) {
       // Data layers
       const layer = svg.append('g')
       .attr('class', function (d, i) {
-        return 'pathgroup ' + i;
+        return 'series series-' + i;
       });
 
       // Append path
       const path = layer.append('path')
       .attr('data-label', data.label)
-      .style('fill', () => {
-        return color(data.label);
-      })
+      .style('fill', () => color(data.label))
+      .style('stroke', () => color(data.label))
       .classed('overlap_area', function () {
         return isOverlapping;
       })
