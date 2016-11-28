@@ -14,6 +14,11 @@ export default function PointSeriesVisType(Private) {
       'Be careful with sparse sets as the connection between points can be misleading.',
     params: {
       defaults: {
+        grid: {
+          show: false,
+          categoryLines: true,
+          color: '#eee'
+        },
         categoryAxes: [
           {
             id: 'CategoryAxis-1',
