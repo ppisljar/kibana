@@ -41,6 +41,8 @@ export default function DataFactory(Private) {
             newData[key] = data[key].map(seri => {
               return {
                 label: seri.label,
+                aggLabel: seri.aggLabel,
+                aggId: seri.aggId,
                 values: seri.values.map(val => {
                   const newVal = _.clone(val);
                   newVal.aggConfig = val.aggConfig;

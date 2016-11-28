@@ -5,7 +5,7 @@ export default function ColumnHandler(Private) {
   const createSerieFromParams = (cfg, seri) => {
     // todo this wont work with splits ... same issue exists in dispatch
     const matchingSeriParams = cfg.seriesParams ? cfg.seriesParams.find(seriConfig => {
-      return seri.label.includes(seriConfig.data.label);
+      return seri.aggLabel === seriConfig.data.label;
     }) : null;
 
 
