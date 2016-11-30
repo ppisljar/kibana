@@ -28,7 +28,7 @@ export default function PointSeriesVisType(Private) {
             style: {
             },
             scale: {
-
+              type: 'linear'
             },
             labels: {
               show: true,
@@ -48,7 +48,8 @@ export default function PointSeriesVisType(Private) {
             style: {
             },
             scale: {
-
+              type: 'linear',
+              mode: 'normal'
             },
             labels: {
               show: true,
@@ -74,10 +75,10 @@ export default function PointSeriesVisType(Private) {
         defaultYExtents: false,
         setYExtents: false
       },
-      scales: ['linear', 'log', 'square root'],
       positions: ['top', 'left', 'right', 'bottom'],
       chartTypes: ['line', 'area', 'histogram'],
       axisModes: ['normal', 'percentage', 'wiggle', 'silhouette'],
+      scaleTypes: ['linear', 'log', 'square root'],
       chartModes: ['normal', 'stacked'],
       editor: pointSeriesTemplate
     },

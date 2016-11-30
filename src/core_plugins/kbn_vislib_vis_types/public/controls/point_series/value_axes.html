@@ -97,6 +97,20 @@
             ></select>
           </div>
         </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisScaleType' + $index }}">
+            Scale Type
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <select
+              id="{{ 'valueAxisScaleType' + $index }}"
+              class="kuiSelect kuiSideBarSelect"
+              ng-model="axis.scale.type"
+              ng-options="type for type in vis.type.params.scaleTypes"
+            ></select>
+          </div>
+        </div>
       </div>
 
       <!-- Advanced options -->
