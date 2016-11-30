@@ -48,12 +48,21 @@
       <!-- General -->
       <div class="kuiSideBarSection">
         <div class="kuiSideBarFormRow">
-          <label class="kuiSideBarFormRow__label" for="categoryAxisTitle">
+          <label class="kuiSideBarFormRow__label" for="{ 'valueAxisShow' + $index }">
+            Show
+          </label>
+          <div class="kuiSideBarFormRow__control">
+            <input class="kuiCheckBox" id="{ 'valueAxisShow' + $index }" type="checkbox" ng-model="axis.show">
+          </div>
+        </div>
+
+        <div class="kuiSideBarFormRow">
+          <label class="kuiSideBarFormRow__label" for="{{ 'valueAxisTitle' + $index }}">
             Title
           </label>
           <div class="kuiSideBarFormRow__control">
             <input
-              id="categoryAxisTitle"
+              id="{{ 'valueAxisTitle' + $index }}"
               class="kuiInput kuiSideBarInput"
               type="text"
               ng-model="axis.title.text"

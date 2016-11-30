@@ -19,6 +19,15 @@
     <!-- General -->
     <div class="kuiSideBarSection">
       <div class="kuiSideBarFormRow">
+        <label class="kuiSideBarFormRow__label" for="categoryAxisShow">
+          Show
+        </label>
+        <div class="kuiSideBarFormRow__control">
+          <input class="kuiCheckBox" id="categoryAxisShow" type="checkbox" ng-model="vis.params.categoryAxes[0].show">
+        </div>
+      </div>
+
+      <div class="kuiSideBarFormRow">
         <label class="kuiSideBarFormRow__label" for="categoryAxisPosition">
           Position
         </label>

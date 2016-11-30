@@ -24,6 +24,7 @@ export default function PointSeriesVisType(Private) {
             id: 'CategoryAxis-1',
             type: 'category',
             position: 'bottom',
+            show: true,
             style: {
             },
             scale: {
@@ -34,7 +35,8 @@ export default function PointSeriesVisType(Private) {
               rotate: 0,
               filter: true,
               truncate: 100
-            }
+            },
+            title: {}
           }
         ],
         valueAxes: [
@@ -42,6 +44,7 @@ export default function PointSeriesVisType(Private) {
             id: 'ValueAxis-1',
             type: 'value',
             position: 'left',
+            show: true,
             style: {
             },
             scale: {
@@ -53,9 +56,7 @@ export default function PointSeriesVisType(Private) {
               filter: false,
               truncate: 100
             },
-            title: {
-
-            }
+            title: {}
           }
         ],
         seriesParams: [],

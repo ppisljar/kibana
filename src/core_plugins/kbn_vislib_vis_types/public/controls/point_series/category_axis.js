@@ -27,6 +27,21 @@ module.directive('vislibCategoryAxis', function ($parse, $compile) {
           }
         });
       });
+
+      let lastAxisTitle = '';
+      $scope.$watch(() => {
+        return $scope.vis.aggs.map(agg => agg.makeLabel()).join();
+      }, () => {
+        $scope.vis.aggs.forEach(agg => {
+          if (agg.schema.title === 'X-Axis') {
+            const label = agg.makeLabel();
+            if (lastAxisTitle !== label) {
+              lastAxisTitle = label;
+              $scope.vis.params.categoryAxes[0].title.text = label;
+            }
+          }
+        });
+      });
     }
   };
 });
