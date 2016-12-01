@@ -122,6 +122,9 @@ export default function HandlerBaseClass(Private) {
 
       selection.selectAll('*').remove();
 
+      this.visConfig.set('width', $(this.el).width());
+      this.visConfig.set('height', $(this.el).height());
+
       this._validateData();
       this.renderArray.forEach(function (property) {
         if (typeof property.render === 'function') {

@@ -40,7 +40,7 @@ export default function LayoutFactory(Private) {
      */
     render() {
       this.removeAll(this.el);
-      this.createLayout(this.layoutType);
+      // this.createLayout(this.layoutType);
       // update y-axis-spacer height based on precalculated horizontal axis heights
       if (this.opts.get('type') === 'point_series') {
         this.updateCategoryAxisSize();
@@ -67,22 +67,15 @@ export default function LayoutFactory(Private) {
       const axis = new Axis(visConfig, axisConfig);
       const position = axis.axisConfig.get('position');
 
-      const el = $(this.el).find(`.axis-wrapper-${position}`);
-
-      el.css('visibility', 'hidden');
+      const rootEl = $(visConfig.get('el'));
+      rootEl.css('visibility', 'hidden');
       axis.render();
-      const width = el.width();
-      const height = el.height();
+      const axisEl = rootEl.find('g.axis_holder')[0];
+      const {width, height} = axisEl.getBBox();
       axis.destroy();
-      el.css('visibility', '');
-
-      if (axis.axisConfig.isHorizontal()) {
-        const spacerNodes = $(this.el).find(`.y-axis-spacer-block-${position}`);
-        el.height(`${height}px`);
-        spacerNodes.height(el.height());
-      } else {
-        el.find('.y-axis-div-wrapper').width(`${width}px`);
-      }
+      rootEl.css('visibility', '');
+      visConfig.set('verticalSpacing', axis.axisConfig.isHorizontal() ? Math.ceil(height) : 0);
+      visConfig.set('horizontalSpacing', !axis.axisConfig.isHorizontal() ? Math.ceil(width) : 0);
     };
 
 

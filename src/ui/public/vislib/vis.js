@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import $ from 'jquery';
 import d3 from 'd3';
 import Binder from 'ui/binder';
 import errors from 'ui/errors';
@@ -28,7 +29,7 @@ export default function VisFactory(Private) {
       this.el = $el.get ? $el.get(0) : $el;
       this.binder = new Binder();
       this.visConfigArgs = _.cloneDeep(visConfigArgs);
-      this.visConfigArgs.el = this.el;
+      this.visConfigArgs.el = d3.select(this.el).append('svg').node();
 
       // bind the resize function so it can be used as an event handler
       this.resize = _.bind(this.resize, this);

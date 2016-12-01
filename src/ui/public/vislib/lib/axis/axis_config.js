@@ -5,7 +5,6 @@ export default function AxisConfigFactory() {
   const defaults = {
     show: true,
     type: 'value',
-    elSelector: '.axis-wrapper-{pos} .axis-div',
     position: 'left',
     scale: {
       type: 'linear',
@@ -38,7 +37,6 @@ export default function AxisConfigFactory() {
     },
     title: {
       text: '',
-      elSelector: '.axis-wrapper-{pos} .axis-title'
     }
   };
 
@@ -74,7 +72,6 @@ export default function AxisConfigFactory() {
 
       _.merge(this._values, this.isHorizontal() ? horizontalDefaults : verticalDefaults);
 
-      this._values.elSelector = this._values.elSelector.replace('{pos}', this._values.position);
       this._values.rootEl = chartConfig.get('el');
 
       this.data = chartConfig.data;

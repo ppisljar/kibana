@@ -92,7 +92,7 @@ export default function AxisLabelsFactory(Private) {
         selection.selectAll('.tick text')
         .text(function (d) {
           const par = d3.select(this.parentNode).node();
-          const el = $(config.get('rootEl')).find(config.get('elSelector'));
+          const el = $(config.get('rootEl'));
           const maxSize = config.isHorizontal() ? el.width() : el.height();
           const myPos = config.isHorizontal() ? self.axisScale.scale(d) : maxSize - self.axisScale.scale(d);
           const mySize = (config.isHorizontal() ? par.getBBox().width : par.getBBox().height) * padding;

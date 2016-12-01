@@ -26,7 +26,7 @@ export default function AxisFactory(Private) {
         this.ordered = this.axisConfig.ordered;
       }
       this.axisScale = new AxisScale(this.axisConfig, visConfig);
-      this.axisTitle = new AxisTitle(this.axisConfig);
+      this.axisTitle = new AxisTitle(this.axisConfig, visConfig);
       this.axisLabels = new AxisLabels(this.axisConfig, this.axisScale);
 
       this.stack = d3.layout.stack()
@@ -160,15 +160,13 @@ export default function AxisFactory(Private) {
     };
 
     render() {
-      const elSelector = this.axisConfig.get('elSelector');
       const rootEl = this.axisConfig.get('rootEl');
-      d3.select(rootEl).selectAll(elSelector).call(this.draw());
+      d3.select(rootEl).call(this.draw());
     }
 
     destroy() {
-      const elSelector = this.axisConfig.get('elSelector');
       const rootEl = this.axisConfig.get('rootEl');
-      $(rootEl).find(elSelector).find('svg').remove();
+      if (this._element) this._element.remove();
     }
 
     getAxis(length) {
@@ -204,11 +202,11 @@ export default function AxisFactory(Private) {
       return Math.ceil(yTickScale(length));
     }
 
-    getLength(el, n) {
+    getLength(width, height) {
       if (this.axisConfig.isHorizontal()) {
-        return $(el).width();
+        return width;
       } else {
-        return $(el).height();
+        return height;
       }
     }
 
@@ -239,21 +237,14 @@ export default function AxisFactory(Private) {
         if (config.isHorizontal()) {
           selection.attr('height', Math.ceil(length));
           if (position === 'top') {
-            selection.select('g')
+            selection.select('g.axis')
             .attr('transform', `translate(0, ${length - parseInt(style.lineWidth)})`);
-            selection.select('path')
-            .attr('transform', 'translate(1,0)');
-          }
-          if (config.get('type') === 'value') {
-            const spacerNodes = $(chartEl).find(`.y-axis-spacer-block-${position}`);
-            const elHeight = $(chartEl).find(`.axis-wrapper-${position}`).height();
-            spacerNodes.height(elHeight);
           }
         } else {
           const axisWidth = Math.ceil(length);
           selection.attr('width', axisWidth);
           if (position === 'left') {
-            selection.select('g')
+            selection.select('g.axis')
             .attr('transform', `translate(${axisWidth},0)`);
           }
         }
@@ -279,29 +270,40 @@ export default function AxisFactory(Private) {
 
       return function (selection) {
         const n = selection[0].length;
-        if (self.axisTitle) {
-          self.axisTitle.render(selection);
-        }
         selection.each(function () {
           const el = this;
-          const div = d3.select(el);
-          const width = $(el).width();
-          const height = $(el).height();
-          const length = self.getLength(el, n);
+          const rootSVG = d3.select(el);
+          let verticalSpacing = self.visConfig.get('verticalSpacing', 0);
+          let horizontalSpacing = self.visConfig.get('horizontalSpacing', 0);
+          const width = self.visConfig.get('width') - horizontalSpacing;
+          const height = self.visConfig.get('height') - verticalSpacing;
+          const length = self.getLength(width, height);
 
           self.validate();
 
           const axis = self.getAxis(length);
 
           if (config.get('show')) {
-            const svg = div.append('svg')
-            .attr('width', width)
-            .attr('height', height);
+            const svg = rootSVG.append('g')
+              .attr('transform', `translate(0, 0)`)
+              .attr('class', 'axis_holder');
 
-            const axisClass = self.axisConfig.isHorizontal() ? 'x' : 'y';
+            self._element = svg;
+            let widthPadding = 0;
+            let heightPadding = 0;
+            if (self.axisTitle) {
+              const title = svg.call(self.axisTitle.draw(width, height));
+              const titleBox = title.node().getBBox();
+              if (config.isHorizontal()) heightPadding = titleBox.height;
+              else widthPadding = titleBox.width;
+            }
+
+            const axisClass = config.isHorizontal() ? 'x' : 'y';
             svg.append('g')
-            .attr('class', `${axisClass} axis ${config.get('id')}`)
-            .call(axis);
+              .attr('transform', `translate(${widthPadding}, ${heightPadding})`)
+              .append('g')
+              .attr('class', `${axisClass} axis ${config.get('id')}`)
+              .call(axis);
 
             const container = svg.select('g.axis').node();
             if (container) {
