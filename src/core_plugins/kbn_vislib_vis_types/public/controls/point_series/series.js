@@ -10,10 +10,11 @@ module.directive('vislibSeries', function ($parse, $compile) {
     replace: true,
     link: function ($scope) {
       function makeSerie(label) {
+        const last = $scope.series[$scope.series.length - 1];
         return {
           show: true,
-          mode: 'normal',
-          type: 'line',
+          mode: last ? last.mode : 'normal',
+          type: last ? last.type : 'line',
           drawLinesBetweenPoints: true,
           showCircles: true,
           smoothLines: false,
@@ -26,12 +27,15 @@ module.directive('vislibSeries', function ($parse, $compile) {
 
       $scope.series = $scope.vis.params.seriesParams;
       $scope.$watch(() => {
-        return $scope.vis.aggs.map(agg => agg.makeLabel()).join();
+        return $scope.vis.aggs.map(agg => {
+          return agg.params.field ? agg.makeLabel() : '';
+        }).join();
       }, () => {
         let serieCount = 0;
+        const schemaTitle = $scope.vis.type.schemas.metrics[0].title;
         $scope.vis.aggs.forEach(agg => {
           if (!agg.type) return;
-          if (agg.schema.title !== 'Y-Axis') return;
+          if (agg.schema.title !== schemaTitle) return;
           if (agg.type.type !== 'metrics') return;
           if ($scope.series[serieCount]) {
             $scope.series[serieCount].data.label = agg.makeLabel();

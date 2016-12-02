@@ -91,9 +91,10 @@ export default function AxisFactory(Private) {
     _getCounts(i, j) {
       const data = this.visConfig.data.chartData();
       const dataLengths = {};
+      const stackedSeries = this.axisConfig.get('stackedSeries', 0);
 
       dataLengths.charts = data.length;
-      dataLengths.stacks = dataLengths.charts ? data[i].series.length : 0;
+      dataLengths.stacks = dataLengths.charts ? stackedSeries : 0;
       dataLengths.values = dataLengths.stacks ? data[i].series[j].values.length : 0;
 
       return dataLengths;
@@ -173,6 +174,7 @@ export default function AxisFactory(Private) {
       const elSelector = this.axisConfig.get('elSelector');
       const rootEl = this.axisConfig.get('rootEl');
       $(rootEl).find(elSelector).find('svg').remove();
+      this.axisTitle.destroy();
     }
 
     getAxis(length) {
@@ -277,9 +279,6 @@ export default function AxisFactory(Private) {
 
       return function (selection) {
         const n = selection[0].length;
-        if (self.axisTitle) {
-          self.axisTitle.render(selection);
-        }
         selection.each(function () {
           const el = this;
           const div = d3.select(el);
@@ -292,6 +291,9 @@ export default function AxisFactory(Private) {
           const axis = self.getAxis(length);
 
           if (config.get('show')) {
+            if (self.axisTitle && ['left', 'top'].includes(config.get('position'))) {
+              self.axisTitle.render(selection);
+            }
             const svg = div.append('svg')
             .attr('width', width)
             .attr('height', height);
@@ -313,6 +315,9 @@ export default function AxisFactory(Private) {
               .style('stroke-opacity', style.opacity);
             }
             if (self.axisLabels) self.axisLabels.render(svg);
+            if (self.axisTitle && ['right', 'bottom'].includes(config.get('position'))) {
+              self.axisTitle.render(selection);
+            }
             svg.call(self.adjustSize());
           }
         });

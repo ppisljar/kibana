@@ -135,6 +135,7 @@ export default function DataFactory(Private) {
         const id = axis.axisConfig.get('id');
         stackedData[id] = this.getStackedSeries(chartConfig, axis, data, i === 0);
         stackedData[id] = this.injectZeros(stackedData[id], handler.visConfig.get('orderBucketsBySum', false));
+        axis.axisConfig.set('stackedSeries', stackedData[id].length);
         axis.stack(_.map(stackedData[id], 'values'));
       });
       return stackedData;

@@ -7,11 +7,10 @@ export default function PointSeriesVisType(Private) {
   const Schemas = Private(VisSchemasProvider);
 
   return new VislibVisType({
-    name: 'line',
-    title: 'Point series chart',
-    icon: 'fa-line-chart',
-    description: 'Often the best chart for high density time series. Great for comparing one series to another. ' +
-      'Be careful with sparse sets as the connection between points can be misleading.',
+    name: 'point_series',
+    title: 'Horizontal bar chart',
+    icon: 'fa-bars',
+    description: 'Like histogram chart but with horizontal bars.',
     params: {
       defaults: {
         grid: {
@@ -23,7 +22,7 @@ export default function PointSeriesVisType(Private) {
           {
             id: 'CategoryAxis-1',
             type: 'category',
-            position: 'bottom',
+            position: 'left',
             show: true,
             style: {
             },
@@ -33,8 +32,8 @@ export default function PointSeriesVisType(Private) {
             labels: {
               show: true,
               rotate: 0,
-              filter: true,
-              truncate: 100
+              filter: false,
+              truncate: 200
             },
             title: {}
           }
@@ -43,7 +42,7 @@ export default function PointSeriesVisType(Private) {
           {
             id: 'ValueAxis-1',
             type: 'value',
-            position: 'left',
+            position: 'bottom',
             show: true,
             style: {
             },
@@ -53,14 +52,21 @@ export default function PointSeriesVisType(Private) {
             },
             labels: {
               show: true,
-              rotate: 0,
+              rotate: 75,
               filter: false,
               truncate: 100
             },
             title: {}
           }
         ],
-        seriesParams: [],
+        seriesParams: [{
+          show: true,
+          type: 'histogram',
+          mode: 'normal',
+          data: {
+            label: 'Count'
+          }
+        }],
         addTooltip: true,
         addLegend: true,
         legendPosition: 'right',
@@ -86,7 +92,7 @@ export default function PointSeriesVisType(Private) {
       {
         group: 'metrics',
         name: 'metric',
-        title: 'Y-Axis',
+        title: 'X-Axis',
         min: 1,
         defaults: [
           { schema: 'metric', type: 'count' }
@@ -103,7 +109,7 @@ export default function PointSeriesVisType(Private) {
       {
         group: 'buckets',
         name: 'segment',
-        title: 'X-Axis',
+        title: 'Y-Axis',
         min: 0,
         max: 1,
         aggFilter: '!geohash_grid'
