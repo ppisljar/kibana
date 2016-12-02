@@ -40,7 +40,7 @@ export default function AxisConfigFactory() {
     },
     title: {
       text: '',
-      elSelector: '.axis-wrapper-{pos} .axis-title'
+      elSelector: '.axis-wrapper-{pos} .axis-div',
     }
   };
 

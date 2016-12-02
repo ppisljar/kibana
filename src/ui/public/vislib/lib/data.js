@@ -41,6 +41,8 @@ export default function DataFactory(Private) {
             newData[key] = data[key].map(seri => {
               return {
                 label: seri.label,
+                aggLabel: seri.aggLabel,
+                aggId: seri.aggId,
                 values: seri.values.map(val => {
                   const newVal = _.clone(val);
                   newVal.aggConfig = val.aggConfig;
@@ -110,11 +112,7 @@ export default function DataFactory(Private) {
     }
 
     shouldBeStacked(seriesConfig) {
-      const isHistogram = (seriesConfig.type === 'histogram');
-      const isArea = (seriesConfig.type === 'area');
-      const stacked = (seriesConfig.mode === 'stacked');
-
-      return (isHistogram || isArea) && stacked;
+      return (seriesConfig.mode === 'stacked');
     }
 
     getStackedSeries(chartConfig, axis, series, first = false) {
@@ -134,6 +132,7 @@ export default function DataFactory(Private) {
         const id = axis.axisConfig.get('id');
         stackedData[id] = this.getStackedSeries(chartConfig, axis, data, i === 0);
         stackedData[id] = this.injectZeros(stackedData[id], handler.visConfig.get('orderBucketsBySum', false));
+        axis.axisConfig.set('stackedSeries', stackedData[id].length);
         axis.stack(_.map(stackedData[id], 'values'));
       });
       return stackedData;

@@ -91,9 +91,10 @@ export default function AxisFactory(Private) {
     _getCounts(i, j) {
       const data = this.visConfig.data.chartData();
       const dataLengths = {};
+      const stackedSeries = this.axisConfig.get('stackedSeries', 0);
 
       dataLengths.charts = data.length;
-      dataLengths.stacks = dataLengths.charts ? data[i].series.length : 0;
+      dataLengths.stacks = dataLengths.charts ? stackedSeries : 0;
       dataLengths.values = dataLengths.stacks ? data[i].series[j].values.length : 0;
 
       return dataLengths;
@@ -173,6 +174,7 @@ export default function AxisFactory(Private) {
       const elSelector = this.axisConfig.get('elSelector');
       const rootEl = this.axisConfig.get('rootEl');
       $(rootEl).find(elSelector).find('svg').remove();
+      this.axisTitle.destroy();
     }
 
     getAxis(length) {
@@ -277,7 +279,7 @@ export default function AxisFactory(Private) {
 
       return function (selection) {
         const n = selection[0].length;
-        if (config.get('show') && self.axisTitle) {
+        if (config.get('show') && self.axisTitle && ['left', 'top'].includes(config.get('position'))) {
           self.axisTitle.render(selection);
         }
         selection.each(function () {
@@ -316,6 +318,10 @@ export default function AxisFactory(Private) {
             svg.call(self.adjustSize());
           }
         });
+
+        if (self.axisTitle && ['right', 'bottom'].includes(config.get('position'))) {
+          self.axisTitle.render(selection);
+        }
       };
     }
   }

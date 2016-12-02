@@ -3,22 +3,46 @@ import errors from 'ui/errors';
 
 export default function ColumnHandler(Private) {
 
+  const createSerieFromParams = (cfg, seri) => {
+    // todo this wont work with splits ... same issue exists in dispatch
+    const matchingSeriParams = cfg.seriesParams ? cfg.seriesParams.find(seriConfig => {
+      return seri.aggLabel === seriConfig.data.label;
+    }) : null;
+
+
+    if (!matchingSeriParams) {
+      const stacked = ['stacked', 'percentage', 'wiggle', 'silhouette'].includes(cfg.mode);
+      return {
+        show: true,
+        type: cfg.type || 'line',
+        mode: stacked ? 'stacked' : 'normal',
+        interpolate: cfg.interpolate,
+        smoothLines: cfg.smoothLines,
+        drawLinesBetweenPoints: cfg.drawLinesBetweenPoints,
+        showCircles: cfg.showCircles,
+        radiusRatio: cfg.radiusRatio,
+        data: seri
+      };
+    }
+
+    return {
+      show: matchingSeriParams.show,
+      type: matchingSeriParams.type,
+      mode: matchingSeriParams.mode,
+      valueAxis: matchingSeriParams.valueAxis,
+      smoothLines: matchingSeriParams.smoothLines,
+      drawLinesBetweenPoints: matchingSeriParams.drawLinesBetweenPoints,
+      showCircles: matchingSeriParams.showCircles,
+      radiusRatio: matchingSeriParams.radiusRatio,
+      data: seri
+    };
+  };
+
   const createSeries = (cfg, series) => {
-    const stacked = ['stacked', 'percentage', 'wiggle', 'silhouette'].includes(cfg.mode);
     return {
       type: 'point_series',
       series: _.map(series, (seri) => {
-        return {
-          show: true,
-          type: cfg.type || 'line',
-          mode: stacked ? 'stacked' : 'normal',
-          interpolate: cfg.interpolate,
-          smoothLines: cfg.smoothLines,
-          drawLinesBetweenPoints: cfg.drawLinesBetweenPoints,
-          showCircles: cfg.showCircles,
-          radiusRatio: cfg.radiusRatio,
-          data: seri
-        };
+        return createSerieFromParams(cfg, seri);
       })
     };
   };
@@ -33,6 +57,7 @@ export default function ColumnHandler(Private) {
 
     return [createSeries(cfg, data.series)];
   };
+
   /*
    * Create handlers for Area, Column, and Line charts which
    * are all nearly the same minus a few details

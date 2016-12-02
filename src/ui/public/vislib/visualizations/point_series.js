@@ -60,6 +60,14 @@ export default function PointSeriesFactory(Private) {
       .attr('class', 'background');
     }
 
+    addGrid(svg) {
+      const {width, height} = svg.node().getBBox();
+      return svg
+        .append('g')
+        .attr('class', 'grid')
+        .call(this.handler.grid.draw(width, height));
+    };
+
     addClipPath(svg) {
       const { width, height } = svg.node().getBBox();
       const startX = 0;
@@ -223,7 +231,19 @@ export default function PointSeriesFactory(Private) {
           .attr('width', width)
           .attr('height', height);
 
+          const svgDefs = svg.append('defs');
+          const mainGradient = svgDefs.append('linearGradient')
+            .attr('id', 'mainGradient');
+
+          mainGradient.append('stop')
+            .attr('stop-opacity', '0.3')
+            .attr('offset', '0');
+          mainGradient.append('stop')
+            .attr('stop-opacity', '1')
+            .attr('offset', '1');
+
           self.addBackground(svg, width, height);
+          self.addGrid(svg);
           self.addClipPath(svg);
           self.addEvents(svg);
           self.createEndZones(svg);
@@ -232,7 +252,7 @@ export default function PointSeriesFactory(Private) {
           self.series = [];
           _.each(self.chartConfig.series, (seriArgs, i) => {
             if (!seriArgs.show) return;
-            const SeriClass = seriTypes[seriArgs.type || self.handler.visConfig.get('chart.type')];
+            const SeriClass = seriTypes[seriArgs.type || self.handler.visConfig.get('chart.type')] || seriTypes.line;
             const series = new SeriClass(self.handler, svg, data.series[i], seriArgs);
             series.events = self.events;
             svg.call(series.draw());
