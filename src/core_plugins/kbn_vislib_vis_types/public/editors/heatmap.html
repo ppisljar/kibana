@@ -52,58 +52,5 @@
     </div>
   </div>
 
-  <div class="kuiSideBarFormRow">
-    <label class="kuiSideBarFormRow__label" for="colorSchema">
-      Color Schema
-    </label>
-    <div class="kuiSideBarFormRow__control">
-      <select
-        id="colorSchema"
-        class="kuiSelect kuiSideBarSelect"
-        ng-model="vis.params.colorSchema"
-        ng-options="mode for mode in vis.type.params.colorSchemas"
-      ></select>
-    </div>
-  </div>
-
-  <div class="kuiSideBarFormRow">
-    <label class="kuiSideBarFormRow__label" for="colorsNumber">
-      Number of colors
-    </label>
-    <div class="kuiSideBarFormRow__control">
-      <input
-        id="colorsNumber"
-        type="range"
-        step="1"
-        min="3"
-        max="10"
-        class="kuiInput kuiSideBarInput"
-        ng-model="vis.params.colorsNumber"
-      />
-    </div>
-  </div>
-
-  <div class="kuiSideBarFormRow">
-    <label class="kuiSideBarFormRow__label" for="axisScale">
-      Z Axis Scale
-    </label>
-    <div class="kuiSideBarFormRow__control">
-      <select
-        id="axisScale"
-        class="kuiSelect kuiSideBarSelect"
-        ng-model="vis.params.scale"
-        ng-options="mode for mode in vis.type.params.scales"
-      ></select>
-    </div>
-  </div>
-
-  <div class="kuiSideBarFormRow">
-    <label class="kuiSideBarFormRow__label" for="setColorRange">
-      Custom Range
-    </label>
-    <div class="kuiSideBarFormRow__control">
-      <input class="kuiCheckBox" id="setColorRange" type="checkbox" ng-model="vis.params.setColorRange">
-    </div>
-  </div>
-  <heatmap-range-option></heatmap-range-option>
+  <heatmap-options></heatmap-options>
 </div>

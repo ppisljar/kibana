@@ -36,11 +36,9 @@ export default function HeatmapChartFactory(Private) {
       const isTooltip = this.handler.visConfig.get('tooltip.show');
       const isHorizontal = this.getCategoryAxis().axisConfig.isHorizontal();
       const colorsNumber = this.handler.visConfig.get('colorsNumber');
-      const colorSchema = this.handler.visConfig.get('colorSchema');
       const setColorRange = this.handler.visConfig.get('setColorRange');
       const colorsRange = this.handler.visConfig.get('colorsRange');
       const color = this.handler.data.getColorFunc();
-      const colorsInScheme = 10;
 
       const layer = svg.append('g')
         .attr('class', 'series');
@@ -107,11 +105,6 @@ export default function HeatmapChartFactory(Private) {
       function z(d) {
         if (label(d) === '') return 'transparent';
         return color(label(d));
-        //return color based on the value
-        const colorBucket = getColorBucket(d);
-        if (colorBucket < 0) return 'transparent';
-        const val = colorBucket * Math.floor(colorsInScheme / colorsNumber);
-        return colorFunc(val, colorSchema);
       }
 
       function widthFunc() {
@@ -151,7 +144,6 @@ export default function HeatmapChartFactory(Private) {
 
       return function (selection) {
         selection.each(function () {
-
           const svg = self.chartEl.append('g');
           svg.data([self.chartData]);
 

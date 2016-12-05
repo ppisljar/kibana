@@ -45,7 +45,7 @@ export default function VisFactory(Private) {
      * @method render
      * @param data {Object} Elasticsearch query results
      */
-    render(data, uiState) {
+    render(data, uiState, uiStateChanged = false) {
       if (!data) {
         throw new Error('No valid data!');
       }
@@ -61,16 +61,42 @@ export default function VisFactory(Private) {
         this.uiState = uiState;
         this._uiStateChangeHandler = () => {
           if (document.body.contains(this.el)) {
-            this.render(this.data, this.uiState);
+            this.render(this.data, this.uiState, true);
           }
         };
         uiState.on('change', this._uiStateChangeHandler);
       }
 
       this.visConfig = new VisConfig(this.visConfigArgs, this.data, this.uiState);
+
+      if (!uiStateChanged) {
+        const colors = this.getLegendColors();
+        if (colors) {
+          if (this.uiState.get('vis.colors') && this.visConfig.get('colorSchema', 'custom') === 'custom') {
+            const oldColors = Object.values(this.uiState.get('vis.colors'));
+            let i = 0;
+            for (let n in colors) {
+              if (oldColors[i]) {
+                colors[n] = oldColors[i++];
+              }
+            }
+          }
+          this.uiState.setSilent('vis.colors', null);
+          this.uiState.setSilent('vis.colors', colors);
+        }
+      }
+
       this.handler = new Handler(this, this.visConfig);
       this._runWithoutResizeChecker('render');
     };
+
+    getLegendLabels() {
+      return this.visConfig ? this.visConfig.get('legend.labels', null) : null;
+    };
+
+    getLegendColors() {
+      return this.visConfig ? this.visConfig.get('legend.colors', null) : null;
+    }
 
     /**
      * Resizes the visualization

@@ -156,8 +156,8 @@ uiModules
         }
       }));
 
-      $scope.$watchCollection('vis.params', prereq(function () {
-        if ($scope.renderbot) $scope.renderbot.updateParams();
+      $scope.$watch('vis.params', prereq(function (params, oldParams) {
+        if ($scope.renderbot) $scope.renderbot.updateParams(params);
       }));
 
       $scope.$watch('searchSource', prereq(function (searchSource) {

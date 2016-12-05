@@ -8,7 +8,7 @@ import uiModules from 'ui/modules';
 
 
 uiModules.get('kibana')
-.directive('visualizeLegend', function (Private, getAppState) {
+.directive('visualizeLegend', function (Private, getAppState, $timeout) {
   let Data = Private(VislibLibDataProvider);
   let colorPalette = Private(VislibComponentsColorColorProvider);
   let filterBarClickHandler = Private(FilterBarFilterBarClickHandlerProvider);
@@ -27,13 +27,12 @@ uiModules.get('kibana')
         refresh();
       });
 
-      if ($scope.vis.type.name === 'heatmap') {
-        $scope.$watch('vis.params.colorsNumber', () => refresh(true));
-        $scope.$watch('vis.params.colorSchema', () => refresh(true));
-        $scope.$watch('vis.params.setColorRange', () => refresh());
-      }
       $scope.$watch('vis.params.addLegend', (newVal) => {
         if (newVal !== $scope.open) $scope.toggleLegend();
+        refresh();
+      });
+
+      $scope.$watch('renderbot.vislibParams', () => {
         refresh();
       });
 
@@ -62,7 +61,9 @@ uiModules.get('kibana')
         let colors = $scope.uiState.get('vis.colors') || {};
         colors[label] = color;
         $scope.uiState.set('vis.colors', colors);
-        refresh();
+        $scope.uiState.emit('colorChanged', { label: label, color: color});
+        $scope.getColor = colorPalette(_.pluck($scope.labels, 'label'), $scope.uiState.get('vis.colors'));
+        //refresh();
       };
 
       $scope.toggleLegend = function () {
@@ -108,7 +109,7 @@ uiModules.get('kibana')
         '#E0F9D7', '#FCEACA', '#CFFAFF', '#F9E2D2', '#FCE2DE', '#BADFF4', '#F9D9F9', '#DEDAF7'  //7
       ];
 
-      function refresh(refreshColors = false) {
+      function refresh() {
         if (!$scope.renderbot) return;
         let vislibVis = $scope.renderbot.vislibVis;
 
@@ -116,16 +117,25 @@ uiModules.get('kibana')
           $scope.open = $scope.vis.params.addLegend;
         }
 
-        $scope.labels = getLabels($scope.data, vislibVis.visConfigArgs.type, refreshColors);
+        if (vislibVis.visConfigArgs.type === 'heatmap') {
+          const labels = vislibVis.getLegendLabels();
+          if (labels) {
+            $scope.labels = _.map(labels, label => { return { label: label }; });
+          } else {
+            $scope.labels = [{ label: 'loading ...' }];
+            $timeout(refresh, 100);
+          }
+        } else {
+          $scope.labels = getLabels($scope.data, vislibVis.visConfigArgs.type);
+        }
         $scope.getColor = colorPalette(_.pluck($scope.labels, 'label'), $scope.uiState.get('vis.colors'));
       }
 
       // Most of these functions were moved directly from the old Legend class. Not a fan of this.
-      function getLabels(data, type, refreshColors) {
+      function getLabels(data, type) {
         if (!data) return [];
         data = data.columns || data.rows || [data];
         if (type === 'pie') return Data.prototype.pieNames(data);
-        else if (type === 'heatmap') return getHeatmapLabels(refreshColors);
         return getSeriesLabels(data);
       }
 
@@ -137,34 +147,6 @@ uiModules.get('kibana')
           return a.concat(b);
         }, []);
         return _.compact(_.uniq(values, 'label'));
-      }
-
-      function getHeatmapLabels(refreshColors) {
-        const colorsNumber = $scope.vis.params.colorsNumber;
-        const labels = [];
-        const colors = {};
-        for (let i = 0; i < colorsNumber; i++) {
-          let label;
-          let color;
-          const val = Math.ceil(i * (100 / colorsNumber));
-          if ($scope.vis.params.setColorRange) {
-            const greaterThan = $scope.vis.params.colorsRange[i].value;
-            color = $scope.vis.params.colorsRange[i].color;
-            label = `> ${greaterThan}`;
-          } else {
-            const nextVal = Math.ceil((i + 1) * (100 / colorsNumber));
-            label = `${val}% - ${nextVal}%`;
-          }
-          labels.push({
-            label: label
-          });
-          colors[label] = colorFunc(color || Math.ceil(val / 10), $scope.vis.params.colorSchema);
-        }
-        if (refreshColors || !$scope.uiState.get('vis.colors')) {
-          $scope.uiState.set('vis.colors', colors);
-        }
-
-        return labels;
       }
     }
   };

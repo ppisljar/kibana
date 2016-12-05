@@ -42,7 +42,7 @@ export default function HeatmapVisType(Private) {
         text: 'bottom',
       }],
       scales: ['linear', 'log', 'square root'],
-      colorSchemas: ['yellow to red', 'reds', 'greens', 'blues'],
+      colorSchemas: ['yellow to red', 'reds', 'greens', 'blues', 'custom'],
       editor: heatmapTemplate
     },
     schemas: new Schemas([
@@ -52,7 +52,7 @@ export default function HeatmapVisType(Private) {
         title: 'Value',
         min: 1,
         max: 1,
-        aggFilter: '!std_dev',
+        aggFilter: ['count', 'avg', 'median', 'sum', 'min', 'max', 'cardinality', 'std_dev'],
         defaults: [
           { schema: 'metric', type: 'count' }
         ]
