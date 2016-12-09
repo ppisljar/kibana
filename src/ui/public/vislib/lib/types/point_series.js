@@ -156,9 +156,6 @@ export default function ColumnHandler(Private) {
         },
         labels: {
           axisFormatter: val => val
-        },
-        title: {
-          text: data.get('yAxisLabel')
         }
       });
       return defaults;
