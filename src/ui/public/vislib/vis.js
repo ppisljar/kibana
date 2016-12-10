@@ -87,14 +87,15 @@ export default function VisFactory(Private) {
       } else {
         this.render(this.data, this.uiState);
       }
-    };
+    }
 
     _runWithoutResizeChecker(method) {
-      this.resizeChecker.stopSchedule();
-      this._runOnHandler(method);
-      this.resizeChecker.saveSize();
-      this.resizeChecker.saveDirty(false);
-      this.resizeChecker.continueSchedule();
+      try {
+        this.resizeChecker.stop();
+        this._runOnHandler(method);
+      } finally {
+        this.resizeChecker.start();
+      }
     }
 
     _runOnHandler(method) {
