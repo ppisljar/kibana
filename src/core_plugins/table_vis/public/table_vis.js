@@ -64,8 +64,13 @@ function TableVisTypeProvider(Private) {
       },
       {
         group: 'buckets',
-        name: 'bucket',
+        name: 'rows',
         title: 'Split Rows'
+      },
+      {
+        group: 'buckets',
+        name: 'columns',
+        title: 'Split Columns'
       },
       {
         group: 'buckets',

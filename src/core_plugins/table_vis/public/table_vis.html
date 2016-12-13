@@ -4,14 +4,70 @@
     <h4>No results found</h4>
   </div>
 
-  <div ng-if="tableGroups" class="table-vis-container">
-    <kbn-agg-table-group
-      group="tableGroups"
-      export-title="vis.title"
-      per-page="vis.params.perPage"
-      sort="sort"
-      show-total="vis.params.showTotal"
-      total-func="vis.params.totalFunc">
-    </kbn-agg-table-group>
+  <div class="table-vis-container">
+    <table width="100%" class="table agg-table-group">
+      <!--
+      <tr ng-repeat="columnAggs">
+        <th colspan="{{rowAggs.length}}"></th>
+        <th ng-repeat="columnAggBuckets" colspan="{{todo}}">for each col agg (col titles)</th>
+      </tr>
+      <tr>
+        <th colspan="{{rowAggs.length}}"></th>
+        <ng-repeat ng-repeat="lastColumnAggBuckets">
+          <th ng-repeat="metricAgg">for each col agg (col titles)</th>
+        </ng-repeat>
+      </tr>
+      <!--
+        example table:
+                                 userType                             userType2               userType3
+                        country       country1    country2
+                      cnt avgBytes
+        url req resp
+
+
+        req is build : url/userType/country/req/resp/metrics
+
+        data is in format: [ url, req, resp, userType.country.cnt, userType.country.avgBytes, ......]
+
+        in case rows is the last split and metrics is on rows
+
+        [url, req, resp, avgBytes, userType.country1, userType.country2, ...]
+
+      -->
+      <thead>
+        <tr ng-repeat="row in data.header track by $index">
+          <th ng-repeat="cell in row track by $index"
+              colspan="{{getColSpan($parent.$index, $index)}}"
+              ng-click="sortColumn($index)">
+            <span>{{getHeaderValue($parent.$index, $index, cell)}}</span>
+            <i
+              ng-if="isHeaderSortable($parent.$index, $index)"
+              class="fa"
+              ng-class="{
+                  'fa-sort-asc': paginatedTable.sort.columnIndex === $index && paginatedTable.sort.direction === 'asc',
+                  'fa-sort-desc': paginatedTable.sort.columnIndex === $index && paginatedTable.sort.direction === 'desc',
+                  'fa-sort': paginatedTable.sort.columnIndex !== $index || paginatedTable.sort.direction === null
+                }">
+            </i>
+            <i aria-label="Click on a cell to filter"
+               ng-if="isHeaderFilterable($parent.$index, $index)"
+               class="fa fa-search"
+               ng-click="$event.stopPropagation()"
+               tooltip="Click on a cell to filter"
+            ></i>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="row in sortedRows track by $index">
+          <td ng-repeat="cell in row track by $index" ng-if="displayRowCell($parent.$index, $index)" rowspan="{{getRowSpan($parent.$index, $index)}}" ng-bind-html="getCellValue($index, cell)" class="numeric-value"></td>
+        </tr>
+      </tbody>
+      <tfoot ng-if="showTotal">
+      <tr>
+        <th ng-repeat="col in columnTotals" class="numeric-value">{{col.total | number}}</th>
+      </tr>
+      </tfoot>
+    </table>
   </div>
 </div>
