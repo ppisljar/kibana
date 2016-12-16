@@ -146,6 +146,10 @@ export default function ColumnHandler(Private) {
     heatmap: (cfg, data) => {
       const defaults = create()(cfg, data);
       defaults.valueAxes[0].show = false;
+      defaults.categoryAxes[0].style = {
+        rangePadding: 0,
+        rangeOuterPadding: 0
+      };
       defaults.valueAxes.push({
         id: 'CategoryAxis-2',
         type: 'category',
@@ -156,6 +160,10 @@ export default function ColumnHandler(Private) {
         },
         labels: {
           axisFormatter: val => val
+        },
+        style: {
+          rangePadding: 0,
+          rangeOuterPadding: 0
         }
       });
       return defaults;
