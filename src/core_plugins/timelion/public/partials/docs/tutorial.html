@@ -1,8 +1,7 @@
 <div ng-show="section === 'tutorial'">
 	<div ng-show="page === 1">
     <div class="doc-container-content">
-  		<h1>Welcome to <strong>Timelion</strong> <small> the time series
-            expression interface for everything</small></h1>
+  		<h1>Welcome to <strong>Timelion</strong>!</h1>
   		<p>
   			Timelion is the clawing, gnashing, zebra killing, pluggable time
             series interface for <em>everything</em>. If your datastore can
@@ -58,7 +57,7 @@
     </div>
     <div ng-show="es.valid">
       <div class="doc-container-content">
-        <h2>Good news <small>Elasticsearch is configured correctly!</small></h2>
+        <h2>Good news, Elasticsearch is configured correctly!</h2>
         <p>
           We validated your default index and your timefield and everything
             looks ok. We found data from 
@@ -81,7 +80,8 @@
                   thinks your combination of time range and interval will
                   produce too many data points, it throws an error. (You can
                   adjust that limit by configuring 
-                  <code>timelion:max_buckets</code> in Advanced Settings.)
+                  <code>timelion:max_buckets</code> in <strong>Management / Kibana / Advanced Settings
+            </strong>.)
               </p>
             </li>
             <li><strong>Time range</strong> 
@@ -113,15 +113,16 @@
           enter <code>.es(*)</code> in the input bar and hit enter.
       </p>
       <p>
-        This says <em>"hey Elasticsearch, find everything in my default index"</em>.
+        This says <em>hey Elasticsearch, find everything in my default index</em>.
           If you want to find a subset, you could enter something like
           <code>.es(html)</code> to count events that match <em>html</em>, or
           <code>.es('user:bob AND bytes:>100')</code> to find events
-          that contain <em>bob</em> in the <em>user</em> field and have a
-          bytes field that is greater than 100. Note that this query is
-          enclosed in single quotes&emdash;that's because it contains
-          spaces. You can enter any Lucene query string as the first argument to
-          the <code>.es()</code> function.
+          that contain <em>bob</em> in the <code>user</code> field and have a
+          <code>bytes</code> field that is greater than 100. Note that this query is
+          enclosed in single quotes&mdash;that's because it contains
+          spaces. You can enter any 
+          <a href="https://www.elastic.co/guide/en/elasticsearch/reference/5.1/query-dsl-query-string-query.html#query-string-syntax">Lucene query string</a>
+          as the first argument to the <code>.es()</code> function.
       </p>
         <h4>Passing arguments</h4>
         <p>
@@ -132,18 +133,20 @@
         the same thing. Arguments also have names, so you don't have to
         specify them in a specific order. For example, you can enter
         <code>.es(index='logstash-*', q='*')</code> to tell the
-        Elasticsearch datasource <em>"use * as the q (query) for the
-        logstash-* index"</em>.
+        Elasticsearch datasource <em>use * as the q (query) for the
+        logstash-* index</em>.
         </p>
       <h4>Beyond count</h4>
       <p>
         Counting events is all well and good, but the Elasticsearch datasource
-          also supports any Elasticsearch metric that returns a single value.
-          Min, max, avg, sum, and cardinality are some of the most useful. Let's
-          say you want a unique count of the <code>src_ip</code> field. Simply
-          use the `cardinality` metric: <code>.es(*, metric='cardinality:src_ip')
-          </code>. To get the average of the <code>bytes</code> field, you can
-          use the `avg` metric: <code>.es(metric='avg:bytes')</code>.
+          also supports any
+          <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics.html">Elasticsearch metric aggregation</a>
+          that returns a single value. Some of the most useful are <code>min</code>,
+          <code>max</code>, <code>avg</code>, <code>sum</code>, and 
+          <code>cardinality</code>. Let's say you want a unique count of the <code>src_ip</code> field. Simply use the <code>cardinality</code> metric:
+          <code>.es(*, metric='cardinality:src_ip') </code>. To get the average
+          of the <code>bytes</code> field, you can use the <code>avg</code> metric:
+          <code>.es(metric='avg:bytes')</code>.
       </p>
     </div>
     <div class="doc-container-buttons">
