@@ -8,6 +8,7 @@ import tileMapVisTypeProvider from 'plugins/kbn_vislib_vis_types/tile_map';
 import heatmapVisTypeProvider from 'plugins/kbn_vislib_vis_types/heatmap';
 import horizontalBarVisTypeProvider from 'plugins/kbn_vislib_vis_types/horizontal_bar';
 
+import gaugeVisTypeProvider from 'plugins/kbn_vislib_vis_types/gauge'
 visTypes.register(histogramVisTypeProvider);
 visTypes.register(lineVisTypeProvider);
 visTypes.register(pieVisTypeProvider);
@@ -15,3 +16,4 @@ visTypes.register(areaVisTypeProvider);
 visTypes.register(tileMapVisTypeProvider);
 visTypes.register(heatmapVisTypeProvider);
 visTypes.register(horizontalBarVisTypeProvider);
+visTypes.register(gaugeVisTypeProvider);

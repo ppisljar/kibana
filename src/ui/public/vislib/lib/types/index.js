@@ -1,5 +1,6 @@
 import VislibLibTypesPointSeriesProvider from './point_series';
 import VislibLibTypesPieProvider from './pie';
+import GaugeProvider from './gauge';
 
 export default function TypeFactory(Private) {
   const pointSeries = Private(VislibLibTypesPointSeriesProvider);
@@ -17,5 +18,6 @@ export default function TypeFactory(Private) {
     area: pointSeries.area,
     point_series: pointSeries.line,
     heatmap: pointSeries.heatmap,
+    gauge: Private(GaugeProvider)
   };
 }

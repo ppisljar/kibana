@@ -1,5 +1,6 @@
 import VislibVisualizationsPointSeriesProvider from './point_series';
 import VislibVisualizationsPieChartProvider from './pie_chart';
+import GaugeProvider from './gauge_chart';
 
 export default function VisTypeFactory(Private) {
 
@@ -13,6 +14,7 @@ export default function VisTypeFactory(Private) {
    */
   return {
     pie: Private(VislibVisualizationsPieChartProvider),
-    point_series: Private(VislibVisualizationsPointSeriesProvider)
+    point_series: Private(VislibVisualizationsPointSeriesProvider),
+    gauge: Private(GaugeProvider)
   };
 }

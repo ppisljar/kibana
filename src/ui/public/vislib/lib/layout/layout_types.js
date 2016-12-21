@@ -1,5 +1,6 @@
 import VislibLibLayoutTypesColumnLayoutProvider from './types/column_layout';
 import VislibLibLayoutTypesPieLayoutProvider from './types/pie_layout';
+import GaugeLayoutProvider from './types/gauge_layout';
 
 export default function LayoutTypeFactory(Private) {
 
@@ -13,6 +14,7 @@ export default function LayoutTypeFactory(Private) {
    */
   return {
     pie: Private(VislibLibLayoutTypesPieLayoutProvider),
+    gauge: Private(GaugeLayoutProvider),
     point_series: Private(VislibLibLayoutTypesColumnLayoutProvider)
   };
 }
