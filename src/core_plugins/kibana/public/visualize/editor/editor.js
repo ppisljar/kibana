@@ -294,6 +294,7 @@ function VisEditor($scope, $route, timefilter, AppState, $location, kbnUrl, $tim
   $scope.doSave = function () {
     // vis.title was not bound and it's needed to reflect title into visState
     $state.vis.title = savedVis.title;
+    $state.vis.type = savedVis.type || $state.vis.type;
     savedVis.visState = $state.vis;
     savedVis.uiStateJSON = angular.toJson($scope.uiState.getChanges());
 
