@@ -7,7 +7,7 @@ export default function PointSeriesVisType(Private) {
   const Schemas = Private(VisSchemasProvider);
 
   return new VislibVisType({
-    name: 'point_series',
+    name: 'horizontal_bar',
     title: 'Horizontal bar chart',
     icon: 'fa-bars',
     description: 'Like histogram chart but with horizontal bars.',
