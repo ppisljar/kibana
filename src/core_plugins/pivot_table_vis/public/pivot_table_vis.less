@@ -1,0 +1,64 @@
+.pivot-table-vis-cell {
+  cursor: default;
+}
+
+.pivot-table-vis {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 100%;
+  overflow: hidden;
+  position: relative;
+
+  table {
+    margin-bottom: 0;
+  }
+
+  td.invisible {
+    visibility: visible;
+    color: transparent;
+    border: 0;
+  }
+
+  .hover-row {
+    display: none;
+    position: absolute;
+    left: 0;
+    background: rgb(250, 250, 255);
+    pointer-events: none;
+  }
+
+  .collapsible-row {
+    background-color: rgb(240, 240, 250);
+  }
+
+  .filter {
+    cursor: cell;
+  }
+
+  thead, tfoot {
+    background: #eee;
+  }
+
+  th i {
+    float: right;
+  }
+}
+
+.pivot-table-vis-container {
+  height: 100vh;
+  overflow: auto;
+
+  kbn-agg-table-group > .table > tbody > tr > td {
+    border-top: 0px;
+  }
+
+  .pagination-other-pages {
+    justify-content: flex-end;
+  }
+
+  .pagination-size {
+    display: none;
+  }
+
+}
+

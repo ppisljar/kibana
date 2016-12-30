@@ -6,19 +6,28 @@ module.directive('kbnInfiniteScroll', function () {
   return {
     restrict: 'E',
     scope: {
-      more: '='
+      more: '=',
+      element: '='
     },
     link: function ($scope, $element, attrs) {
-      const $window = $(window);
+      const getElement = (element) => {
+        if (!element) return $(window);
+        if (element === 'parent') return $element.parent();
+        const el = $(element);
+        return el.length ? el : $(window);
+      };
+      const $scrollElement = getElement(attrs.element);
+
       let checkTimer;
 
       function onScroll() {
         if (!$scope.more) return;
 
-        const winHeight = $window.height();
-        const winBottom = winHeight + $window.scrollTop();
+        const winHeight = $scrollElement.height();
+        const winBottom = winHeight + $scrollElement.scrollTop();
         const elTop = $element.offset().top;
-        const remaining = elTop - winBottom;
+        const scrollHeight = $scrollElement[0].scrollHeight;
+        const remaining = attrs.element ? scrollHeight - winBottom : elTop - winBottom;
 
         if (remaining <= winHeight * 0.50) {
           $scope[$scope.$$phase ? '$eval' : '$apply'](function () {
@@ -35,10 +44,10 @@ module.directive('kbnInfiniteScroll', function () {
         }, 50);
       }
 
-      $window.on('scroll', scheduleCheck);
+      $scrollElement.on('scroll', scheduleCheck);
       $scope.$on('$destroy', function () {
         clearTimeout(checkTimer);
-        $window.off('scroll', scheduleCheck);
+        $scrollElement.off('scroll', scheduleCheck);
       });
       scheduleCheck();
     }

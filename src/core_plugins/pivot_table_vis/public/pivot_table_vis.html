@@ -1,0 +1,98 @@
+<div ng-controller="KbnPivotTableVisController" class="pivot-table-vis" style="font-size: {{vis.params.fontSize}}em;">
+  <div ng-if="!hasSomeRows && hasSomeRows !== null" class="table-vis-error">
+    <h2 aria-hidden="true"><i aria-hidden="true" class="fa fa-meh-o"></i></h2>
+    <h4>No results found</h4>
+  </div>
+
+  <div class="pivot-table-vis-container" stop-scroll>
+    <table width="100%" class="table agg-table-group">
+      <thead fix-head>
+        <tr ng-if="vis.params.showExport"><td colspan="">
+          <div class="agg-table-controls ng-scope">
+            <small>Export:</small>&nbsp;&nbsp;
+            <a class="small" ng-click="aggTable.exportAsCsv(false)">
+              Raw <i aria-hidden="true" class="fa fa-download"></i>
+            </a>&nbsp;&nbsp;&nbsp;
+            <a class="small" ng-click="aggTable.exportAsCsv(true)">
+              Formatted <i aria-hidden="true" class="fa fa-download"></i>
+            </a>
+          </div>
+        </td></tr>
+        <tr ng-repeat="row in headerRows track by $index">
+          <th ng-repeat="cell in row.cells track by $index"
+              colspan="{{cell.span}}"
+              ng-if="cell.show">
+            <span ng-bind-html="cell.value"></span>
+            <i
+              ng-if="cell.isSortable"
+              class="fa"
+              ng-click="sortColumn($index)"
+              ng-class="{
+                'fa-sort-asc': sort.columnIndex === $index && sort.direction === 'asc',
+                'fa-sort-desc': sort.columnIndex === $index && sort.direction === 'desc',
+                'fa-sort': sort.columnIndex !== $index || sort.direction === null
+              }">
+            </i>
+            <i
+              ng-if="cell.isFilterable"
+              class="fa fa-search"
+              ng-click="clickCell($parent.$parent.$parent.$index, $parent.$index, cell, true)">
+            </i>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat-start="row in sortedRows|limitTo:limit track by $index"
+            class="hover-row"
+            ng-show="row.visible !== false"
+            style="height: {{vis.params.rowHeight}}"
+        >
+          <td
+            ng-repeat="cell in row.cells track by $index"
+            style="color: {{columns[$index].color}}; background: {{columns[$index].background}}; width: {{columns[$index].cellWidth}}px"
+            class="numeric-value"
+            ng-click="clickCell($parent.$index, $index, cell, false)"
+            ng-class="{ hidden: isCellHidden($index) }"
+          >
+            <button aria-label="Toggle Row" type="button"
+                    ng-if="row.group && $index === row.level"
+                    ng-click="toggleRow($event, row, $parent.$parent.$index, $parent.$index)"
+                    class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+              <i aria-hidden="true" ng-class="{ 'fa-caret-down': row.open, 'fa-caret-right': !row.open }" class="fa fa-caret-right"></i>
+            </button>
+            {{showCellValue(cell.value)}}
+          </td>
+        </tr>
+        <tr style="height: {{vis.params.rowHeight}}" ng-repeat-end="" ng-mouseover="hoverRow($event)" ng-mouseleave="hideHoverRow($event)" ng-show="row.visible !== false">
+          <td
+            ng-repeat="cell in row.cells track by $index"
+            ng-class="{ 'collapsible-row': row.group, hidden: isCellHidden($index), invisible: hideRowCell($parent.$index, $index), filter: canFilterCell($parent.$index, $index) }"
+            style="color: {{columns[$index].color}}; background: {{columns[$index].background}}; width: {{columns[$index].cellWidth}}px"
+            class="pivot-table-vis-cell numeric-value"
+            ng-click="clickCell($parent.$index, $index, cell, false)">
+            <button aria-label="Toggle Row" type="button"
+                    ng-if="row.group && $index === row.level"
+                    ng-click="toggleRow($event, row, $parent.$parent.$index, $parent.$index)"
+                    class="btn btn-primary btn-xs vis-editor-agg-header-toggle">
+              <i aria-hidden="true" ng-class="{ 'fa-caret-down': row.open, 'fa-caret-right': !row.open }" class="fa fa-caret-right"></i>
+            </button>
+            {{showCellValue(cell.value)}}
+          </td>
+        </tr>
+
+      </tbody>
+      <tfoot fix-head ng-show="vis.params.showTotal">
+        <tr>
+          <th class="numeric-value"
+              ng-repeat="col in columnTotals track by $index"
+              ng-if="columns[$index].show"
+          >
+            <div style="font-size: 0.7em; font-weight: normal;">{{columns[$index].totalFunc || '&nbsp'}}</div>
+            <div ng-bind="showCellValue(col)"></div>
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+    <kbn-infinite-scroll more="addRows" element="parent"></kbn-infinite-scroll>
+  </div>
+</div>

@@ -1,0 +1,197 @@
+<div class="kuiSideBarSection">
+  <div class="kuiSideBarSectionTitle">
+    <div class="kuiSideBarSectionTitle__text">
+      Basic Settings
+    </div>
+  </div>
+
+  <div class="kuiSideBarFormRow">
+    <label class="kuiSideBarFormRow__label" for="enableHover">
+      Highlight
+    </label>
+    <div class="kuiSideBarFormRow__control">
+      <input class="kuiCheckBox" id="enableHover" type="checkbox" ng-model="vis.params.enableHover">
+    </div>
+  </div>
+
+  <div class="kuiSideBarFormRow">
+    <label class="kuiSideBarFormRow__label" for="perPage">
+      Per Page
+    </label>
+    <div class="kuiSideBarFormRow__control">
+      <input
+        id="perPage"
+        class="kuiInput kuiSideBarInput"
+        ng-model="vis.params.perPage"
+        type="number"
+        greater-than="10"
+        less-than="1000"
+      >
+    </div>
+  </div>
+
+  <div class="kuiSideBarFormRow">
+    <label class="kuiSideBarFormRow__label" for="showTotal">
+      Show totals
+    </label>
+    <div class="kuiSideBarFormRow__control">
+      <input class="kuiCheckBox" id="showTotal" type="checkbox" ng-model="vis.params.showTotal">
+    </div>
+  </div>
+
+  <div class="kuiSideBarFormRow">
+    <label class="kuiSideBarFormRow__label" for="showExport">
+      Show export
+    </label>
+    <div class="kuiSideBarFormRow__control">
+      <input class="kuiCheckBox" id="showExport" type="checkbox" ng-model="vis.params.showExport">
+    </div>
+  </div>
+
+  <div class="kuiSideBarCollapsibleTitle">
+    <div
+      class="kuiSideBarCollapsibleTitle__label"
+      ng-click="showStyles = !showStyles"
+    >
+      <span
+        aria-hidden="true"
+        ng-class="{ 'fa-caret-down': showStyles, 'fa-caret-right': !showStyles }"
+        class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+      ></span>
+      <span class="kuiSideBarCollapsibleTitle__text">
+        Styles
+      </span>
+    </div>
+  </div>
+
+  <div ng-show="showStyles">
+    <div class="kuiSideBarFormRow">
+      <label class="kuiSideBarFormRow__label" for="fontSize">
+        Font Size
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input
+          id="fontSize"
+          class="kuiInput kuiSideBarInput"
+          ng-model="vis.params.fontSize"
+          type="number"
+          step="0.1"
+          greater-than="0.1"
+          less-than="3"
+        >
+      </div>
+    </div>
+    <div class="kuiSideBarFormRow">
+      <label class="kuiSideBarFormRow__label" for="rowHeight">
+        Row Height
+      </label>
+      <div class="kuiSideBarFormRow__control">
+        <input
+          id="rowHeight"
+          class="kuiInput kuiSideBarInput"
+          ng-model="vis.params.rowHeight"
+          type="number"
+          step="1"
+          greater-than="1"
+          less-than="100"
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="kuiSideBarSection">
+    <div class="kuiSideBarSectionTitle">
+      <div class="kuiSideBarSectionTitle__text">
+        Columns
+      </div>
+    </div>
+
+    <div
+      ng-repeat="column in vis.params.columns track by $index"
+      class="kuiSideBarSection"
+    >
+      <div class="kuiSideBarCollapsibleTitle">
+        <div
+          class="kuiSideBarCollapsibleTitle__label"
+          ng-click="isSeriesOpen = !isSeriesOpen"
+        >
+        <span
+          aria-hidden="true"
+          ng-class="{ 'fa-caret-down': isSeriesOpen, 'fa-caret-right': !isSeriesOpen }"
+          class="fa fa-caret-right kuiSideBarCollapsibleTitle__caret"
+        ></span>
+          <span class="kuiSideBarCollapsibleTitle__text">
+          {{column.label}}
+        </span>
+        </div>
+      </div>
+
+      <div ng-show="isSeriesOpen" class="kuiSideBarCollapsibleSection">
+        <!-- General -->
+        <div class="kuiSideBarSection">
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="showCursor">
+              Show
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiCheckBox" id="showCursor" type="checkbox" ng-model="column.show">
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow" ng-if="column.rowSplit && ($index === 0 || vis.params.columns[$index-1].group)">
+            <label class="kuiSideBarFormRow__label" for="{{ 'group' + $index }}">
+              Group
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiCheckBox" id="{{ 'group' + $index }}" type="checkbox" ng-model="column.group">
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="{{ 'totalFunc' + $index }}">
+              Total Function
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <select
+                id="{{ 'totalFunc' + $index }}"
+                class="kuiSelect kuiSideBarSelect"
+                ng-model="column.totalFunc"
+                ng-options="x for x in totalAggregations"
+              >
+              </select>
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="{{ 'cellWidth' + $index }}">
+              Width
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiInput kuiSideBarInput" id="{{ 'cellWidth' + $index }}" type="number" ng-model="column.cellWidth">
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="{{ 'color' + $index }}">
+              Color
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiInput kuiSideBarInput" id="{{ 'color' + $index }}" type="text" ng-model="column.color">
+            </div>
+          </div>
+
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="{{ 'background' + $index }}">
+              Background
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiInput kuiSideBarInput" id="{{ 'background' + $index }}" type="text" ng-model="column.background">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
