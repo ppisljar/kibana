@@ -1,0 +1,37 @@
+.pivot-table-vis {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 100%;
+  overflow: hidden;
+  position: relative;
+
+  table {
+    margin-bottom: 0;
+  }
+
+  thead, tfoot {
+    background: #eee;
+  }
+
+  th i {
+    float: right;
+  }
+}
+
+.pivot-table-vis-container {
+  height: 100vh;
+  overflow: auto;
+
+  kbn-agg-table-group > .table > tbody > tr > td {
+    border-top: 0px;
+  }
+
+  .pagination-other-pages {
+    justify-content: flex-end;
+  }
+
+  .pagination-size {
+    display: none;
+  }
+
+}

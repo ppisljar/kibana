@@ -1,0 +1,59 @@
+<div ng-controller="KbnPivotTableVisController" class="pivot-table-vis" style="font-size: {{vis.params.fontSize}}em;">
+  <div ng-if="!hasSomeRows && hasSomeRows !== null" class="table-vis-error">
+    <h2 aria-hidden="true"><i aria-hidden="true" class="fa fa-meh-o"></i></h2>
+    <h4>No results found</h4>
+  </div>
+
+  <div class="pivot-table-vis-container">
+    <table width="100%" class="table agg-table-group">
+      <thead fix-head>
+        <tr ng-repeat="row in headerRows track by $index">
+          <th ng-repeat="cell in row.cells track by $index"
+              colspan="{{cell.span}}"
+              ng-if="cell.show">
+            <span ng-bind-html="cell.value"></span>
+            <i
+              ng-if="cell.isSortable"
+              class="fa"
+              ng-click="sortColumn($index)"
+              ng-class="{
+                'fa-sort-asc': sort.columnIndex === $index && sort.direction === 'asc',
+                'fa-sort-desc': sort.columnIndex === $index && sort.direction === 'desc',
+                'fa-sort': sort.columnIndex !== $index || sort.direction === null
+              }">
+            </i>
+            <i
+              ng-if="cell.isFilterable"
+              class="fa fa-search"
+              ng-click="clickCell($parent.$parent.$parent.$index, $parent.$index, cell, true)">
+            </i>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="row in sortedRows|limitTo:limit track by $index">
+          <td
+            ng-repeat="cell in row.cells track by $index"
+            ng-if="showRowCell($parent.$index, $index)"
+            rowspan="{{getRowSpan($parent.$parent.$index, $parent.$index)}}"
+            style="color: {{columns[$index].color}}; background: {{columns[$index].background}}; width: {{columns[$index].cellWidth}}px"
+            ng-bind="showCellValue(cell.value)"
+            class="numeric-value"
+            ng-click="clickCell($parent.$parent.$index, $parent.$index, cell, false)"></td>
+        </tr>
+      </tbody>
+      <tfoot fix-head>
+        <tr>
+          <th class="numeric-value"
+              ng-repeat="col in columnTotals track by $index"
+              ng-if="columns[$index].show"
+          >
+            <div style="font-size: 0.7em; font-weight: normal;">{{columns[$index].totalFunc || '&nbsp'}}</div>
+            <div ng-bind="showCellValue(col)"></div>
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+    <kbn-infinite-scroll more="addRows" element="parent"></kbn-infinite-scroll>
+  </div>
+</div>
