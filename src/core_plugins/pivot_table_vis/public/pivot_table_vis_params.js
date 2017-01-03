@@ -33,7 +33,8 @@ uiModules.get('kibana/table_vis')
               id: agg.id,
               label: agg.makeLabel(),
               show: true,
-              totalFunc: 'sum'
+              totalFunc: ' ',
+              rowSplit: agg.schema.name === 'rows'
             };
             $scope.vis.params.columns.push(column);
           }

@@ -1,3 +1,7 @@
+.pivot-table-vis-cell {
+  cursor: default;
+}
+
 .pivot-table-vis {
   display: flex;
   flex-direction: column;
@@ -7,6 +11,24 @@
 
   table {
     margin-bottom: 0;
+  }
+
+  td.invisible {
+    visibility: visible;
+    color: transparent;
+    border: 0;
+  }
+
+  .hover-row {
+    display: none;
+    position: absolute;
+    left: 0;
+    background: rgb(250, 250, 255);
+    pointer-events: none;
+  }
+
+  .filter {
+    cursor: cell;
   }
 
   thead, tfoot {
@@ -35,3 +57,4 @@
   }
 
 }
+

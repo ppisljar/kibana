@@ -34,7 +34,15 @@ export default function GetColumnsProvider(Private) {
       _.each(data, (aggResult, key) => {
         const agg = _.find(aggs, agg => key === agg.id);
         const parentAgg = _.filter(aggs, agg => key === agg.parentId);
-        if (!agg && !parentAgg.length) return;
+        if (!agg && !parentAgg.length) {
+          if (data.doc_count) {
+            rowData[path + '/Count'] = new AggConfigResult(new AggConfig(vis, {
+              type: 'count',
+              schema: vis.type.schemas.metrics[0].name
+            }), null, data.doc_count, data.doc_count);
+          }
+          return;
+        }
         if (aggResult.buckets) {
           aggResult.buckets.forEach(bucket => {
             if (agg.schema.title === 'Split Rows' && !rowSplits[agg.id].values.includes(bucket.key)) {
@@ -46,10 +54,12 @@ export default function GetColumnsProvider(Private) {
             getBucketValues(bucket, path + '/' + bucket.key);
           });
         } else {
-          rowData[path + '/Count'] = new AggConfigResult(new AggConfig(vis, {
-            type: 'count',
-            schema: vis.type.schemas.metrics[0].name
-          }), null, data.doc_count, data.doc_count);
+          if (data.doc_count) {
+            rowData[path + '/Count'] = new AggConfigResult(new AggConfig(vis, {
+              type: 'count',
+              schema: vis.type.schemas.metrics[0].name
+            }), null, data.doc_count, data.doc_count);
+          }
           if (parentAgg.length) {
             parentAgg.forEach(agg => {
               rowData[path + '/' + agg.makeLabel()] = new AggConfigResult(
@@ -72,10 +82,18 @@ export default function GetColumnsProvider(Private) {
     };
 
     builRowsAndColumns();
-    getBucketValues(esResponse.aggregations);
+    if (esResponse.aggregations) {
+      getBucketValues(esResponse.aggregations);
+    } else {
+      rowData['/Count'] = new AggConfigResult(new AggConfig(vis, {
+        type: 'count',
+        schema: vis.type.schemas.metrics[0].name
+      }), null, esResponse.hits.total, esResponse.hits.total);
+    }
 
     const getRows = (i, cb, values = []) => {
       const row = Object.values(rowSplits)[i];
+      if (!row) return cb([]);
       const agg = row.agg;
       if (!row) cb([]);
       _.each(row.values, rowVal => {

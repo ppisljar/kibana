@@ -113,6 +113,15 @@
             </div>
           </div>
 
+          <div class="kuiSideBarFormRow" ng-if="column.rowSplit">
+            <label class="kuiSideBarFormRow__label" for="{{ 'group' + $index }}">
+              Group
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiCheckBox" id="{{ 'group' + $index }}" type="checkbox" ng-model="column.group">
+            </div>
+          </div>
+
           <div class="kuiSideBarFormRow">
             <label class="kuiSideBarFormRow__label" for="{{ 'totalFunc' + $index }}">
               Total Function
@@ -159,4 +168,5 @@
       </div>
     </div>
   </div>
+
 </div>

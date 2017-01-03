@@ -7,6 +7,8 @@ import FilterBarFilterBarClickHandlerProvider from 'ui/filter_bar/filter_bar_cli
 import BuildDataProvider from './build_data';
 import 'ui/directives/infinite_scroll';
 import 'ui/directives/fix_head';
+import 'ui/directives/stop_scroll';
+
 // get the kibana/table_vis module, and make sure that it requires the "kibana" module if it
 // didn't already
 const module = uiModules.get('kibana/table_vis', ['kibana']);
@@ -25,8 +27,30 @@ module.controller('KbnPivotTableVisController', function ($scope, $element, Priv
     $scope.uiState.set('vis.params.sort', newSort);
   });
 
+  $scope.hoverRow = function (event) {
+    if (!$scope.vis.params.enableHover) return;
+
+    const row = $(event.currentTarget);
+    const hoverRow = row.prev();
+    $('.hover-row').css('display', 'none');
+    row.children().each((i, cell) => {
+      $(hoverRow.children()[i]).css('width', $(cell).outerWidth());
+    });
+    hoverRow.css('top', row.offset().top - row.offsetParent().offset().top);
+    hoverRow.css('display', 'block');
+  };
+
+  $scope.hideHoverRow = function (event) {
+    const hoverRow = $(event.currentTarget).prev();
+    hoverRow.css('display', 'none');
+  };
+
   $scope.addRows = function () {
     $scope.limit += 10;
+  };
+
+  $scope.canFilterCell = function (rowIndex, colIndex) {
+    return (colIndex < Object.values($scope.rawData.rows).length);
   };
 
   $scope.clickCell = function (rowIndex, colIndex, cell, header) {
@@ -137,6 +161,10 @@ module.controller('KbnPivotTableVisController', function ($scope, $element, Priv
     const prevRowVal = getValue(rowIndex - 1, colIndex);
     const rowVal = getValue(rowIndex, colIndex);
     return rowVal !== prevRowVal;
+  };
+
+  $scope.hideRowCell = (rowIndex, colIndex) => {
+    return !$scope.showRowCell(rowIndex, colIndex);
   };
 
   const orderBy = $filter('orderBy');

@@ -22,7 +22,7 @@ visTypes.register(function PivotTableVisTypeProvider(Private) {
     params: {
       defaults: {
         addTooltip: false,
-        perPage: 10,
+        perPage: 50,
         sort: {
           columnIndex: null,
           direction: null
@@ -31,10 +31,12 @@ visTypes.register(function PivotTableVisTypeProvider(Private) {
         showTotal: false,
         totalFunc: 'sum',
         fontSize: 1,
+        enableHover: true,
       },
       editor: '<pivot-table-vis-params></pivot-table-vis-params>'
     },
     implementsRenderComplete: true,
+    hierarchicalData: true,
     schemas: new Schemas([
       {
         group: 'metrics',

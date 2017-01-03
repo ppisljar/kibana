@@ -4,7 +4,7 @@
     <h4>No results found</h4>
   </div>
 
-  <div class="pivot-table-vis-container">
+  <div class="pivot-table-vis-container" stop-scroll>
     <table width="100%" class="table agg-table-group">
       <thead fix-head>
         <tr ng-repeat="row in headerRows track by $index">
@@ -31,18 +31,28 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="row in sortedRows|limitTo:limit track by $index">
+        <tr ng-repeat-start="row in sortedRows|limitTo:limit track by $index"
+            class="hover-row"
+        >
           <td
             ng-repeat="cell in row.cells track by $index"
-            ng-if="showRowCell($parent.$index, $index)"
-            rowspan="{{getRowSpan($parent.$parent.$index, $parent.$index)}}"
             style="color: {{columns[$index].color}}; background: {{columns[$index].background}}; width: {{columns[$index].cellWidth}}px"
             ng-bind="showCellValue(cell.value)"
             class="numeric-value"
-            ng-click="clickCell($parent.$parent.$index, $parent.$index, cell, false)"></td>
+            ng-click="clickCell($parent.$index, $index, cell, false)"></td>
         </tr>
+        <tr ng-repeat-end="" ng-mouseover="hoverRow($event)" ng-mouseleave="hideHoverRow($event)">
+          <td
+            ng-repeat="cell in row.cells track by $index"
+            ng-class="{ invisible: hideRowCell($parent.$index, $index), filter: canFilterCell($parent.$index, $index) }"
+            style="color: {{columns[$index].color}}; background: {{columns[$index].background}}; width: {{columns[$index].cellWidth}}px"
+            ng-bind="showCellValue(cell.value)"
+            class="pivot-table-vis-cell numeric-value"
+            ng-click="clickCell($parent.$index, $index, cell, false)"></td>
+        </tr>
+
       </tbody>
-      <tfoot fix-head>
+      <tfoot fix-head ng-show="vis.params.showTotal">
         <tr>
           <th class="numeric-value"
               ng-repeat="col in columnTotals track by $index"
