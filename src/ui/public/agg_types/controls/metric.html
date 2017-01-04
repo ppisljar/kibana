@@ -1,0 +1,17 @@
+<div ng-controller="aggParam.controller">
+  <div class="form-group">
+    <label>Metric</label>
+    <select
+      name="buckets_path"
+      ng-model="agg.params.buckets_path"
+      required
+      class="form-control">
+      <option
+        ng-repeat="respAgg in responseValueAggs track by respAgg.id"
+        value="{{respAgg.id}}"
+        ng-selected="agg.params.buckets_path === respAgg.id">
+        metric: {{safeMakeLabel(respAgg)}}
+      </option>
+    </select>
+  </div>
+</div>
