@@ -179,6 +179,7 @@ export default function LineChartFactory(Private) {
       .attr('stroke', () => {
         return color(data.label);
       })
+      .attr('filter', 'url(#filterShadow)')
       .attr('stroke-width', lineWidth);
 
       return line;

@@ -231,6 +231,12 @@ export default function PointSeriesFactory(Private) {
           .attr('width', width)
           .attr('height', height);
 
+          svg.append('defs').html(`<filter id="filterShadow" x="0" y="0">
+            <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
+            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5" />
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+            </filter>`);
+
           self.addBackground(svg, width, height);
           self.addGrid(svg);
           self.addClipPath(svg);
