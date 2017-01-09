@@ -18,6 +18,7 @@ module.directive('vislibSeries', function ($parse, $compile) {
           drawLinesBetweenPoints: true,
           showCircles: true,
           smoothLines: false,
+          lineWidth: 2,
           data: {
             label: label
           },

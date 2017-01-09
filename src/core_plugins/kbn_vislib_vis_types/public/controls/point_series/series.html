@@ -114,7 +114,17 @@
             </div>
           </div>
 
+          <div class="kuiSideBarFormRow">
+            <label class="kuiSideBarFormRow__label" for="{{ 'lineWidth' + $index }}">
+              Line Width
+            </label>
+            <div class="kuiSideBarFormRow__control">
+              <input class="kuiSelect" id="{{ 'lineWidth' + $index }}"
+                     type="number" min="0" max="20" ng-model="chart.lineWidth">
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>

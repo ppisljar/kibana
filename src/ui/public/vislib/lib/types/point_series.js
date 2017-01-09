@@ -24,6 +24,7 @@ export default function ColumnHandler(Private) {
         drawLinesBetweenPoints: cfg.drawLinesBetweenPoints,
         showCircles: cfg.showCircles,
         radiusRatio: cfg.radiusRatio,
+        lineWidth: cfg.lineWidth,
         data: seri
       };
     }
@@ -37,6 +38,7 @@ export default function ColumnHandler(Private) {
       drawLinesBetweenPoints: matchingSeriParams.drawLinesBetweenPoints,
       showCircles: matchingSeriParams.showCircles,
       radiusRatio: matchingSeriParams.radiusRatio,
+      lineWidth: matchingSeriParams.lineWidth,
       data: seri
     };
   };

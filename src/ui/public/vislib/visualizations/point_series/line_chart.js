@@ -12,7 +12,8 @@ export default function LineChartFactory(Private) {
     showLines: true,
     interpolate: 'linear',
     color: undefined,
-    fillColor: undefined
+    fillColor: undefined,
+    lineWidth: 2,
   };
   /**
    * Line Chart Visualization
@@ -144,6 +145,7 @@ export default function LineChartFactory(Private) {
       const ordered = this.handler.data.get('ordered');
       const interpolate = this.seriesConfig.interpolate;
       const isHorizontal = this.getCategoryAxis().axisConfig.isHorizontal();
+      const lineWidth = this.seriesConfig.lineWidth;
 
       const line = svg.append('g')
       .attr('class', 'pathgroup lines')
@@ -177,7 +179,7 @@ export default function LineChartFactory(Private) {
       .attr('stroke', () => {
         return color(data.label);
       })
-      .attr('stroke-width', 2);
+      .attr('stroke-width', lineWidth);
 
       return line;
     }
