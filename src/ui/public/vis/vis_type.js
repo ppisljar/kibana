@@ -16,6 +16,12 @@ export default function VisTypeFactory(Private) {
     this.params = opts.params || {};
     this.requiresSearch = opts.requiresSearch == null ? true : opts.requiresSearch; // Default to true unless otherwise specified
     this.implementsRenderComplete = opts.implementsRenderComplete || false;
+
+    if (!this.params.optionTabs) {
+      this.params.optionTabs = [
+        { name: 'options', title: 'Options', editor: this.params.editor }
+      ];
+    }
   }
 
   VisType.prototype.createRenderbot = function (vis, $el, uiState) {
