@@ -60,14 +60,7 @@ export default function PointSeriesVisType(Private) {
             title: {}
           }
         ],
-        seriesParams: [{
-          show: true,
-          type: 'area',
-          mode: 'stacked',
-          data: {
-            label: 'Count'
-          }
-        }],
+        seriesParams: [],
         addTooltip: true,
         addLegend: true,
         legendPosition: 'right',
@@ -98,13 +91,13 @@ export default function PointSeriesVisType(Private) {
       }],
       editor: pointSeriesTemplate,
       optionTabs: [
-        { name: 'series', title: 'Series', editor: '<vislib-series></vislib-series>' },
+        { name: 'series', title: 'Display', editor: '<vislib-series></vislib-series>' },
         {
           name: 'axes',
           title: 'Axes',
           editor: '<div><vislib-value-axes></vislib-value-axes><vislib-category-axis></vislib-category-axis></div>'
         },
-        { name: 'options', title: 'Settings', editor: pointSeriesTemplate },
+        { name: 'options', title: 'Panel Options', editor: pointSeriesTemplate },
       ],
     },
     schemas: new Schemas([
