@@ -10,7 +10,7 @@ export default function PointSeriesVisType(Private) {
     name: 'horizontal_bar',
     title: 'Horizontal bar chart',
     icon: 'fa-bars',
-    description: 'Like histogram chart but with horizontal bars.',
+    description: 'Like Vertical bar chart but with horizontal bars.',
     params: {
       defaults: {
         grid: {

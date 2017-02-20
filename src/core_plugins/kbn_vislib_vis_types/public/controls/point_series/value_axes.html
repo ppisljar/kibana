@@ -36,7 +36,7 @@
       <div tooltip="{{getSeries(axis)}}">{{getSeriesShort(axis)}}</div>
 
       <button
-        ng-hide="vis.params.valueAxes.length === 1"
+        ng-if="vis.params.valueAxes.length > 1"
         aria-label="Remove value axis"
         ng-click="removeValueAxis(axis)"
         tooltip="Remove value axis"
