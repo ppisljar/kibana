@@ -198,7 +198,7 @@ export default function ColumnHandler(Private) {
         },
         labels: {
           filter: false,
-          axisFormatter: data.data.yAxisFormatter
+          axisFormatter: data.data.series[0].values[0].aggConfig.fieldFormatter('html')
         },
         style: {
           rangePadding: 0,
