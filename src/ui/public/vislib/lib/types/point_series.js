@@ -203,6 +203,9 @@ export default function ColumnHandler(Private) {
         style: {
           rangePadding: 0,
           rangeOuterPadding: 0
+        },
+        title: {
+          text: data.data.series[0].values[0].aggConfig.makeLabel()
         }
       });
       return defaults;
