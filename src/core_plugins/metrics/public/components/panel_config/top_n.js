@@ -24,9 +24,6 @@ class TopNPanelConfig extends Component {
     if (!model.bar_color_rules || (model.bar_color_rules && model.bar_color_rules.length === 0)) {
       parts.bar_color_rules = [{ id: uuid.v1() }];
     }
-    if (model.series && model.series.length > 0) {
-      parts.series = [_.assign({}, model.series[0])];
-    }
     this.props.onChange(parts);
   }
 
@@ -51,7 +48,6 @@ class TopNPanelConfig extends Component {
         <SeriesEditor
           colorPicker={false}
           fields={this.props.fields}
-          limit={1}
           model={this.props.model}
           name={this.props.name}
           onChange={this.props.onChange} />
