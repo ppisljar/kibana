@@ -13,6 +13,7 @@ import {
 } from '../../components';
 
 const verticalRhythmHtml = require('./vertical_rhythm.html');
+const verticalRhythmMediumHtml = require('./vertical_rhythm_medium.html');
 const verticalRhythmAsWrapperHtml = require('./vertical_rhythm_as_wrapper.html');
 const verticalRhythmOnComponentHtml = require('./vertical_rhythm_on_component.html');
 
@@ -36,6 +37,18 @@ export default props => (
 
       <GuideDemo
         html={verticalRhythmHtml}
+      />
+    </GuideSection>
+
+    <GuideSection
+      title="VerticalRhythm, medium"
+      source={[{
+        type: GuideSectionTypes.HTML,
+        code: verticalRhythmMediumHtml,
+      }]}
+    >
+      <GuideDemo
+        html={verticalRhythmMediumHtml}
       />
     </GuideSection>
 

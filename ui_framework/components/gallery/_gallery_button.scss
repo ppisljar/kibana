@@ -1,5 +1,4 @@
-$galleryButtonSize: 140px;
-$galleryButtonRhythm: 20px;
+$galleryButtonSize: 134px;
 $galleryButtonIconSize: 50px;
 
 .kuiGalleryButton {
@@ -17,6 +16,14 @@ $galleryButtonIconSize: 50px;
   border: 1px solid #CED5DA;
   border-radius: $buttonBorderRadius;
   text-decoration: none;
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  &:focus {
+    @include focus;
+  }
 
   &:hover {
     background-color: #FFFFFF;

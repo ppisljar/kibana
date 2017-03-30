@@ -707,6 +707,9 @@ body {
   .kuiFieldGroupSection--wide > * {
     width: 100%; }
 
+/**
+ * 1. Make up for the margin-bottom of gallery buttons which occupy the last row.
+ */
 .kuiGallery {
   display: -webkit-box;
   display: -webkit-flex;
@@ -714,7 +717,9 @@ body {
   display: flex;
   -webkit-flex-wrap: wrap;
       -ms-flex-wrap: wrap;
-          flex-wrap: wrap; }
+          flex-wrap: wrap;
+  margin-bottom: -20px;
+  /* 1 */ }
 
 .kuiGalleryButton {
   display: -webkit-box;
@@ -735,8 +740,8 @@ body {
       -ms-flex-pack: center;
           justify-content: center;
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 134px;
+  height: 134px;
   margin: 0 20px 20px 0;
   padding: 25px 10px 10px;
   line-height: 1.5;
@@ -744,6 +749,15 @@ body {
   border: 1px solid #CED5DA;
   border-radius: 4px;
   text-decoration: none; }
+  .kuiGalleryButton:last-child {
+    margin-right: 0; }
+  .kuiGalleryButton:focus {
+    z-index: 1;
+    /* 1 */
+    outline: none !important;
+    /* 2 */
+    box-shadow: 0 0 0 1px #ffffff, 0 0 0 2px #6EADC1;
+    /* 3 */ }
   .kuiGalleryButton:hover {
     background-color: #FFFFFF;
     border-color: #00A6FF; }
@@ -2277,6 +2291,9 @@ body {
 
 .kuiVerticalRhythm + .kuiVerticalRhythm {
   margin-top: 10px; }
+
+.kuiVerticalRhythm--medium + .kuiVerticalRhythm {
+  margin-top: 20px; }
 
 .kuiView {
   background-color: #FFFFFF;
