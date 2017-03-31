@@ -8,19 +8,19 @@ import {
   GuideSectionTypes,
 } from '../../components';
 
-const fieldGroupHtml = require('./field_group.html');
+const galleryHtml = require('./gallery.html');
 
 export default props => (
   <GuidePage title={props.route.name}>
     <GuideSection
-      title="FieldGroup"
+      title="Gallery"
       source={[{
         type: GuideSectionTypes.HTML,
-        code: fieldGroupHtml,
+        code: galleryHtml,
       }]}
     >
       <GuideDemo
-        html={fieldGroupHtml}
+        html={galleryHtml}
       />
     </GuideSection>
   </GuidePage>

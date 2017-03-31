@@ -61,6 +61,7 @@ $toolBarItsemSpacing: 10px;
 
 // Rhythm
 $verticalRhythm: 10px;
+$verticalRhythmMedium: 20px;
 
 @mixin darkTheme {
   .theme-dark & {
@@ -249,6 +250,7 @@ body {
 @import "event/index";
 @import "form/index";
 @import "form_layout/index";
+@import "gallery/index";
 @import "header_bar/index";
 @import "icon/index";
 @import "info_panel/index";

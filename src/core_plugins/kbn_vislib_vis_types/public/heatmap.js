@@ -1,18 +1,24 @@
+import VisVisTypeProvider from 'ui/vis/vis_type';
 import VislibVisTypeVislibVisTypeProvider from 'ui/vislib_vis_type/vislib_vis_type';
 import VisSchemasProvider from 'ui/vis/schemas';
 import heatmapTemplate from 'plugins/kbn_vislib_vis_types/editors/heatmap.html';
 import heatmapColors from 'ui/vislib/components/color/colormaps';
 
 export default function HeatmapVisType(Private) {
+  const VisType = Private(VisVisTypeProvider);
   const VislibVisType = Private(VislibVisTypeVislibVisTypeProvider);
   const Schemas = Private(VisSchemasProvider);
 
   return new VislibVisType({
     name: 'heatmap',
     title: 'Heatmap chart',
+    shortTitle: 'Heat Map',
     icon: 'fa-barcode',
-    description: 'A heat map is a graphical representation of data' +
-    ' where the individual values contained in a matrix are represented as colors. ',
+    description:
+      `A heat map is a graphical representation of data
+      where the individual values contained in a matrix are represented as colors.`,
+    shortDescription: 'Shade cells within a matrix',
+    category: VisType.CATEGORY.BASIC,
     params: {
       defaults: {
         addTooltip: true,

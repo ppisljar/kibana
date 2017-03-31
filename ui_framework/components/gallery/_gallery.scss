@@ -1,0 +1,8 @@
+/**
+ * 1. Make up for the margin-bottom of gallery buttons which occupy the last row.
+ */
+.kuiGallery {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: -$galleryButtonRhythm; /* 1 */
+}

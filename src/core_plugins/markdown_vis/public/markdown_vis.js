@@ -1,5 +1,6 @@
 import 'plugins/markdown_vis/markdown_vis.less';
 import 'plugins/markdown_vis/markdown_vis_controller';
+import VisVisTypeProvider from 'ui/vis/vis_type';
 import TemplateVisTypeTemplateVisTypeProvider from 'ui/template_vis_type/template_vis_type';
 import markdownVisTemplate from 'plugins/markdown_vis/markdown_vis.html';
 import markdownVisParamsTemplate from 'plugins/markdown_vis/markdown_vis_params.html';
@@ -12,15 +13,18 @@ import visTypesRegistry from 'ui/registry/vis_types';
 visTypesRegistry.register(MarkdownVisProvider);
 
 function MarkdownVisProvider(Private) {
+  const VisType = Private(VisVisTypeProvider);
   const TemplateVisType = Private(TemplateVisTypeTemplateVisTypeProvider);
 
   // return the visType object, which kibana will use to display and configure new
   // Vis object of this type.
   return new TemplateVisType({
     name: 'markdown',
-    title: 'Markdown widget',
+    title: 'Markdown',
     icon: 'fa-code',
     description: 'Useful for displaying explanations or instructions for dashboards.',
+    shortDescription: 'Create a document using markdown syntax',
+    category: VisType.CATEGORY.GRAPHIC,
     template: markdownVisTemplate,
     params: {
       editor: markdownVisParamsTemplate
