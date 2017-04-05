@@ -16,6 +16,7 @@ import AggTypesMetricsDerivativeProvider from 'ui/agg_types/metrics/derivative';
 import AggTypesMetricsCumulativeSumProvider from 'ui/agg_types/metrics/cumulative_sum';
 import AggTypesMetricsMovingAvgProvider from 'ui/agg_types/metrics/moving_avg';
 import AggTypesMetricsSerialDiffProvider from 'ui/agg_types/metrics/serial_diff';
+import AggTypesMetricsScriptedMetricProvider from 'ui/agg_types/metrics/scripted_metric';
 import AggTypesBucketsDateHistogramProvider from 'ui/agg_types/buckets/date_histogram';
 import AggTypesBucketsHistogramProvider from 'ui/agg_types/buckets/histogram';
 import AggTypesBucketsRangeProvider from 'ui/agg_types/buckets/range';
@@ -54,7 +55,8 @@ export default function AggTypeService(Private) {
       Private(AggTypesMetricsBucketSumProvider),
       Private(AggTypesMetricsBucketMinProvider),
       Private(AggTypesMetricsBucketMaxProvider),
-      Private(AggTypesMetricsGeoCentroidProvider)
+      Private(AggTypesMetricsGeoCentroidProvider),
+      Private(AggTypesMetricsScriptedMetricProvider)
     ],
     buckets: [
       Private(AggTypesBucketsDateHistogramProvider),

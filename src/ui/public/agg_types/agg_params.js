@@ -7,6 +7,7 @@ import AggTypesParamTypesRegexProvider from 'ui/agg_types/param_types/regex';
 import AggTypesParamTypesStringProvider from 'ui/agg_types/param_types/string';
 import AggTypesParamTypesRawJsonProvider from 'ui/agg_types/param_types/raw_json';
 import AggTypesParamTypesBaseProvider from 'ui/agg_types/param_types/base';
+import AggTypesParamTypesScriptingLangProvider from 'ui/agg_types/param_types/script_lang';
 export default function AggParamsFactory(Private) {
   const paramTypeMap = {
     field: Private(AggTypesParamTypesFieldProvider),
@@ -14,6 +15,7 @@ export default function AggParamsFactory(Private) {
     regex: Private(AggTypesParamTypesRegexProvider),
     string: Private(AggTypesParamTypesStringProvider),
     json: Private(AggTypesParamTypesRawJsonProvider),
+    script_lang: Private(AggTypesParamTypesScriptingLangProvider),
     _default: Private(AggTypesParamTypesBaseProvider)
   };
 
