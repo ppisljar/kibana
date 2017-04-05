@@ -1,11 +1,10 @@
-import _ from 'lodash';
 import editorHtml from 'ui/agg_types/controls/script_lang.html';
 import StringParamTypesBaseProvider from 'ui/agg_types/param_types/string';
-import { GetScriptingLangsProvider } from 'ui/scripting_langs';
+import { GetEnabledScriptingLanguagesProvider } from 'ui/scripting_languages';
 
 export default function ScriptingLangAggParamFactory(Private) {
   const StringAggParam = Private(StringParamTypesBaseProvider);
-  const getScriptingLangs = Private(GetScriptingLangsProvider);
+  const getScriptingLangs = Private(GetEnabledScriptingLanguagesProvider);
 
   class ScriptingLangAggParam extends StringAggParam {
     constructor(config) {
@@ -14,7 +13,7 @@ export default function ScriptingLangAggParamFactory(Private) {
       this.default = 'painless';
       this.editor = editorHtml;
       this.controller = class ScriptingLangParamController {
-        constructor($scope) {
+        constructor() {
           this.loading = true;
 
           getScriptingLangs()
@@ -22,10 +21,10 @@ export default function ScriptingLangAggParamFactory(Private) {
               this.loading = false;
               this.scriptingLangs = scriptingLangs;
             });
-        };
+        }
       };
     }
   }
 
   return ScriptingLangAggParam;
-};
+}

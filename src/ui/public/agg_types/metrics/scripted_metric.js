@@ -3,8 +3,8 @@ import RegistryFieldFormatsProvider from 'ui/registry/field_formats';
 import textHtml from 'ui/agg_types/controls/text.html';
 
 export default function AggTypesMetricsScriptedMetricProvider(Private) {
-  let MetricAggType = Private(AggTypesMetricsMetricAggTypeProvider);
-  let fieldFormats = Private(RegistryFieldFormatsProvider);
+  const MetricAggType = Private(AggTypesMetricsMetricAggTypeProvider);
+  const fieldFormats = Private(RegistryFieldFormatsProvider);
 
   const buildScriptParam = function (scriptName) {
     return {
@@ -46,4 +46,4 @@ export default function AggTypesMetricsScriptedMetricProvider(Private) {
       buildScriptParam('reduce_script')
     ]
   });
-};
+}
