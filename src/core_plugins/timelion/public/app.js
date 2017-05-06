@@ -48,8 +48,21 @@ require('ui/routes')
   });
 
 app.controller('timelion', function (
-    $scope, $http, timefilter, AppState, courier, $route, $routeParams,
-    kbnUrl, Notifier, config, $timeout, Private, savedVisualizations, confirmModal) {
+    $http,
+    $route,
+    $routeParams,
+    $scope,
+    $timeout,
+    AppState,
+    config,
+    confirmModal,
+    courier,
+    kbnUrl,
+    Notifier,
+    Private,
+    savedVisualizations,
+    timefilter
+  ) {
 
   // TODO: For some reason the Kibana core doesn't correctly do this for all apps.
   moment.tz.setDefault(config.get('dateFormat:tz'));
@@ -118,7 +131,6 @@ app.controller('timelion', function (
     template: '<timelion-docs></timelion-docs>',
     testId: 'timelionDocsButton',
   }];
-
 
   $timeout(function () {
     if (config.get('timelion:showTutorial', true)) {

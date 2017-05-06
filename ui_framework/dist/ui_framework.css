@@ -1771,11 +1771,20 @@ body {
           align-items: flex-start;
   /* 1 */ }
 
+/**
+ * 1. If we're using an expandable input, make sure that it doesn't force sibling elements to expand
+ *    with it.
+ */
 .kuiLocalSearch {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-align: start;
+  -webkit-align-items: flex-start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+  /* 1 */
   width: 100%; }
 
 .kuiLocalSearchInput {
@@ -1919,6 +1928,7 @@ body {
  * 2. Expand as the user enters text.
  * 3. Cap the height so that we can offer auto-completion suggestions below the input.
  * 4. When the input is collapsed, we want text input to be truncated with an ellipsis.
+ * 5. Prevent textarea from being resized.
  */
 .kuiLocalSearchInput--expandable {
   height: 30px;
@@ -1930,7 +1940,9 @@ body {
   overflow: hidden;
   /* 4 */
   text-overflow: ellipsis;
-  /* 4 */ }
+  /* 4 */
+  resize: none;
+  /* 5 */ }
   .kuiLocalSearchInput--expandable:focus {
     z-index: 1;
     /* 1 */
