@@ -218,7 +218,6 @@ export function VislibVisualizationsPointSeriesProvider(Private) {
           self.addBackground(svg, width, height);
           self.addGrid(svg);
           self.addClipPath(svg);
-          self.addEvents(svg);
           self.createEndZones(svg);
           self.calculateRadiusLimits(data);
 
@@ -231,6 +230,8 @@ export function VislibVisualizationsPointSeriesProvider(Private) {
             svg.call(series.draw());
             self.series.push(series);
           });
+
+          self.addEvents(svg);
 
           if (addTimeMarker) {
             //Domain end of 'now' will be milliseconds behind current time
