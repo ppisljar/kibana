@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { uiModules } from 'ui/modules';
 import TagCloud from 'plugins/tagcloud/tag_cloud';
 import AggConfigResult from 'ui/vis/agg_config_result';
@@ -54,19 +53,10 @@ module.controller('KbnTagCloudController', function ($scope, $element, Private, 
       return;
     }
 
-    const tagsAggId = _.first(_.pluck($scope.vis.aggs.bySchemaName.segment, 'id'));
-    if (!tagsAggId || !response.aggregations) {
-      tagCloud.setData([]);
-      return;
-    }
-
-    const metricsAgg = _.first($scope.vis.aggs.bySchemaName.metric);
-    const buckets = response.aggregations[tagsAggId].buckets;
-
-    const tags = buckets.map((bucket) => {
+    const tags = response.map((bucket) => {
       return {
         text: bucket.key,
-        value: getValue(metricsAgg, bucket)
+        value: bucket.values[0]
       };
     });
 
@@ -87,18 +77,6 @@ module.controller('KbnTagCloudController', function ($scope, $element, Private, 
   $scope.$watch('resize', () => {
     tagCloud.resize();
   });
-
-  function getValue(metricsAgg, bucket) {
-    let size = metricsAgg.getValue(bucket);
-    if (typeof size !== 'number' || isNaN(size)) {
-      try {
-        size = bucket[1].values[0].value;//lift out first value (e.g. median aggregations return as array)
-      } catch (e) {
-        size = 1;//punt
-      }
-    }
-    return size;
-  }
 
 
 });

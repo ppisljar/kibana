@@ -86,6 +86,7 @@ export default function MetricVisType(Private) {
           aggFilter: '!geohash_grid'
         }
       ])
-    }
+    },
+    responseHandler: 'series_data'
   });
 }
