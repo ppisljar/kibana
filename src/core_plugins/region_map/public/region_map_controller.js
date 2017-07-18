@@ -90,13 +90,34 @@ module.controller('KbnRegionMapController', function ($scope, $element, Private,
   async function makeKibanaMap() {
     const tmsSettings = await serviceSettings.getTMSService();
     const minMaxZoom = tmsSettings.getMinMaxZoom(false);
-    kibanaMap = new KibanaMap($element[0], minMaxZoom);
-    const url = tmsSettings.getUrl();
-    const options = tmsSettings.getTMSOptions();
-    kibanaMap.setBaseLayer({ baseLayerType: 'tms', options: { url, ...options } });
+
+    const options = { ...minMaxZoom };
+    const uiState = $scope.vis.getUiState();
+    const zoomFromUiState = parseInt(uiState.get('mapZoom'));
+    const centerFromUIState = uiState.get('mapCenter');
+    options.zoom = !isNaN(zoomFromUiState) ? zoomFromUiState : $scope.vis.type.visConfig.defaults.mapZoom;
+    options.center = centerFromUIState ? centerFromUIState : $scope.vis.type.visConfig.defaults.mapCenter;
+    kibanaMap = new KibanaMap($element[0], options);
+
+
+    const tmsUrl = tmsSettings.getUrl();
+    const tmsOptions = tmsSettings.getTMSOptions();
+    kibanaMap.setBaseLayer({ baseLayerType: 'tms', options: { tmsUrl, ...tmsOptions } });
     kibanaMap.addLegendControl();
     kibanaMap.addFitControl();
     kibanaMap.persistUiStateForVisualization($scope.vis);
+
+
+    const saveCurrentLocation = () => {
+      //to ensure we dirty the state of the viz. (not sure why this is required. Tilemap visualization does not require it)
+      $scope.vis.params.mapZoom = kibanaMap.getZoomLevel();
+      $scope.vis.params.mapCenter = kibanaMap.getCenter();
+      $scope.$apply();
+    };
+
+    kibanaMap.on('dragend', saveCurrentLocation);
+    kibanaMap.on('zoomend', saveCurrentLocation);
+
   }
 
   function setTooltipFormatter() {
