@@ -2,15 +2,17 @@ import d3 from 'd3';
 import _ from 'lodash';
 import { VislibComponentsZeroInjectionInjectZerosProvider } from '../components/zero_injection/inject_zeros';
 import { VislibComponentsZeroInjectionOrderedXKeysProvider } from '../components/zero_injection/ordered_x_keys';
-import { VislibComponentsLabelsLabelsProvider } from '../components/labels/labels';
+//import { VislibComponentsLabelsLabelsProvider } from '../components/labels/labels';
 import { VislibComponentsColorColorProvider } from 'ui/vis/components/color/color';
+import { PointSeriesTooltipFormatter } from 'ui/agg_response/point_series/_tooltip_formatter';
 
 export function VislibLibDataProvider(Private) {
 
   const injectZeros = Private(VislibComponentsZeroInjectionInjectZerosProvider);
   const orderKeys = Private(VislibComponentsZeroInjectionOrderedXKeysProvider);
-  const getLabels = Private(VislibComponentsLabelsLabelsProvider);
+  //const getLabels = Private(VislibComponentsLabelsLabelsProvider);
   const color = Private(VislibComponentsColorColorProvider);
+  const tooltipFormatter = Private(PointSeriesTooltipFormatter);
 
   /**
    * Provides an API for pulling values off the data
@@ -30,9 +32,12 @@ export function VislibLibDataProvider(Private) {
       this.labels = this._getLabels(this.data);
       this.color = this.labels ? color(this.labels, uiState.get('vis.colors')) : undefined;
       this._normalizeOrdered();
+      this.data.columns[0].tooltipFormatter = tooltipFormatter;
     }
 
     copyDataObj(data) {
+      return { columns: _.values(data.charts) };
+
       const copyChart = data => {
         const newData = {};
         Object.keys(data).forEach(key => {
@@ -77,11 +82,21 @@ export function VislibLibDataProvider(Private) {
     }
 
     _getLabels(data) {
-      return this.type === 'series' ? getLabels(data) : this.pieNames();
+      const getLabels1 = (data) => {
+        const labels = {};
+        data.columns.forEach(chart => {
+          _.each(chart.series, series => {
+            if (!labels[series.label]) labels[series.label] = 1;
+          });
+        });
+        return _.keys(labels);
+      };
+      return this.type === 'series' ? getLabels1(data) : this.pieNames();
     }
 
     getDataType() {
-      const data = this.getVisData();
+      //const data = this.getVisData();
+      const data = this.data.columns;
       let type;
 
       data.forEach(function (obj) {
@@ -105,6 +120,8 @@ export function VislibLibDataProvider(Private) {
      * @returns {*} Array of data objects
      */
     chartData() {
+      return this.data.columns;
+
       if (!this.data.series) {
         const arr = this.data.rows ? this.data.rows : this.data.columns;
         return _.toArray(arr);
@@ -150,43 +167,6 @@ export function VislibLibDataProvider(Private) {
       } else {
         this.stackChartData(handler, data.series, handler.visConfig.get('charts[0]'));
       }
-    }
-
-    /**
-     * Returns an array of chart data objects
-     *
-     * @method getVisData
-     * @returns {*} Array of chart data objects
-     */
-    getVisData() {
-      let visData;
-
-      if (this.data.rows) {
-        visData = this.data.rows;
-      } else if (this.data.columns) {
-        visData = this.data.columns;
-      } else {
-        visData = [this.data];
-      }
-
-      return visData;
-    }
-
-    /**
-     * get min and max for all cols, rows of data
-     *
-     * @method getMaxMin
-     * @return {Object}
-     */
-    getGeoExtents() {
-      const visData = this.getVisData();
-
-      return _.reduce(_.pluck(visData, 'geoJson.properties'), function (minMax, props) {
-        return {
-          min: Math.min(props.min, minMax.min),
-          max: Math.max(props.max, minMax.max)
-        };
-      }, { min: Infinity, max: -Infinity });
     }
 
     /**
@@ -248,20 +228,6 @@ export function VislibLibDataProvider(Private) {
         .pluck('values')
         .flattenDeep()
         .value();
-    }
-
-    /**
-     * Validates that the Y axis min value defined by user input
-     * is a number.
-     *
-     * @param val {Number} Y axis min value
-     * @returns {Number} Y axis min value
-     */
-    validateUserDefinedYMin(val) {
-      if (!_.isNumber(val)) {
-        throw new Error('validateUserDefinedYMin expects a number');
-      }
-      return val;
     }
 
     /**
@@ -386,6 +352,16 @@ export function VislibLibDataProvider(Private) {
      * @returns {Array} Array of x axis values
      */
     xValues(orderBucketsBySum = false) {
+      const buckets = {};
+      this.data.columns.forEach(chart => {
+        _.each(chart.series, series => {
+          series.values.forEach(value => {
+            if (!buckets[value.x]) buckets[value.x] = value.value;
+            else buckets[value.x] += value.value;
+          });
+        });
+      });
+      return _.keys(buckets).sort();
       return orderKeys(this.data, orderBucketsBySum);
     }
 
@@ -398,7 +374,7 @@ export function VislibLibDataProvider(Private) {
      * @returns {Array} Array of labels (strings)
      */
     getLabels() {
-      return getLabels(this.data);
+      return this._getLabels(this.data);
     }
 
     /**
@@ -436,10 +412,15 @@ export function VislibLibDataProvider(Private) {
      * @return {undefined}
      */
     _normalizeOrdered() {
-      const data = this.getVisData();
+      const data = this.data.columns;
       const self = this;
 
       data.forEach(function (d) {
+        d.ordered = {
+          date: true,
+          interval: d.series[0].values[1].x - d.series[0].values[0].x
+        };
+
         if (!d.ordered || !d.ordered.date) return;
 
         const missingMin = d.ordered.min == null;
@@ -447,27 +428,10 @@ export function VislibLibDataProvider(Private) {
 
         if (missingMax || missingMin) {
           const extent = d3.extent(self.xValues());
-          if (missingMin) d.ordered.min = extent[0];
-          if (missingMax) d.ordered.max = extent[1];
+          if (missingMin) d.ordered.min = parseInt(extent[0]);
+          if (missingMax) d.ordered.max = parseInt(extent[1]);
         }
       });
-    }
-
-    /**
-     * Calculates min and max values for all map data
-     * series.rows is an array of arrays
-     * each row is an array of values
-     * last value in row array is bucket count
-     *
-     * @method mapDataExtents
-     * @param series {Array} Array of data objects
-     * @returns {Array} min and max values
-     */
-    mapDataExtents(series) {
-      const values = _.map(series.rows, function (row) {
-        return row[row.length - 1];
-      });
-      return [_.min(values), _.max(values)];
     }
 
     /**
