@@ -15,13 +15,13 @@ export function PointSeriesGetSeriesProvider(Private) {
     let series = _(rows)
     .transform(function (series, row) {
       if (!multiY) {
-        const point = partGetPoint(row, aspects.y, aspects.z);
+        const point = partGetPoint(row, aspects.y, aspects.radius);
         if (point) addToSiri(series, point, point.series, point.series, aspects.y.agg);
         return;
       }
 
       aspects.y.forEach(function (y) {
-        const point = partGetPoint(row, y, aspects.z);
+        const point = partGetPoint(row, y, aspects.radius);
         if (!point) return;
 
         // use the point's y-axis as it's series by default,

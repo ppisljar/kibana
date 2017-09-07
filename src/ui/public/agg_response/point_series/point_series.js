@@ -16,14 +16,14 @@ export function AggResponsePointSeriesProvider(Private) {
 
   return function pointSeriesChartDataFromTable(vis, table) {
     const chart = {};
-    const aspects = chart.aspects = getAspects(vis, table);
+    chart.aspects = getAspects(vis, table);
 
     chart.tooltipFormatter = tooltipFormatter;
 
     initXAxis(chart);
     initYAxis(chart);
 
-    const datedX = aspects.x.agg.type.ordered && aspects.x.agg.type.ordered.date;
+    const datedX = chart.aspects.x.agg.type.ordered && chart.aspects.x.agg.type.ordered.date;
     if (datedX) {
       setupOrderedDateXAxis(vis, chart);
     }

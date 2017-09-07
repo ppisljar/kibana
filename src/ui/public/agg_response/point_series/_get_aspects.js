@@ -7,16 +7,16 @@ export function PointSeriesGetAspectsProvider(Private) {
   const map = {
     segment: 'x',
     metric: 'y',
-    radius: 'z',
+    group: 'series',
     width: 'width',
-    group: 'series'
+    radius: 'radius'
   };
 
   function columnToAspect(aspects, col, i) {
     const schema = col.aggConfig.schema.name;
 
     const name = map[schema];
-    if (!name) throw new TypeError('unknown schema name "' + schema + '"');
+    if (!name) throw new TypeError('point_series: unknown schema name "' + schema + '"');
 
     const aspect = {
       i: i,
