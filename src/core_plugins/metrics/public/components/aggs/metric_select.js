@@ -24,14 +24,20 @@ function MetricSelect(props) {
     metric,
     onChange,
     value,
-    exclude
+    exclude,
+    includeSiblings
   } = props;
 
   const metrics = props.metrics
     .filter(createTypeFilter(restrict, exclude));
 
+  function metricFilter(row) {
+    if (includeSiblings) return !/^series/.test(row.type) && row.type !== 'math';
+    return !/_bucket$/.test(row.type) && !/^series/.test(row.type) && row.type !== 'math';
+  }
+
   const options = calculateSiblings(metrics, metric)
-    .filter(row => !/_bucket$/.test(row.type) && !/^series/.test(row.type))
+    .filter(metricFilter)
     .map(row => {
       const label = calculateLabel(row, metrics);
       return { value: row.id, label };
@@ -53,6 +59,7 @@ MetricSelect.defaultProps = {
   exclude: [],
   metric: {},
   restrict: 'none',
+  includeSiblings: false
 };
 
 MetricSelect.propTypes = {
@@ -61,7 +68,8 @@ MetricSelect.propTypes = {
   metric: PropTypes.object,
   onChange: PropTypes.func,
   restrict: PropTypes.string,
-  value: PropTypes.string
+  value: PropTypes.string,
+  includeSiblings: PropTypes.bool
 };
 
 export default MetricSelect;
