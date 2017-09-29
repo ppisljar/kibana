@@ -63,6 +63,7 @@ export function VisProvider(Private, indexPatterns, timefilter, getAppState) {
         queryFilter: queryFilter,
         queryManager: queryManagerFactory(getAppState),
         kuery: kueryAPI,
+        visTypes: visTypes,
         events: {
           filter: (event) => {
             const appState = getAppState();
