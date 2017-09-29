@@ -210,6 +210,13 @@ export function VisProvider(Private, indexPatterns, timefilter, getAppState) {
       }
       return val;
     }
+
+    isSameSavedObject = (savedObjectId) => {
+      if (this._id && this._id === savedObjectId) {
+        return true;
+      }
+      return false;
+    }
   }
 
   Vis.prototype.type = 'histogram';
