@@ -1,25 +1,13 @@
 import _ from 'lodash';
 import $ from 'jquery';
-import { VisRequestHandlersRegistryProvider } from 'ui/registry/vis_request_handlers';
-import { VisResponseHandlersRegistryProvider } from 'ui/registry/vis_response_handlers';
-import { FilterBarQueryFilterProvider } from 'ui/filter_bar/query_filter';
-import { PersistedState } from 'ui/persisted_state';
 
-export function EmbeddedTooltipFormatterProvider($rootScope, $compile, Private, getAppState, savedVisualizations) {
-  const queryFilter = Private(FilterBarQueryFilterProvider);
+export function EmbeddedTooltipFormatterProvider($rootScope, $compile, Private, savedVisualizations) {
   const tooltipTemplate = require('ui/agg_response/_embedded_tooltip.html');
-
-  function getHandler(from, name) {
-    if (typeof name === 'function') return name;
-    return from.find(handler => handler.name === name).handler;
-  }
 
   return function (parentVis) {
     let tooltipMsg = 'Initializing Tooltip...';
     let $tooltipScope;
     let $visEl;
-    let setTimeRange;
-    let initEmbedded;
     const destroyEmbedded = () => {
       if ($tooltipScope) {
         $tooltipScope.$destroy();
@@ -28,39 +16,11 @@ export function EmbeddedTooltipFormatterProvider($rootScope, $compile, Private, 
         $visEl.remove();
       }
     };
-    const requestHandlers = Private(VisRequestHandlersRegistryProvider);
-    const responseHandlers = Private(VisResponseHandlersRegistryProvider);
-    const appState = getAppState();
-    let vis;
-    let searchSource;
-    let requestHandler;
-    let responseHandler;
-    let uiState;
+    let savedObject;
     let fetchTimestamp;
-    savedVisualizations.get(parentVis.params.tooltip.vis).then((savedObject) => {
-      vis = savedObject.vis;
-      vis.params.addTooltip = false; // disable tooltips for embedded visualization
-      searchSource = savedObject.searchSource;
-      requestHandler = getHandler(requestHandlers, savedObject.vis.type.requestHandler);
-      responseHandler = getHandler(responseHandlers, savedObject.vis.type.responseHandler);
-      uiState = new PersistedState(savedObject.uiStateJSON ? JSON.parse(savedObject.uiStateJSON) : {});
-      setTimeRange = (timeRange) => {
-        savedObject.vis.aggs.forEach(agg => {
-          if (agg.type.name !== 'date_histogram') return;
-          agg.params.timeRange = {
-            min: new Date(timeRange.min),
-            max: new Date(timeRange.max)
-          };
-        });
-      };
-      initEmbedded = () => {
-        destroyEmbedded();
-        $tooltipScope = $rootScope.$new();
-        $tooltipScope.uiState = uiState;
-        $tooltipScope.vis = savedObject.vis;
-        $tooltipScope.visData = null;
-        $visEl = $compile(tooltipTemplate)($tooltipScope);
-      };
+    savedVisualizations.get(parentVis.params.tooltip.vis).then((resp) => {
+      savedObject = resp;
+      savedObject.vis.params.addTooltip = false; // disable tooltips for embedded visualization
     }, e => {
       tooltipMsg = _.get(e, 'message', 'Error initializing tooltip');
     });
@@ -75,52 +35,61 @@ export function EmbeddedTooltipFormatterProvider($rootScope, $compile, Private, 
     const formatter = function (event) {
       const executionId = `embedded-${Date.now()}`;
 
-      if (requestHandler && responseHandler) {
+      if (savedObject) {
         tooltipMsg = 'Loading Data...';
 
         const localFetchTimestamp = Date.now();
         fetchTimestamp = localFetchTimestamp;
 
         const aggFilters = [];
+        let timeRange;
         let aggResult = event.datum.aggConfigResult;
         while(aggResult) {
           if (aggResult.type === 'bucket') {
             const filter = aggResult.aggConfig.createFilter(aggResult.key);
             aggFilters.push(filter);
             if (aggResult.aggConfig.getField().type === 'date') {
-              setTimeRange({
+              timeRange = {
                 min: filter.range[aggResult.aggConfig.getField().name].gte,
                 max: filter.range[aggResult.aggConfig.getField().name].lt
-              });
+              };
             }
           }
           aggResult = aggResult.$parent;
         }
 
-        searchSource.set('filter', aggFilters);
-        requestHandler(vis, appState, uiState, queryFilter, searchSource)
-        .then(requestHandlerResponse => {
-          return responseHandler(vis, requestHandlerResponse);
-        })
-        .then(resp => {
+        destroyEmbedded();
+        savedObject.searchSource.set('filter', aggFilters);
+        $tooltipScope = $rootScope.$new();
+        $tooltipScope.savedObject = savedObject;
+        $tooltipScope.timeRange = timeRange;
+        $tooltipScope.dimensions = {};
+        /*$tooltipScope.dimensions = {
+          width: getWidth(),
+          height: getHeight()
+        }*/
+        $visEl = $compile(tooltipTemplate)($tooltipScope);
+        $visEl.css({
+          width: getWidth(),
+          height: getHeight()
+        });
+        $visEl.on('renderComplete', () => {
           const $popup = $(`#${executionId}`);
           // Only update popup contents if results are for calling fetch
           if (localFetchTimestamp === fetchTimestamp && $popup && $popup.length > 0) {
-            initEmbedded();
-            $visEl.css({
-              width: getWidth(),
-              height: getHeight()
-            });
             $popup.css({
               width: getWidth(),
               height: getHeight()
             });
+            const $visContainer = $visEl.find('.vis-container');
+        $visContainer.css({
+          width: getWidth(),
+          height: getHeight()
+        });
             $popup.empty();
             $popup.append($visEl);
-            $tooltipScope.visData = resp;
-            $tooltipScope.$apply();
           }
-        });
+        })
       }
 
       return `<div id="${executionId}" class="tab-dashboard theme-dark"

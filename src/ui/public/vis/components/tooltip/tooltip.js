@@ -211,11 +211,11 @@ Tooltip.prototype.render = function () {
         if (self.enterCount > 0) {
           self.enterCount--;
         }
-        self.contentContainer.empty();
+        /*self.contentContainer.empty();
         self.hide();
         if (_.has(self, 'formatter.cleanUp')) {
           self.formatter.cleanUp();
-        }
+        }*/
       });
     });
   };

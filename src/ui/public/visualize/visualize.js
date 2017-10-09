@@ -134,11 +134,17 @@ uiModules
           $scope.vis.reload = true;
           $scope.fetch();
         };
-        $scope.vis.on('reload', reload);
+        $scope.vis.on('reload', () => {
+          reload();
+        });
       // auto reload will trigger this event
-        $scope.$on('courier:searchRefresh', reload);
+        $scope.$on('courier:searchRefresh', () => {
+          reload();
+        });
       // dashboard will fire fetch event when it wants to refresh
-        $scope.$on('fetch', reload);
+        $scope.$on('fetch', () => {
+          reload()
+        });
         queryFilter.on('update', $scope.fetch);
 
         if ($scope.appState) {
