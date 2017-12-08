@@ -6,6 +6,8 @@
   </div>
   <div class="item bottom"></div>
 </div>
+<div ng-if="!renderComplete" class="visualize-loading">
+</div>
 <div
   ng-hide="showNoResultsMessage()"
   class="vis-container {{getVisContainerClasses()}}"

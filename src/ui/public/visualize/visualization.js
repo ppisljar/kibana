@@ -103,17 +103,22 @@ uiModules
         const visualization = new Visualization(getVisEl()[0], $scope.vis);
 
         $scope.vis.initialized = true;
+        $scope.renderComplete = false;
 
         const renderFunction = _.debounce(() => {
           const container = getVisContainer();
           if (!container) return;
           $scope.vis.size = [container.width(), container.height()];
           const status = getUpdateStatus($scope);
+          $scope.renderComplete = false;
+          $scope.$apply();
           visualization.render($scope.visData, status)
             .then(() => {
             // renderComplete
+              $scope.renderComplete = true;
               $scope.$emit('renderComplete');
               $el.trigger('renderComplete');
+              $scope.$apply();
             });
           $scope.$apply();
         }, 100);
