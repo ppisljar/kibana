@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs/Rx';
 import 'ui/visualize/spy';
 import 'ui/visualize/visualize.less';
 import 'ui/visualize/visualize_legend';
@@ -11,7 +12,7 @@ import 'angular-sanitize';
 
 uiModules
   .get('kibana/directive', ['ngSanitize'])
-  .directive('visualization', function (Notifier, SavedVis, indexPatterns, Private, config, $timeout) {
+  .directive('visualization', function (Notifier, SavedVis, indexPatterns, Private, config) {
     const ResizeChecker = Private(ResizeCheckerProvider);
 
     return {
@@ -77,32 +78,53 @@ uiModules
 
         $scope.vis.initialized = true;
 
-        const renderFunction = _.debounce(() => {
-          const container = getVisContainer();
-          if (!container) return;
-          $scope.vis.size = [container.width(), container.height()];
-          const status = getUpdateStatus($scope);
-          visualization.render($scope.visData, status)
-            .then(() => {
-            // renderComplete
-              $scope.$emit('renderComplete');
-              $el.trigger('renderComplete');
-            });
-          $scope.$apply();
-        }, 100);
+        const dispatchCustomEvent = (name) => {
+          // we're using the native events so that we aren't tied to the jQuery custom events,
+          // otherwise we have to use jQuery(element).on(...) because jQuery's events sit on top
+          // of the native events per https://github.com/jquery/jquery/issues/2476
+          $el[0].dispatchEvent(new CustomEvent(name, { bubbles: true }));
+        };
 
-        $scope.$on('render', () => {
-          if (!$scope.vis || !$scope.vis.initialized || ($scope.vis.type.requiresSearch && !$scope.visData)) {
-            return;
-          }
-          $scope.addLegend = $scope.vis.params.addLegend;
-          $scope.vis.refreshLegend++;
-          $timeout(renderFunction);
+        const render$ = Observable.create(observer => {
+          $scope.$on('render', () => {
+            observer.next({
+              vis: $scope.vis,
+              visData: $scope.visData,
+              container: getVisContainer(),
+            });
+          });
         });
+
+        const success$ = render$
+          .do(() => {
+            dispatchCustomEvent('renderStart');
+          })
+          .filter(({ vis, visData, container }) => vis && vis.initialized && container && (!vis.type.requiresSearch || visData))
+          .do(({ vis }) => {
+            $scope.addLegend = vis.params.addLegend;
+            vis.refreshLegend++;
+          })
+          .debounceTime(100)
+          .switchMap(async ({ vis, visData, container }) => {
+            vis.size = [container.width(), container.height()];
+            const status = getUpdateStatus($scope);
+            const renderPromise = visualization.render(visData, status);
+            $scope.$apply();
+            return renderPromise;
+          });
+
+        const requestError$ = render$.filter(({ vis }) => vis.requestError);
+
+        const renderSubscription = Observable.merge(success$, requestError$)
+          .subscribe(() => {
+            $scope.$emit('renderComplete');
+            dispatchCustomEvent('renderComplete');
+          });
 
         $scope.$on('$destroy', () => {
           resizeChecker.destroy();
           visualization.destroy();
+          renderSubscription.unsubscribe();
         });
 
         if (!$scope.vis.visualizeScope) {
@@ -110,17 +132,8 @@ uiModules
             $scope.$emit('render');
           });
 
-          // the very first resize event is the initialization, which we can safely ignore.
-          // however, we also want to debounce the resize event, and not miss a resize event
-          // if it occurs within the first 200ms window
-          const resizeFunc = _.debounce(() => {
-            $scope.$emit('render');
-          }, 200);
-
-          let resizeInit = false;
           resizeChecker.on('resize',  () => {
-            if (!resizeInit) return resizeInit = true;
-            resizeFunc();
+            $scope.$emit('render');
           });
         }
 
