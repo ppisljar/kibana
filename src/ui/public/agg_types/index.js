@@ -17,6 +17,7 @@ import { AggTypesMetricsDerivativeProvider } from 'ui/agg_types/metrics/derivati
 import { AggTypesMetricsCumulativeSumProvider } from 'ui/agg_types/metrics/cumulative_sum';
 import { AggTypesMetricsMovingAvgProvider } from 'ui/agg_types/metrics/moving_avg';
 import { AggTypesMetricsSerialDiffProvider } from 'ui/agg_types/metrics/serial_diff';
+import { AggTypesMetricsBucketScriptProvider } from 'ui/agg_types/metrics/bucket_script';
 import { AggTypesBucketsDateHistogramProvider } from 'ui/agg_types/buckets/date_histogram';
 import { AggTypesBucketsHistogramProvider } from 'ui/agg_types/buckets/histogram';
 import { AggTypesBucketsRangeProvider } from 'ui/agg_types/buckets/range';
@@ -52,6 +53,7 @@ export function AggTypesIndexProvider(Private) {
       Private(AggTypesMetricsCumulativeSumProvider),
       Private(AggTypesMetricsMovingAvgProvider),
       Private(AggTypesMetricsSerialDiffProvider),
+      Private(AggTypesMetricsBucketScriptProvider),
       Private(AggTypesMetricsBucketAvgProvider),
       Private(AggTypesMetricsBucketSumProvider),
       Private(AggTypesMetricsBucketMinProvider),

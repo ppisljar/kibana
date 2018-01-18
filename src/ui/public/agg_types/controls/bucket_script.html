@@ -1,0 +1,101 @@
+<div ng-controller="aggParam.controller">
+  <!-- header -->
+  <div class="vis-editor-bucket-script-aggs">
+    <label>Parameters</label>
+    <div class="vis-editor-bucket-script-agg" ng-repeat="subAgg in subAggs" style="padding-left: 10px;">
+      <div class="vis-editor-agg-header">
+
+        <!-- open/close editor -->
+        <button
+          aria-label="Toggle {{subAgg.label}} editor"
+          ng-click="subAgg.editorOpen = !subAgg.editorOpen"
+          aria-expanded="{{ !!subAgg.editorOpen }}"
+          aria-controls="visAggEditorParams{{subAgg.agg.id}}"
+          type="button"
+          data-test-subj="toggleEditor"
+          class="kuiButton kuiButton--primary kuiButton--small vis-editor-agg-header-toggle">
+          <i aria-hidden="true" ng-class="{ 'fa-caret-down': subAgg.editorOpen, 'fa-caret-right': !subAgg.editorOpen }" class="fa"></i>
+        </button>
+
+        <!-- title -->
+        <span class="vis-editor-agg-header-title">
+          {{ subAgg.label }}
+        </span>
+        <div class="vis-editor-agg-header-controls kuiButtonGroup kuiButtonGroup--united">
+
+          <!-- remove button -->
+          <button
+            aria-label="Remove Dimension"
+            ng-click="removeParameter($index)"
+            tooltip="Remove Dimension"
+            tooltip-append-to-body="true"
+            type="button"
+            class="kuiButton kuiButton--danger kuiButton--small">
+            <i aria-hidden="true" class="fa fa-times"></i>
+          </button>
+
+        </div>
+
+      </div>
+      <div ng-show="subAgg.editorOpen">
+        <div class="form-group">
+          <label>Metric</label>
+          <select
+            name="metricAgg"
+            ng-model="subAgg.agg"
+            class="form-control">
+            <option
+              ng-repeat="respAgg in responseValueAggs track by respAgg.id"
+              value="{{respAgg.id}}"
+              ng-if="respAgg.type.name !== agg.type.name"
+              ng-disabled="isDisabledAgg(respAgg)"
+              ng-selected="subAgg.id === respAgg.id">
+              metric: {{safeMakeLabel(respAgg)}}
+            </option>
+            <option value="custom" ng-selected="subAgg.agg === 'custom'">
+              Custom Metric
+            </option>
+          </select>
+          <div ng-if="subAgg.agg === 'custom'" class="vis-editor-agg-order-agg">
+            <ng-form name="customMetricForm">
+              <vis-editor-agg-params
+                agg="subAgg.customMetric"
+                group-name="'metrics'">
+              </vis-editor-agg-params>
+            </ng-form>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Parameter Name</label>
+          <div>
+            <input
+              type="text"
+              ng-model="subAgg.label"
+              class="form-control"
+            >
+          </div>
+        </div>
+      </div>
+      </div>
+
+    <div class="vis-editor-agg-wide-btn ng-scope">
+      <button class="kuiButton kuiButton--secondary kuiButton--small ng-binding ng-scope" ng-click="addParameter()">
+        Add parameter
+      </button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="euiSpacer euiSpacer--m"></div>
+
+    <label>Script</label>
+    <div>
+      <input
+        type="text"
+        ng-model="agg.params[aggParam.name]"
+        class="form-control"
+      >
+    </div>
+  </div>
+
+</div>
