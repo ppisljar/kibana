@@ -121,7 +121,7 @@ const defaultEditor = function ($rootScope, $compile) {
         }
 
         const visualizationEl = this.el.find('.vis-editor-canvas')[0];
-        visualizationLoader(visualizationEl, this.vis, visData, uiState, { listenOnChange: true });
+        visualizationLoader(visualizationEl, this.vis, visData, uiState, { listenOnChange: false });
       });
     }
 
