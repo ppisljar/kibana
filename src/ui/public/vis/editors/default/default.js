@@ -56,6 +56,8 @@ const defaultEditor = function ($rootScope, $compile) {
           $scope.stageEditableVis = () => {
             $scope.vis.updateState();
             $scope.vis.dirty = false;
+
+            $scope.vis.forceReload();
           };
           $scope.resetEditableVis = () => {
             $scope.vis.resetState();
@@ -120,8 +122,8 @@ const defaultEditor = function ($rootScope, $compile) {
           updateScope();
         }
 
-        const visualizationEl = this.el.find('.vis-editor-canvas')[0];
-        visualizationLoader(visualizationEl, this.vis, visData, uiState, { listenOnChange: false });
+        // const visualizationEl = this.el.find('.vis-editor-canvas')[0];
+        // visualizationLoader(visualizationEl, this.vis, visData, uiState, { listenOnChange: false });
       });
     }
 

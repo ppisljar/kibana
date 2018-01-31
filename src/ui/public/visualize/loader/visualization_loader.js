@@ -6,7 +6,8 @@ import { Visualization } from 'ui/visualize/visualization';
 
 export const visualizationLoader = (element, vis, visData, uiState, params) => {
   const listenOnChange = _.get(params, 'listenOnChange', false);
-  render(<Visualization vis={vis} visData={visData} uiState={uiState} listenOnChange={listenOnChange} />, element);
+  const uiStateParam = uiState ? uiState : vis.getUiState();
+  render(<Visualization vis={vis} visData={visData} uiState={uiStateParam} listenOnChange={listenOnChange} />, element);
 };
 
 visualizationLoader.destroy = (element) => {

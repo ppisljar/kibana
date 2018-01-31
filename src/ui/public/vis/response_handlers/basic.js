@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { AggResponseIndexProvider } from '../../agg_response';
 import { TabifyTable } from '../../agg_response/tabify/_table';
 
@@ -45,18 +46,20 @@ const BasicResponseHandlerProvider = function (Private) {
 
   return {
     name: 'basic',
-    handler: function (vis, response) {
+    handler: function (vis, response, tableGroup) {
       return new Promise((resolve) => {
         if (vis.isHierarchical()) {
           // the hierarchical converter is very self-contained (woot!)
           resolve(aggResponse.hierarchical(vis, response));
         }
 
-        const tableGroup = aggResponse.tabify(vis.getAggConfig().getResponseAggs(), response, {
-          canSplit: true,
-          asAggConfigResults: true,
-          isHierarchical: vis.isHierarchical()
-        });
+        if (!tableGroup) {
+          tableGroup = aggResponse.tabify(vis.getAggConfig().getResponseAggs(), response, {
+            canSplit: true,
+            asAggConfigResults: true,
+            isHierarchical: vis.isHierarchical()
+          });
+        }
 
         let converted = convertTableGroup(vis, tableGroup);
         if (!converted) {
@@ -65,7 +68,7 @@ const BasicResponseHandlerProvider = function (Private) {
           converted = { rows: [] };
         }
 
-        converted.hits = response.hits.total;
+        converted.hits = _.get(response, 'hits.total', 0);
 
         resolve(converted);
       });

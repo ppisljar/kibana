@@ -53,6 +53,13 @@ export class VisualizationChart extends Component {
     });
   };
 
+  // componentWillReceiveProps(props) {
+  //   if (props.vis !== this.props.vis) {
+  //     const Visualization = props.vis.type.visualization;
+  //     this.visualization = new Visualization(this.chartDiv, props.vis);
+  //   }
+  // }
+
   componentDidMount() {
     const Visualization = this.props.vis.type.visualization;
     this.visualization = new Visualization(this.chartDiv, this.props.vis);

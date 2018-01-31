@@ -3,11 +3,14 @@ import './agg_group';
 import './vis_options';
 import { uiModules } from '../../../modules';
 import sidebarTemplate from './sidebar.html';
+import { VisAggConfigsProvider } from 'ui/vis/agg_configs';
+
+import { createAst } from 'ui/visualize/render_pipeline';
 
 uiModules
   .get('app/visualize')
-  .directive('visEditorSidebar', function () {
-
+  .directive('visEditorSidebar', function (Private) {
+    const AggConfigs = Private(VisAggConfigsProvider);
 
     return {
       restrict: 'E',
@@ -15,6 +18,20 @@ uiModules
       scope: true,
       controllerAs: 'sidebar',
       controller: function ($scope) {
+
+        $scope.$watch('vis.pipelineExpression', () => {
+          $scope.vis.dirty = true;
+          const ast = createAst($scope.vis.pipelineExpression);
+          ast.chain.forEach(c => {
+            if (c.function === 'visualization') {
+              const visConfig = JSON.parse(c.arguments.visConfig);
+              $scope.vis.params = visConfig;
+            } else if (c.function === 'aggregate') {
+              const aggConfig = JSON.parse(c.arguments.aggConfig);
+              $scope.vis.aggs = new AggConfigs($scope.vis, aggConfig);
+            }
+          });
+        });
 
         $scope.$watch('vis.type', (visType) => {
           if (visType) {

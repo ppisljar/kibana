@@ -26,6 +26,9 @@ function MarkdownVisProvider(Private) {
     description: 'Create a document using markdown syntax',
     category: CATEGORY.OTHER,
     visConfig: {
+      defaultExpression: (vis) => {
+        return `visualization type='markdown' visConfig='${JSON.stringify(vis.params)}'`;
+      },
       component: MarkdownVisWrapper,
       defaults: {
         fontSize: 12,

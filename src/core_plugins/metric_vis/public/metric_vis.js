@@ -27,6 +27,10 @@ function MetricVisProvider(Private) {
     category: CATEGORY.DATA,
     visConfig: {
       component: MetricVisComponent,
+      defaultExpression: (vis) => {
+        return `kibana | aggregate index='${vis.indexPattern.id}' aggConfig='${JSON.stringify(vis.aggs)}' 
+        | visualization type='${vis.type.name}' visConfig='${JSON.stringify(vis.params)}'`;
+      },
       defaults: {
         addTooltip: true,
         addLegend: false,

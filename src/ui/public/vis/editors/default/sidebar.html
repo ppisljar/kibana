@@ -45,7 +45,6 @@
             aria-selected="{{sidebar.section === tab.name}}"
             ng-repeat="tab in vis.type.editorConfig.optionTabs"
             ng-class="{active: sidebar.section == tab.name}"
-            ng-if="vis.type.editorConfig.optionTabs.length > 1 || sidebar.showData"
           >
             <a
               class="vis-editor-subnav-link"
@@ -55,6 +54,22 @@
               data-test-subj="{{ 'visEditorTab' + tab.name }}"
             >
               {{tab.title}}
+            </a>
+          </li>
+
+          <li
+            role="tab"
+            aria-selected="{{sidebar.section === 'expression'}}"
+            ng-class="{active: sidebar.section == 'expression'}"
+          >
+            <a
+              class="vis-editor-subnav-link"
+              ng-class="{'is-vis-editor-sub-nav-link-selected': sidebar.section == 'expression'}"
+              ng-click="sidebar.section='expression'"
+              kbn-accessible-click
+              data-test-subj="visualizeEditDataLink"
+            >
+              Expression
             </a>
           </li>
         </ul>
@@ -152,6 +167,10 @@
         visualize-editor="visualizeEditor"
         editor="tab.editor"
       ></vis-editor-vis-options>
+    </div>
+
+    <div class="vis-editor-config" ng-show="sidebar.section == 'expression'">
+      <textarea style="width: 100%; height: 100%" ng-model="vis.pipelineExpression" rows="20"/>
     </div>
 
   </form>

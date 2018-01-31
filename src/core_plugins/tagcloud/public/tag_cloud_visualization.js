@@ -32,13 +32,18 @@ export class TagCloudVisualization {
     this._renderComplete$ = Observable.fromEvent(this._tagCloud, 'renderComplete');
 
 
+    const self = this;
     this._feedbackNode = document.createElement('div');
     this._containerNode.appendChild(this._feedbackNode);
-    this._feedbackMessage = render(<FeedbackMessage />, this._feedbackNode);
+    this._feedbackMessage = render(<FeedbackMessage />, this._feedbackNode, function () {
+      self._feedbackMessage = this;
+    });
 
     this._labelNode = document.createElement('div');
     this._containerNode.appendChild(this._labelNode);
-    this._label = render(<Label />, this._labelNode);
+    this._label = render(<Label />, this._labelNode, function () {
+      self._label = this;
+    });
 
   }
 

@@ -14,6 +14,9 @@ export default function HistogramVisType(Private) {
     description: 'Compare parts of a whole',
     category: CATEGORY.BASIC,
     visConfig: {
+      defaultExpression: (vis) => {
+        return `kibana | aggregate | pie visConfig='${JSON.stringify(vis.params)}'`;
+      },
       defaults: {
         type: 'pie',
         addTooltip: true,

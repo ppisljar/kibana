@@ -11,6 +11,9 @@ import { FilterBarQueryFilterProvider } from '../filter_bar/query_filter';
 import { ResizeChecker } from '../resize_checker';
 import { visualizationLoader } from './loader';
 
+import { renderPipeline, generateExpression } from './render_pipeline';
+
+
 import {
   isTermSizeZeroError,
 } from '../elasticsearch_errors';
@@ -64,10 +67,19 @@ uiModules
         $scope.editorMode = $scope.editorMode || false;
         $scope.vis.editorMode = $scope.editorMode;
 
+        // todo: request and response handler will only affect how the pipeline looks like ?
         const requestHandler = getHandler(requestHandlers, $scope.vis.type.requestHandler);
         const responseHandler = getHandler(responseHandlers, $scope.vis.type.responseHandler);
 
+        // todo: this should be responsible for executing the pipeline ?
+        // - the pipeline will do the rendering as well .... do we even need visualization component at this point ?
+        // - the pipeline will run the request, convert the response and visualize the results ....
         $scope.fetch = _.debounce(function () {
+
+          $scope.vis.pipelineExpression = generateExpression($scope.vis);
+
+          renderPipeline($el, $scope.vis, $scope.uiState);
+          return;
           // If destroyed == true the scope has already been destroyed, while this method
           // was still waiting for its debounce, in this case we don't want to start
           // fetching new data and rendering.

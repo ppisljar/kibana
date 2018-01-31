@@ -29,7 +29,12 @@ VisTypesRegistryProvider.register((Private) => {
     description: 'Create custom visualizations using Vega and VegaLite',
     icon: 'fa-code',
     category: CATEGORY.OTHER,
-    visConfig: { defaults: { spec: defaultSpec } },
+    visConfig: {
+      defaultExpression: (vis) => {
+        return `vega spec='${JSON.stringify(vis.params.spec)}'`;
+      },
+      defaults: { spec: defaultSpec }
+    },
     editorConfig: {
       optionsTemplate: vegaEditorTemplate,
       enableAutoApply: true,
