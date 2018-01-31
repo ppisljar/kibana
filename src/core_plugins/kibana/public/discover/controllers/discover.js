@@ -30,6 +30,7 @@ import { StateProvider } from 'ui/state_management/state';
 import { migrateLegacyQuery } from 'ui/utils/migrateLegacyQuery';
 import { FilterManagerProvider } from 'ui/filter_manager';
 import { SavedObjectsClientProvider } from 'ui/saved_objects';
+import { visualizationLoader } from 'ui/visualize/loader';
 
 const app = uiModules.get('apps/discover', [
   'kibana/notify',
@@ -527,6 +528,8 @@ function discoverController(
           .resolve(responseHandler($scope.vis, merged))
           .then(resp => {
             $scope.visData = resp;
+            const visEl = $element.find('.visualization-container')[0];
+            visualizationLoader(visEl, $scope.vis, $scope.visData, $scope.uiState, { listenOnChange: true });
           });
       }
 
