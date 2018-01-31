@@ -20,12 +20,10 @@ export class VisualizationChart extends Component {
     );
   }
 
-  _getUpdateStatus = getUpdateStatus;
-
   _renderVisualization = () => {
     dispatchRenderStart(this.chartDiv);
     this.props.vis.size = [$(this.containerDiv).width(), $(this.containerDiv).height()];
-    const status = this._getUpdateStatus();
+    const status = getUpdateStatus(this, this.props);
     this.visualization.render(this.props.visData, status).then(() => {
       dispatchRenderComplete(this.chartDiv);
     });

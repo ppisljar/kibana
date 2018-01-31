@@ -23,55 +23,55 @@ function serializer() {
   };
 }
 
-const getUpdateStatus = ($scope) => {
+function getUpdateStatus(obj, param) {
 
-  if (!$scope._oldStatus) {
-    $scope._oldStatus = {};
+  if (!obj._oldStatus) {
+    obj._oldStatus = {};
   }
 
   const hasChangedUsingGenericHashComparison = (name, value) => {
     const currentValue = JSON.stringify(value, serializer());
-    if (currentValue !== $scope._oldStatus[name]) {
-      $scope._oldStatus[name] = currentValue;
+    if (currentValue !== obj._oldStatus[name]) {
+      obj._oldStatus[name] = currentValue;
       return true;
     }
     return false;
   };
 
-  function hasSizeChanged(currentWidth, currentHeight) {
+  const hasSizeChanged = (currentWidth, currentHeight) => {
 
-    if (!$scope._oldStatus.resize) {
-      $scope._oldStatus.resize = { width: currentWidth, height: currentHeight };
+    if (!obj._oldStatus.resize) {
+      obj._oldStatus.resize = { width: currentWidth, height: currentHeight };
       return true;
     }
 
-    if (currentWidth !== $scope._oldStatus.resize.width || currentHeight !== $scope._oldStatus.resize.height) {
-      $scope._oldStatus.resize = { width: currentWidth, height: currentHeight };
+    if (currentWidth !== obj._oldStatus.resize.width || currentHeight !== obj._oldStatus.resize.height) {
+      obj._oldStatus.resize = { width: currentWidth, height: currentHeight };
       return true;
     }
     return false;
-  }
+  };
 
-  function hasDataChanged(visData) {
+  const hasDataChanged = (visData) => {
     const hash = calculateObjectHash(visData);
-    if (hash !== $scope._oldStatus.data) {
-      $scope._oldStatus.data = hash;
+    if (hash !== obj._oldStatus.data) {
+      obj._oldStatus.data = hash;
       return true;
     }
     return false;
-  }
+  };
 
-  const time = $scope.vis.params.timeRange ? $scope.vis.params.timeRange : $scope.vis.API.timeFilter.getBounds();
-  const width = $scope.vis.size ? $scope.vis.size[0] : 0;
-  const height = $scope.vis.size ? $scope.vis.size[1] : 0;
+  const time = param.vis.params.timeRange ? param.vis.params.timeRange : param.vis.API.timeFilter.getBounds();
+  const width = param.vis.size ? param.vis.size[0] : 0;
+  const height = param.vis.size ? param.vis.size[1] : 0;
   return {
-    aggs: hasChangedUsingGenericHashComparison('aggs', $scope.vis.aggs),
-    data: hasDataChanged($scope.visData),
-    params: hasChangedUsingGenericHashComparison('param', $scope.vis.params),
+    aggs: hasChangedUsingGenericHashComparison('aggs', param.vis.aggs),
+    data: hasDataChanged(param.visData),
+    params: hasChangedUsingGenericHashComparison('param', param.vis.params),
     resize: hasSizeChanged(width, height),
     time: hasChangedUsingGenericHashComparison('time', time),
-    uiState: hasChangedUsingGenericHashComparison('uiState', $scope.uiState)
+    uiState: hasChangedUsingGenericHashComparison('uiState', param.uiState)
   };
-};
+}
 
 export { getUpdateStatus };
