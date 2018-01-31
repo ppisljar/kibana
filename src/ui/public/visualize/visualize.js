@@ -9,6 +9,7 @@ import './visualization';
 import './visualization_editor';
 import { FilterBarQueryFilterProvider } from 'ui/filter_bar/query_filter';
 import { ResizeChecker } from 'ui/resize_checker';
+import { visualizationLoader } from './loader';
 
 import {
   isTermSizeZeroError,
@@ -126,6 +127,11 @@ uiModules
               $scope.visData = resp;
               $scope.$apply();
               $scope.$broadcast('render');
+
+              if (!$scope.editorMode) {
+                visualizationLoader($el[0], $scope.vis, $scope.visData, $scope.uiState, { listenOnChange: true });
+              }
+
               return resp;
             });
         }, 100);
@@ -195,7 +201,11 @@ uiModules
           resizeChecker.destroy();
         });
 
-        $scope.$watch('vis.initialized', $scope.fetch);
+        if ($scope.editorMode) {
+          $scope.$watch('vis.initialized', $scope.fetch);
+        } else {
+          $scope.vis.initialized = true;
+        }
 
         $scope.fetch();
       }
