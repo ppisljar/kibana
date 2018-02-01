@@ -1,10 +1,35 @@
 import $ from 'jquery';
 import React, { Component } from 'react';
+import { Observable } from 'rxjs/Rx';
 import { ResizeChecker } from 'ui/resize_checker';
 import { getUpdateStatus } from 'ui/vis/update_status';
 import { dispatchRenderComplete, dispatchRenderStart } from 'ui/render_complete';
 
 export class VisualizationChart extends Component {
+  constructor(props) {
+    super(props);
+
+    this._renderVisualization = new Observable(observer => {
+      this._observer = observer;
+    });
+
+    this._renderVisualization
+      .do(() => {
+        dispatchRenderStart(this.chartDiv);
+      })
+      .filter(({ vis, visData, container }) => vis && vis.initialized && container && (!vis.type.requiresSearch || visData))
+      .debounceTime(100)
+      .switchMap(async ({ vis, visData, container }) => {
+        vis.size = [container.width(), container.height()];
+        const status = getUpdateStatus(this, this.props);
+        const renderPromise = this.visualization.render(visData, status);
+        return renderPromise;
+      }).subscribe(() => {
+        dispatchRenderComplete(this.chartDiv);
+      });
+
+  }
+
   render() {
     return (
       <div className="vis-container" tabIndex="0" ref={c => this.containerDiv = c}>
@@ -20,12 +45,11 @@ export class VisualizationChart extends Component {
     );
   }
 
-  _renderVisualization = () => {
-    dispatchRenderStart(this.chartDiv);
-    this.props.vis.size = [$(this.containerDiv).width(), $(this.containerDiv).height()];
-    const status = getUpdateStatus(this, this.props);
-    this.visualization.render(this.props.visData, status).then(() => {
-      dispatchRenderComplete(this.chartDiv);
+  _startRenderVisualization = () => {
+    this._observer.next({
+      vis: this.props.vis,
+      visData: this.props.visData,
+      container: $(this.containerDiv)
     });
   };
 
@@ -35,14 +59,14 @@ export class VisualizationChart extends Component {
 
     if (this.props.listenOnChange) {
       this.resizeChecker = new ResizeChecker(this.containerDiv);
-      this.resizeChecker.on('resize', this._renderVisualization);
+      this.resizeChecker.on('resize', this._startRenderVisualization);
     }
 
-    this._renderVisualization();
+    this._startRenderVisualization();
   }
 
   componentDidUpdate() {
-    this._renderVisualization();
+    this._startRenderVisualization();
   }
 
   componentWillUnmount() {
