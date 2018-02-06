@@ -22,11 +22,13 @@
  * the docs (docs/development/visualize/development-create-visualization.asciidoc)
  * are up to date.
  */
-import angular from 'angular';
+import _ from 'lodash';
+import $ from 'jquery';
 import chrome from '../../chrome';
-import '..';
-import visTemplate from './loader_template.html';
 import { EmbeddedVisualizeHandler } from './embedded_visualize_handler';
+import React from 'react';
+import { render } from 'react-dom';
+import { Visualize } from '../../visualize/visualize';
 
 /**
  * The parameters accepted by the embedVisualize calls.
@@ -52,41 +54,34 @@ import { EmbeddedVisualizeHandler } from './embedded_visualize_handler';
  * @property {object} query The query that should apply to that visualization.
  */
 
-const VisualizeLoaderProvider = ($compile, $rootScope, savedVisualizations) => {
-  const renderVis = (el, savedObj, params) => {
-    const scope = $rootScope.$new();
-    params = params || {};
-    scope.savedObj = savedObj;
-    scope.appState = params.appState;
-    scope.uiState = params.uiState;
-    scope.timeRange = params.timeRange;
-    scope.filters = params.filters;
-    scope.query = params.query;
-
-    const container = angular.element(el);
-
-    const visHtml = $compile(visTemplate)(scope);
-
-    // If params specified cssClass, we will set this to the element.
-    if (params.cssClass) {
-      visHtml.addClass(params.cssClass);
-    }
+const VisualizeLoaderProvider = (savedVisualizations, timefilter, Private) => {
+  const renderVis = (el, savedObj, params = {}) => {
 
     // Apply data- attributes to the element if specified
-    if (params.dataAttrs) {
-      Object.keys(params.dataAttrs).forEach(key => {
-        visHtml.attr(`data-${key}`, params.dataAttrs[key]);
-      });
-    }
+    const dataAttrs = {};
+    _.each(params.dataAttrs, (val, attr) => {
+      return dataAttrs[`data-${attr}`] = val;
+    });
 
-    // If params.append was true append instead of replace content
-    if (params.append) {
-      container.append(visHtml);
-    } else {
-      container.html(visHtml);
-    }
+    render(
+      <Visualize
+        className={params.cssClass}
+        savedObj={savedObj}
+        appState={params.appState}
+        uiState={params.uiState}
+        timeRange={params.timeRange}
+        filters={params.filters}
+        query={params.query}
+        Private={Private}
+        timeFilter={timefilter}
+        editorMode={params.editorMode}
+        container={el}
+        {...dataAttrs}
+      />, el
+    );
 
-    return new EmbeddedVisualizeHandler(visHtml, scope, savedObj);
+
+    return new EmbeddedVisualizeHandler($(el), savedObj);
   };
 
   return {

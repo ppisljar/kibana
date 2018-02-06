@@ -18,7 +18,7 @@
  */
 
 import { EventEmitter } from 'events';
-
+import { unmountComponentAtNode } from 'react-dom';
 const RENDER_COMPLETE_EVENT = 'render_complete';
 
 /**
@@ -26,9 +26,8 @@ const RENDER_COMPLETE_EVENT = 'render_complete';
  * with the visualization.
  */
 export class EmbeddedVisualizeHandler {
-  constructor(element, scope, savedObject) {
+  constructor(element, savedObject) {
     this._element = element;
-    this._scope = scope;
     this._savedObject = savedObject;
     this._listeners = new EventEmitter();
     // Listen to the first RENDER_COMPLETE_EVENT to resolve this promise
@@ -52,6 +51,7 @@ export class EmbeddedVisualizeHandler {
    *    attribute will get. Use null to remove a specific data attribute from the visualization.
    */
   update(params = {}) {
+    // TODO?
     this._scope.$evalAsync(() => {
       if (params.hasOwnProperty('timeRange')) {
         this._scope.timeRange = params.timeRange;
@@ -77,7 +77,7 @@ export class EmbeddedVisualizeHandler {
    * called whenever you remove the visualization.
    */
   destroy() {
-    this._scope.$destroy();
+    unmountComponentAtNode(this._element[0]);
   }
 
   /**
