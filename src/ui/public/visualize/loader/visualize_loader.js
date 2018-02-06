@@ -3,11 +3,13 @@
  * the docs (docs/development/visualize/development-create-visualization.asciidoc)
  * are up to date.
  */
-import angular from 'angular';
+import _ from 'lodash';
+import $ from 'jquery';
 import chrome from 'ui/chrome';
-import 'ui/visualize';
-import visTemplate from './loader_template.html';
 import { EmbeddedVisualizeHandler } from './embedded_visualize_handler';
+import React from 'react';
+import { render } from 'react-dom';
+import { Visualize } from 'ui/visualize/visualize';
 
 /**
  * The parameters accepted by the embedVisualize calls.
@@ -35,40 +37,32 @@ import { EmbeddedVisualizeHandler } from './embedded_visualize_handler';
  *    as data-{key}="{value}" attributes on the visualization element.
  */
 
-const VisualizeLoaderProvider = ($compile, $rootScope, savedVisualizations) => {
-  const renderVis = (el, savedObj, params) => {
-    const scope = $rootScope.$new();
-    params = params || {};
-    scope.savedObj = savedObj;
-    scope.appState = params.appState;
-    scope.uiState = params.uiState;
-    scope.timeRange = params.timeRange;
-    scope.showSpyPanel = params.showSpyPanel;
+const VisualizeLoaderProvider = ($compile, $rootScope, savedVisualizations, timefilter, getAppState, Private) => {
+  const renderVis = (el, savedObj, params = {}) => {
+    const appState = params.appState || getAppState();
+    const dataAttrs = {};
+    _.each(params.dataAttrs, (val, attr) => {
+      return dataAttrs[`data-${attr}`] = val;
+    });
 
-    const container = angular.element(el);
+    render(
+      <Visualize
+        className={params.cssClass}
+        savedObj={savedObj}
+        appState={appState}
+        uiState={params.uiState}
+        timeRange={params.timeRange}
+        showSpyPanel={params.showSpyPanel}
+        Private={Private}
+        timeFilter={timefilter}
+        editorMode={params.editorMode}
+        container={el}
+        {...dataAttrs}
+      />, el
+    );
 
-    const visHtml = $compile(visTemplate)(scope);
 
-    // If params specified cssClass, we will set this to the element.
-    if (params.cssClass) {
-      visHtml.addClass(params.cssClass);
-    }
-
-    // Apply data- attributes to the element if specified
-    if (params.dataAttrs) {
-      Object.keys(params.dataAttrs).forEach(key => {
-        visHtml.attr(`data-${key}`, params.dataAttrs[key]);
-      });
-    }
-
-    // If params.append was true append instead of replace content
-    if (params.append) {
-      container.append(visHtml);
-    } else {
-      container.html(visHtml);
-    }
-
-    return new EmbeddedVisualizeHandler(visHtml, scope);
+    return new EmbeddedVisualizeHandler($(el));
   };
 
   return {

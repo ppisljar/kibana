@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-
+import { unmountComponentAtNode } from 'react-dom';
 const RENDER_COMPLETE_EVENT = 'render_complete';
 
 /**
@@ -7,9 +7,8 @@ const RENDER_COMPLETE_EVENT = 'render_complete';
  * with the visualization.
  */
 export class EmbeddedVisualizeHandler {
-  constructor(element, scope) {
+  constructor(element) {
     this._element = element;
-    this._scope = scope;
     this._listeners = new EventEmitter();
     // Listen to the first RENDER_COMPLETE_EVENT to resolve this promise
     this._firstRenderComplete = new Promise(resolve => {
@@ -25,7 +24,7 @@ export class EmbeddedVisualizeHandler {
    * called whenever you remove the visualization.
    */
   destroy() {
-    this._scope.$destroy();
+    unmountComponentAtNode(this._element[0]);
   }
 
   /**
