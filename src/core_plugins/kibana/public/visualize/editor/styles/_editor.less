@@ -5,6 +5,11 @@
 @vis-editor-nesting-width: 8px;
 @vis-editor-agg-editor-spacing: 10px;
 
+.visualize-editor {
+  display: flex;
+  flex: 1 1 100%;
+}
+
 .vis-editor {
   .flex-parent();
 
@@ -111,7 +116,7 @@
     .flex-parent(0, 1, auto);
   }
 
-  > visualize {
+  > .visualize {
     height: 100%;
     flex: 1 1 auto;
     display: flex;
@@ -383,7 +388,7 @@
       flex-basis: 100%;
     }
 
-    visualize {
+    .visualize {
       .flex-parent();
       flex: 1 1 100%;
     }
