@@ -41,6 +41,7 @@ import { KibanaParsedUrl } from 'ui/url/kibana_parsed_url';
 import { absoluteToParsedUrl } from 'ui/url/absolute_to_parsed_url';
 import { migrateLegacyQuery } from 'ui/utils/migrateLegacyQuery';
 import { recentlyAccessed } from 'ui/persisted_log';
+import { getVisualizeLoader } from 'ui/visualize/loader';
 
 uiRoutes
   .when(VisualizeConstants.CREATE_PATH, {
@@ -97,7 +98,10 @@ uiModules
     };
   });
 
-function VisEditor($scope, $route, timefilter, AppState, $window, kbnUrl, courier, Private, Promise, config, kbnBaseUrl, localStorage) {
+function VisEditor(
+  $scope, $element, $route, timefilter, AppState, $window, kbnUrl,
+  courier, Private, Promise, config, kbnBaseUrl, localStorage
+) {
   const docTitle = Private(DocTitleProvider);
   const queryFilter = Private(FilterBarQueryFilterProvider);
 
@@ -238,6 +242,15 @@ function VisEditor($scope, $route, timefilter, AppState, $window, kbnUrl, courie
     $scope.getVisualizationTitle = function getVisualizationTitle() {
       return savedVis.lastSavedTitle || `${savedVis.title} (unsaved)`;
     };
+
+    getVisualizeLoader().then(loader => {
+      loader.embedVisualizationWithSavedObject($element.find('.visualize')[0], savedVis, {
+        timeRange: $scope.timeRange,
+        uiState: $scope.uiState,
+        appState: $scope.state,
+        editorMode: $scope.chrome.getVisible()
+      });
+    });
 
     $scope.$watchMulti([
       'searchSource.get("index")',
