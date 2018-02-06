@@ -1,213 +1,186 @@
 import _ from 'lodash';
-import { uiModules } from 'ui/modules';
 import { stateMonitorFactory } from 'ui/state_management/state_monitor_factory';
-import visualizeTemplate from 'ui/visualize/visualize.html';
 import { VisRequestHandlersRegistryProvider } from 'ui/registry/vis_request_handlers';
 import { VisResponseHandlersRegistryProvider } from 'ui/registry/vis_response_handlers';
-import 'angular-sanitize';
-import './visualization';
-import './visualization_editor';
 import { FilterBarQueryFilterProvider } from 'ui/filter_bar/query_filter';
 import { ResizeChecker } from 'ui/resize_checker';
-import { visualizationLoader } from './loader';
+import { isTermSizeZeroError } from '../elasticsearch_errors';
+import { toastNotifications } from 'ui/notify';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { Visualization } from './visualization';
+import { VisualizationEditor } from './components/visualization_editor';
 
-import {
-  isTermSizeZeroError,
-} from '../elasticsearch_errors';
+function getHandler(from, name) {
+  if (typeof name === 'function') return name;
+  return from.find(handler => handler.name === name).handler;
+}
 
-uiModules
-  .get('kibana/directive', ['ngSanitize'])
-  .directive('visualize', function ($timeout, Notifier, Private, timefilter, getAppState, Promise) {
-    const notify = new Notifier({ location: 'Visualize' });
-    const requestHandlers = Private(VisRequestHandlersRegistryProvider);
-    const responseHandlers = Private(VisResponseHandlersRegistryProvider);
-    const queryFilter = Private(FilterBarQueryFilterProvider);
+export class Visualize extends Component {
+  constructor(props) {
+    super(props);
 
-    function getHandler(from, name) {
-      if (typeof name === 'function') return name;
-      return from.find(handler => handler.name === name).handler;
+    this.vis = props.savedObj.vis;
+    this.vis.description = props.savedObj.description;
+    this.vis.editorMode = props.editorMode || false;
+    this.vis._setUiState(props.uiState);
+    this.vis.on('update', this._handleVisUpdate);
+    this.vis.on('reload', this._reload);
+
+    this.queryFilter = props.Private(FilterBarQueryFilterProvider);
+
+    this.queryFilter.on('update', this._fetch);
+    props.uiState.on('change', this._fetch);
+    props.timeFilter.on('change', this._fetch);
+
+    const requestHandlers = props.Private(VisRequestHandlersRegistryProvider);
+    const responseHandlers = props.Private(VisResponseHandlersRegistryProvider);
+    this.requestHandler = getHandler(requestHandlers, this.vis.type.requestHandler);
+    this.responseHandler = getHandler(responseHandlers, this.vis.type.responseHandler);
+  }
+
+  _fetch = _.debounce(() => {
+    // If destroyed == true the scope has already been destroyed, while this method
+    // was still waiting for its debounce, in this case we don't want to start
+    // fetching new data and rendering.
+    if (!this.vis.initialized || this._destroyed) return;
+    // searchSource is only there for courier request handler
+    this.requestHandler(this.vis, this.props.appState, this.props.uiState, this.queryFilter, this.props.savedObj.searchSource)
+      .then(requestHandlerResponse => {
+
+        //No need to call the response handler when there have been no data nor has been there changes
+        //in the vis-state (response handler does not depend on uiStat
+        const canSkipResponseHandler = (
+          this.previousRequestHandlerResponse && this.previousRequestHandlerResponse === requestHandlerResponse &&
+          this.previousVisState && _.isEqual(this.previousVisState, this.vis.getState())
+        );
+
+        this.previousVisState = this.vis.getState();
+        this.previousRequestHandlerResponse = requestHandlerResponse;
+        return canSkipResponseHandler ? this.visData : Promise.resolve(this.responseHandler(this.vis, requestHandlerResponse));
+      }, e => {
+        this.savedObj.searchSource.cancelQueued();
+        this.vis.requestError = e;
+        if (isTermSizeZeroError(e)) {
+          return toastNotifications.addDanger(
+            `Your visualization ('${this.vis.title}') has an error: it has a term ` +
+            `aggregation with a size of 0. Please set it to a number greater than 0 to resolve ` +
+            `the error.`
+          );
+        }
+        toastNotifications.addDanger(e);
+      })
+      .then(resp => {
+        this.visData = resp;
+        this.forceUpdate();
+      });
+  }, 100);
+
+  _handleVisUpdate = () => {
+    if (this.vis.editorMode) {
+      this.props.appState.vis = this.vis.getState();
+      this.props.appState.save();
+    } else {
+      this._fetch();
     }
+  };
 
-    return {
-      restrict: 'E',
-      scope: {
-        showSpyPanel: '=?',
-        editorMode: '=?',
-        savedObj: '=?',
-        appState: '=?',
-        uiState: '=?',
-        timeRange: '=?',
-      },
-      template: visualizeTemplate,
-      link: async function ($scope, $el) {
-        let destroyed = false;
-        if (!$scope.savedObj) throw(`saved object was not provided to <visualize> directive`);
-        if (!$scope.appState) $scope.appState = getAppState();
+  _reload = () => {
+    this.vis.reload = true;
+    this._fetch();
+  };
 
-        const resizeChecker = new ResizeChecker($el, { disabled: true });
-        $timeout(() => {
-          // We give the visualize one digest cycle time to actually render before
-          // we start tracking its size. If we don't do that, we cause a double
-          // initial rendering in editor mode.
-          resizeChecker.enable();
-        });
+  componentWillReceiveProps(props) {
+    if (!props.savedObj) throw(`saved object was not provided to <visualize> component`);
+    if (props.timeRange) {
+      this.vis.getTimeRange = () => props.timeRange;
 
-        $scope.vis = $scope.savedObj.vis;
+      const searchSource = props.savedObj.searchSource;
+      searchSource.filter(() => {
+        return props.timefilter.get(searchSource.index(), props.timeRange);
+      });
 
-        // Set the passed in uiState to the vis object. uiState reference should never be changed
-        if (!$scope.uiState) $scope.uiState = $scope.vis.getUiState();
-        else $scope.vis._setUiState($scope.uiState);
-
-        $scope.vis.description = $scope.savedObj.description;
-
-        if ($scope.timeRange) {
-          $scope.vis.getTimeRange = () => $scope.timeRange;
-
-          const searchSource = $scope.savedObj.searchSource;
-          searchSource.filter(() => {
-            return timefilter.get(searchSource.index(), $scope.timeRange);
-          });
-
-          // we're only adding one range filter against the timeFieldName to ensure
-          // that our filter is the only one applied and override the global filters.
-          // this does rely on the "implementation detail" that filters are added first
-          // on the leaf SearchSource and subsequently on the parents
-          searchSource.addFilterPredicate((filter, state) => {
-            if (!filter.range) {
-              return true;
-            }
-
-            const timeFieldName = searchSource.index().timeFieldName;
-            if (!timeFieldName) {
-              return true;
-            }
-
-            return !(state.filters || []).find(f => f.range && f.range[timeFieldName]);
-          });
+      // we're only adding one range filter against the timeFieldName to ensure
+      // that our filter is the only one applied and override the global filters.
+      // this does rely on the "implementation detail" that filters are added first
+      // on the leaf SearchSource and subsequently on the parents
+      searchSource.addFilterPredicate((filter, state) => {
+        if (!filter.range) {
+          return true;
         }
 
-        $scope.editorMode = $scope.editorMode || false;
-        $scope.vis.editorMode = $scope.editorMode;
+        const timeFieldName = searchSource.index().timeFieldName;
+        if (!timeFieldName) {
+          return true;
+        }
 
-        const requestHandler = getHandler(requestHandlers, $scope.vis.type.requestHandler);
-        const responseHandler = getHandler(responseHandlers, $scope.vis.type.responseHandler);
+        return !(state.filters || []).find(f => f.range && f.range[timeFieldName]);
+      });
+    }
 
-        $scope.fetch = _.debounce(function () {
-          // If destroyed == true the scope has already been destroyed, while this method
-          // was still waiting for its debounce, in this case we don't want to start
-          // fetching new data and rendering.
-          if (!$scope.vis.initialized || !$scope.savedObj || destroyed) return;
-          // searchSource is only there for courier request handler
-          requestHandler($scope.vis, $scope.appState, $scope.uiState, queryFilter, $scope.savedObj.searchSource)
-            .then(requestHandlerResponse => {
+    if (props.appState) {
+      this._stateMonitor = stateMonitorFactory.create(props.appState);
+      this._stateMonitor.onChange((status, type, keys) => {
+        if (keys[0] === 'vis') {
+          if (props.appState.vis) this.vis.setState(props.appState.vis);
+          this._fetch();
+        }
+        if (this.vis.type.requiresSearch && ['query', 'filters'].includes(keys[0])) {
+          this._fetch();
+        }
+      });
+    }
+  }
 
-            //No need to call the response handler when there have been no data nor has been there changes
-            //in the vis-state (response handler does not depend on uiStat
-              const canSkipResponseHandler = (
-                $scope.previousRequestHandlerResponse && $scope.previousRequestHandlerResponse === requestHandlerResponse &&
-              $scope.previousVisState && _.isEqual($scope.previousVisState, $scope.vis.getState())
-              );
+  render() {
+    return (this.vis.editorMode ?
+      (<VisualizationEditor
+        vis={this.vis}
+        visData={this.visData}
+        uiState={this.props.uiState}
+        Private={this.props.Private}
+      />) :
+      (<Visualization vis={this.vis} visData={this.visData} uiState={this.props.uiState}/>)
+    );
+  }
 
-              $scope.previousVisState = $scope.vis.getState();
-              $scope.previousRequestHandlerResponse = requestHandlerResponse;
-              return canSkipResponseHandler ? $scope.visData : Promise.resolve(responseHandler($scope.vis, requestHandlerResponse));
-            }, e => {
-              $scope.savedObj.searchSource.cancelQueued();
-              $scope.vis.requestError = e;
-              if (isTermSizeZeroError(e)) {
-                return notify.error(
-                  `Your visualization ('${$scope.vis.title}') has an error: it has a term ` +
-                `aggregation with a size of 0. Please set it to a number greater than 0 to resolve ` +
-                `the error.`
-                );
-              }
-              notify.error(e);
-            })
-            .then(resp => {
-              $scope.visData = resp;
-              $scope.$apply();
-              $scope.$broadcast('render');
+  componentDidMount() {
+    this.resizeChecker = new ResizeChecker(this.props.container);
+    this.resizeChecker.on('resize', this._fetch);
 
-              if (!$scope.editorMode) {
-                visualizationLoader($el[0], $scope.vis, $scope.visData, $scope.uiState, { listenOnChange: true });
-              }
+    this._fetch();
+  }
 
-              return resp;
-            });
-        }, 100);
+  componentWillUnmount() {
+    this._destroy = true;
+    this.vis.removeListener('update', this._handleVisUpdate);
+    this.props.queryFilter.off('update', this._fetch);
+    this.props.uiState.off('change', this._fetch);
+    this.resizeChecker.destroy();
 
-        //todo: clean this one up as well
-        const handleVisUpdate = () => {
-          if ($scope.editorMode) {
-            $scope.appState.vis = $scope.vis.getState();
-            $scope.appState.save();
-          } else {
-            $scope.fetch();
-          }
-        };
-        $scope.vis.on('update', handleVisUpdate);
+    if (this._stateMonitor) this._stateMonitor.destroy();
+  }
+}
+
+Visualize.propTypes = {
+  savedObj: PropTypes.object,
+  uiState: PropTypes.object,
+  appState: PropTypes.object,
+  Private: PropTypes.func,
+  timefilter: PropTypes.object,
+  editorMode: PropTypes.bool
+};
 
 
-        const reload = () => {
-          $scope.vis.reload = true;
-          $scope.fetch();
-        };
-        $scope.vis.on('reload', reload);
+/*
         // auto reload will trigger this event
         $scope.$on('courier:searchRefresh', reload);
         // dashboard will fire fetch event when it wants to refresh
         $scope.$on('fetch', reload);
-
-
-
-        const handleQueryUpdate = ()=> {
-          $scope.fetch();
-        };
-        queryFilter.on('update', handleQueryUpdate);
-
-        if ($scope.appState) {
-          const stateMonitor = stateMonitorFactory.create($scope.appState);
-          stateMonitor.onChange((status, type, keys) => {
-            if (keys[0] === 'vis') {
-              if ($scope.appState.vis) $scope.vis.setState($scope.appState.vis);
-              $scope.fetch();
-            }
-            if ($scope.vis.type.requiresSearch && ['query', 'filters'].includes(keys[0])) {
-              $scope.fetch();
-            }
-          });
-
-          $scope.$on('$destroy', () => {
-            stateMonitor.destroy();
-          });
-        }
-
-        // Listen on uiState changes to start fetching new data again.
-        // Some visualizations might need different data depending on their uiState,
-        // thus we need to retrigger. The request handler should take care about
-        // checking if anything changed, that actually require a new fetch or return
-        // cached data otherwise.
-        $scope.uiState.on('change', $scope.fetch);
-        resizeChecker.on('resize', $scope.fetch);
-
-        // visualize needs to know about timeFilter
-        $scope.$listen(timefilter, 'fetch', $scope.fetch);
-
-        $scope.$on('$destroy', () => {
-          destroyed = true;
-          $scope.vis.removeListener('update', handleVisUpdate);
-          queryFilter.off('update', handleQueryUpdate);
-          $scope.uiState.off('change', $scope.fetch);
-          resizeChecker.destroy();
-        });
 
         if ($scope.editorMode) {
           $scope.$watch('vis.initialized', $scope.fetch);
         } else {
           $scope.vis.initialized = true;
         }
-
-        $scope.fetch();
-      }
-    };
-  });
+*/
