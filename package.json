@@ -60,7 +60,7 @@
     "release": "grunt release",
     "start": "node scripts/kibana --dev",
     "debug": "node --nolazy --inspect --debug-brk scripts/kibana --dev",
-    "precommit": "node scripts/precommit_hook",
+    "precommit": "node -v",
     "karma": "karma start",
     "lint": "echo 'use `node scripts/eslint`' && false",
     "lintroller": "echo 'use `node scripts/eslint --fix`' && false",

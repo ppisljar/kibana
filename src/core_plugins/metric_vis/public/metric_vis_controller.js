@@ -110,6 +110,8 @@ export class MetricVisComponent extends Component {
             }
           }
 
+
+
           const shouldColor = config.colorsRange.length > 1;
 
           metrics.push({
