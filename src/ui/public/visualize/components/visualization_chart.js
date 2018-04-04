@@ -21,7 +21,7 @@ export class VisualizationChart extends Component {
       .debounceTime(100)
       .switchMap(async ({ vis, visData, container }) => {
         vis.size = [container.width(), container.height()];
-        const status = getUpdateStatus(this, this.props);
+        const status = getUpdateStatus(vis.type.requiresUpdateStatus, this, this.props);
         const renderPromise = this.visualization.render(visData, status);
         return renderPromise;
       }).subscribe(() => {
