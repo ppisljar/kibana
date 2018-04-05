@@ -141,6 +141,29 @@ export class VegaBaseView {
     return false;
   }
 
+  setView(view) {
+    this._view = view;
+    if (view) {
+      view.addSignalListener('%ADD_FILTER%',
+        /**
+         * @param {string} sig signal name
+         * @param {object} value filter object to add
+         * @param {string} value.field name of the filter field
+         * @param {string|number} value.value the value of the filter
+         * @param {string} value.operator how value should be compared. "IS" by default.
+         */
+        (/* sig, value */) => {
+
+
+
+          // TODO: add new filter
+
+
+        }
+      );
+    }
+  }
+
   /**
    * Set global debug variable to simplify vega debugging in console. Show info message first time
    */

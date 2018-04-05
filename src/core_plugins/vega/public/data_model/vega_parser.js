@@ -8,6 +8,7 @@ import hjson from 'hjson';
 import { Utils } from './utils';
 import { EmsFileParser } from './ems_file_parser';
 import { UrlParser } from './url_parser';
+import Vsi from 'vega-spec-injector';
 import { VISUALIZATION_COLORS } from '@elastic/eui';
 
 // Set default single color to match other Kibana visualizations
@@ -84,6 +85,10 @@ export class VegaParser {
     }
 
     this._calcSizing();
+
+    const vsi = new Vsi(this._onWarning.bind(this));
+
+    vsi.addToList(this.spec, `signals`, ['%ADD_FILTER%']);
   }
 
   /**
