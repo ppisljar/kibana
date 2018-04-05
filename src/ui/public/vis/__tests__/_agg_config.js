@@ -3,7 +3,7 @@ import expect from 'expect.js';
 import ngMock from 'ng_mock';
 import { VisProvider } from 'ui/vis';
 import { AggTypesAggTypeProvider } from 'ui/agg_types/agg_type';
-import { VisAggConfigProvider } from 'ui/vis/agg_config';
+import { AggConfig } from 'ui/vis/agg_config';
 import FixturesStubbedLogstashIndexPatternProvider from 'fixtures/stubbed_logstash_index_pattern';
 import { registryFieldFormats } from 'ui/registry/field_formats';
 
@@ -11,7 +11,6 @@ describe('AggConfig', function () {
 
   let Vis;
   let AggType;
-  let AggConfig;
   let indexPattern;
   const fieldFormat = registryFieldFormats;
 
@@ -19,7 +18,6 @@ describe('AggConfig', function () {
   beforeEach(ngMock.inject(function (Private) {
     Vis = Private(VisProvider);
     AggType = Private(AggTypesAggTypeProvider);
-    AggConfig = Private(VisAggConfigProvider);
     indexPattern = Private(FixturesStubbedLogstashIndexPatternProvider);
   }));
 
