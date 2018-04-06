@@ -207,7 +207,6 @@
     "validate-npm-package-name": "2.2.2",
     "vega-lib": "^3.2.1",
     "vega-lite": "^2.3.1",
-    "vega-spec-injector": "^0.0.2",
     "vega-schema-url-parser": "1.0.0",
     "vision": "4.1.0",
     "webpack": "3.6.0",

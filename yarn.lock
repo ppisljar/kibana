@@ -12080,10 +12080,6 @@ vega-schema-url-parser@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/vega-schema-url-parser/-/vega-schema-url-parser-1.0.0.tgz#fc17631e354280d663ed39e3fa8eddb62145402e"
 
-vega-spec-injector@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/vega-spec-injector/-/vega-spec-injector-0.0.2.tgz#f1d990109dd9d845c524738f818baa4b72a60ca6"
-
 vega-statistics@^1.2:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/vega-statistics/-/vega-statistics-1.2.1.tgz#a35b3fc3d0039f8bb0a8ba1381d42a1df79ecb34"

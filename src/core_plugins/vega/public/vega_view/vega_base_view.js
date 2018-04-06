@@ -6,6 +6,20 @@ import { VISUALIZATION_COLORS } from '@elastic/eui';
 
 vega.scheme('elastic', VISUALIZATION_COLORS);
 
+// Vega's extension functions are global. When called,
+// we forward execution to the instance-specific handler
+if (!vega.expressionFunction('kibanaAddFilter')) {
+  vega.expressionFunction(
+    'kibanaAddFilter',
+    function kibanaAddFilter(...args) {
+      const view = this.context.dataflow;
+      const handler = view.kibanaAddFilterHandler;
+      if (!handler) throw new Error('kibanaAddFilter() is not defined for this graph');
+      view.runAfter(() => handler(...args));
+    }
+  );
+}
+
 const bypassToken = Symbol();
 
 export function bypassExternalUrlCheck(url) {
@@ -144,23 +158,18 @@ export class VegaBaseView {
   setView(view) {
     this._view = view;
     if (view) {
-      view.addSignalListener('%ADD_FILTER%',
-        /**
-         * @param {string} sig signal name
-         * @param {object} value filter object to add
-         * @param {string} value.field name of the filter field
-         * @param {string|number} value.value the value of the filter
-         * @param {string} value.operator how value should be compared. "IS" by default.
-         */
-        (/* sig, value */) => {
+      /**
+       * @param {string} field name of the filter field
+       * @param {string|number} value the value of the filter
+       * @param {string} [operator] how value should be compared. "IS" by default.
+       */
+      view.kibanaAddFilterHandler = (/*field, value, operator*/) => {
 
 
+        // TODO: add new filter
 
-          // TODO: add new filter
 
-
-        }
-      );
+      };
     }
   }
 
