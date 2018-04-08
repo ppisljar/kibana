@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import * as vega from 'vega-lib';
 import * as vegaLite from 'vega-lite';
+import { areIndexPatternsProvided } from 'ui/filter_editor/lib/filter_editor_utils';
 import { Utils } from '../data_model/utils';
 import { VISUALIZATION_COLORS } from '@elastic/eui';
 
@@ -28,12 +29,14 @@ export function bypassExternalUrlCheck(url) {
 }
 
 export class VegaBaseView {
-  constructor(vegaConfig, editorMode, parentEl, vegaParser, serviceSettings) {
-    this._vegaConfig = vegaConfig;
-    this._editorMode = editorMode;
-    this._$parentEl = $(parentEl);
-    this._parser = vegaParser;
-    this._serviceSettings = serviceSettings;
+  constructor(opts) {
+    this._vegaConfig = opts.vegaConfig;
+    this._editorMode = opts.editorMode;
+    this._$parentEl = $(opts.parentEl);
+    this._parser = opts.vegaParser;
+    this._serviceSettings = opts.serviceSettings;
+    this._queryFilter = opts.queryFilter;
+    this._indexPatterns = opts.indexPatterns;
     this._view = null;
     this._vegaViewConfig = null;
     this._$messages = null;
@@ -46,6 +49,14 @@ export class VegaBaseView {
     this._initialized = true;
 
     try {
+      // Adapted from src/ui/public/filter_editor/filter_editor.js
+      if (!areIndexPatternsProvided(this._indexPatterns)) {
+        const defaultIndexPattern = await this._indexPatterns.getDefault();
+        if (defaultIndexPattern) {
+          this._indexPatterns = [defaultIndexPattern];
+        }
+      }
+
       this._$parentEl.empty()
         .addClass('vega-main')
         .css('flex-direction', this._parser.containerDir);
@@ -159,16 +170,13 @@ export class VegaBaseView {
     this._view = view;
     if (view) {
       /**
-       * @param {string} field name of the filter field
-       * @param {string|number} value the value of the filter
-       * @param {string} [operator] how value should be compared. "IS" by default.
+       * @param {object} filter Elastic Query DSL snippet, as used in the query DSL editor
        */
-      view.kibanaAddFilterHandler = (/*field, value, operator*/) => {
+      view.kibanaAddFilterHandler = (filter) => {
+        filter.meta = filter.meta || {};
+        filter.meta.index = filter.meta.index || this._indexPatterns[0].id;
 
-
-        // TODO: add new filter
-
-
+        this._queryFilter.addFilters(filter);
       };
     }
   }
