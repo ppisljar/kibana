@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import moment from 'moment';
 import * as vega from 'vega-lib';
 import * as vegaLite from 'vega-lite';
 import { areIndexPatternsProvided } from 'ui/filter_editor/lib/filter_editor_utils';
@@ -9,17 +10,24 @@ vega.scheme('elastic', VISUALIZATION_COLORS);
 
 // Vega's extension functions are global. When called,
 // we forward execution to the instance-specific handler
-if (!vega.expressionFunction('kibanaAddFilter')) {
-  vega.expressionFunction(
-    'kibanaAddFilter',
-    function kibanaAddFilter(...args) {
-      const view = this.context.dataflow;
-      const handler = view.kibanaAddFilterHandler;
-      if (!handler) throw new Error('kibanaAddFilter() is not defined for this graph');
-      view.runAfter(() => handler(...args));
-    }
-  );
+function addGlobalVegaHandler(funcName, handlerName) {
+  if (!vega.expressionFunction(funcName)) {
+    vega.expressionFunction(
+      funcName,
+      function handlerFwd(...args) {
+        const view = this.context.dataflow;
+        const handler = view[handlerName];
+        if (!handler) throw new Error(`${funcName}() is not defined for this graph`);
+        view.runAfter(() => handler(...args));
+      }
+    );
+  }
 }
+
+addGlobalVegaHandler('kibanaAddFilter', 'kibanaAddFilterHandler');
+addGlobalVegaHandler('kibanaRemoveFilter', 'kibanaRemoveFilterHandler');
+addGlobalVegaHandler('kibanaRemoveAllFilters', 'kibanaRemoveAllFiltersHandler');
+addGlobalVegaHandler('kibanaSetTimeFilter', 'kibanaSetTimeFilterHandler');
 
 const bypassToken = Symbol();
 
@@ -35,7 +43,8 @@ export class VegaBaseView {
     this._$parentEl = $(opts.parentEl);
     this._parser = opts.vegaParser;
     this._serviceSettings = opts.serviceSettings;
-    this._queryFilter = opts.queryFilter;
+    this._queryfilter = opts.queryfilter;
+    this._timefilter = opts.timefilter;
     this._indexPatterns = opts.indexPatterns;
     this._view = null;
     this._vegaViewConfig = null;
@@ -170,13 +179,56 @@ export class VegaBaseView {
     this._view = view;
     if (view) {
       /**
-       * @param {object} filter Elastic Query DSL snippet, as used in the query DSL editor
+       * @param {object} query Elastic Query DSL snippet, as used in the query DSL editor
+       * @param {object} [meta] Optional Metadata for the filter
        */
-      view.kibanaAddFilterHandler = (filter) => {
-        filter.meta = filter.meta || {};
+      view.kibanaAddFilterHandler = (query, meta) => {
+        const filter = { query: query, meta: meta || {} };
         filter.meta.index = filter.meta.index || this._indexPatterns[0].id;
+        this._queryfilter.addFilters(filter);
+      };
 
-        this._queryFilter.addFilters(filter);
+      /**
+       * @param {object} query Elastic Query DSL snippet, as used in the query DSL editor
+       * @param {object} [meta] Optional Metadata for the filter
+       */
+      view.kibanaRemoveFilterHandler = (query, meta) => {
+        const filter = { query: query, meta: meta || {} };
+        filter.meta.index = filter.meta.index || this._indexPatterns[0].id;
+        this._queryfilter.removeFilter(filter);
+      };
+
+      view.kibanaRemoveAllFiltersHandler = () => {
+        this._queryfilter.removeAll();
+      };
+
+      /**
+       * @param {number|string|Date} start
+       * @param {number|string|Date} end
+       * @param {string} [mode]
+       */
+      view.kibanaSetTimeFilterHandler = (start, end, mode) => {
+        const tf = this._timefilter;
+
+        let from = moment(start);
+        let to = moment(end);
+
+        if (from.isValid() && to.isValid()) {
+          if (from.isAfter(to)) {
+            [from, to] = [to, from];
+          }
+        } else if (typeof start === 'string' && typeof end === 'string') {
+
+          // TODO/FIXME:  should strings be allowed as is, or is there a parser?
+          // Also, should the default mode be changed in this case?
+
+          [from, to] = [start, end];
+        }
+
+        tf.time.from = from;
+        tf.time.to = to;
+        tf.time.mode = mode || 'absolute';
+        tf.update();
       };
     }
   }

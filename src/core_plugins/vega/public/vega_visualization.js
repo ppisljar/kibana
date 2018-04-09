@@ -3,10 +3,10 @@ import { VegaView } from './vega_view/vega_view';
 import { VegaMapView } from './vega_view/vega_map_view';
 import { FilterBarQueryFilterProvider } from 'ui/filter_bar/query_filter';
 
-export function VegaVisualizationProvider(Private, vegaConfig, serviceSettings, indexPatterns) {
+export function VegaVisualizationProvider(Private, vegaConfig, serviceSettings, indexPatterns, timefilter) {
 
   const notify = new Notifier({ location: 'Vega' });
-  const queryFilter = Private(FilterBarQueryFilterProvider);
+  const queryfilter = Private(FilterBarQueryFilterProvider);
 
   return class VegaVisualization {
     constructor(el, vis) {
@@ -54,7 +54,8 @@ export function VegaVisualizationProvider(Private, vegaConfig, serviceSettings, 
           parentEl: this._el,
           vegaParser,
           serviceSettings,
-          queryFilter,
+          queryfilter,
+          timefilter,
           indexPatterns
         };
 
