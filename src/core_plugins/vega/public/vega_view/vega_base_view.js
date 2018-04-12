@@ -5,6 +5,7 @@ import * as vegaLite from 'vega-lite';
 import { areIndexPatternsProvided } from 'ui/filter_editor/lib/filter_editor_utils';
 import { Utils } from '../data_model/utils';
 import { VISUALIZATION_COLORS } from '@elastic/eui';
+import { buildQueryFilter } from 'ui/filter_manager/lib';
 
 vega.scheme('elastic', VISUALIZATION_COLORS);
 
@@ -180,21 +181,17 @@ export class VegaBaseView {
     if (view) {
       /**
        * @param {object} query Elastic Query DSL snippet, as used in the query DSL editor
-       * @param {object} [meta] Optional Metadata for the filter
        */
-      view.kibanaAddFilterHandler = (query, meta) => {
-        const filter = { query: query, meta: meta || {} };
-        filter.meta.index = filter.meta.index || this._indexPatterns[0].id;
+      view.kibanaAddFilterHandler = (query) => {
+        const filter = buildQueryFilter(query, this._indexPatterns[0].id);
         this._queryfilter.addFilters(filter);
       };
 
       /**
        * @param {object} query Elastic Query DSL snippet, as used in the query DSL editor
-       * @param {object} [meta] Optional Metadata for the filter
        */
-      view.kibanaRemoveFilterHandler = (query, meta) => {
-        const filter = { query: query, meta: meta || {} };
-        filter.meta.index = filter.meta.index || this._indexPatterns[0].id;
+      view.kibanaRemoveFilterHandler = (query) => {
+        const filter = buildQueryFilter(query, this._indexPatterns[0].id);
         this._queryfilter.removeFilter(filter);
       };
 
