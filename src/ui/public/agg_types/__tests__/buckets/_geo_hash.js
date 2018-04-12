@@ -3,9 +3,6 @@ import sinon from 'sinon';
 import { geoHashBucketAgg } from 'ui/agg_types/buckets/geo_hash';
 import * as AggConfigModule from 'ui/vis/agg_config';
 import * as BucketAggTypeModule from 'ui/agg_types/buckets/_bucket_agg_type';
-import { aggTypes } from 'ui/agg_types/index';
-
-AggConfigModule.AggConfig.aggTypes = aggTypes;
 
 describe('Geohash Agg', () => {
 

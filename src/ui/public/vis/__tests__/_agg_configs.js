@@ -4,7 +4,7 @@ import expect from 'expect.js';
 import ngMock from 'ng_mock';
 import { AggConfig } from 'ui/vis/agg_config';
 import { VisProvider } from 'ui/vis';
-import { VisAggConfigsProvider } from 'ui/vis/agg_configs';
+import { AggConfigs } from 'ui/vis/agg_configs';
 import FixturesStubbedLogstashIndexPatternProvider from 'fixtures/stubbed_logstash_index_pattern';
 import { Schemas } from 'ui/vis/editors/default/schemas';
 import { IndexedArray } from 'ui/indexed_array';
@@ -12,12 +12,10 @@ import { IndexedArray } from 'ui/indexed_array';
 describe('AggConfigs', function () {
 
   let Vis;
-  let AggConfigs;
   let indexPattern;
 
   beforeEach(ngMock.module('kibana'));
   beforeEach(ngMock.inject(function (Private) {
-    AggConfigs = Private(VisAggConfigsProvider);
     // replace the AggConfig module with a spy
 
     const spy = sinon.spy(AggConfig);
