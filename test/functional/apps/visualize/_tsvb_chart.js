@@ -19,12 +19,14 @@ export default function ({ getService, getPageObjects }) {
       it('should show the correct count in the legend with 2h offset', async function () {
         await PageObjects.visualBuilder.clickSeriesOption();
         await PageObjects.visualBuilder.enterOffsetSeries('2h');
+        await PageObjects.common.sleep(300);
         const actualCount = await PageObjects.visualBuilder.getRhythmChartLegendValue();
         expect(actualCount).to.be('379');
       });
 
       it('should show the correct count in the legend with -2h offset', async function () {
         await PageObjects.visualBuilder.enterOffsetSeries('-2h');
+        await PageObjects.common.sleep(300);
         const actualCount = await PageObjects.visualBuilder.getRhythmChartLegendValue();
         expect(actualCount).to.be('31');
       });
