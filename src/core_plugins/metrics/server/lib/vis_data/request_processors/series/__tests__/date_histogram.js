@@ -61,7 +61,9 @@ describe('dateHistogram(req, panel, series)', () => {
           meta: {
             bucketSize: 10,
             intervalString: '10s',
-            timeField: '@timestamp'
+            timeField: '@timestamp',
+            to: '2017-01-01T01:00:00.000Z',
+            from: '2017-01-01T00:00:00.000Z'
           }
         }
       }
@@ -99,7 +101,9 @@ describe('dateHistogram(req, panel, series)', () => {
           meta: {
             bucketSize: 10,
             intervalString: '10s',
-            timeField: '@timestamp'
+            timeField: '@timestamp',
+            to: '2017-01-01T00:00:00.000Z',
+            from: '2016-12-31T23:00:00.000Z'
           }
         }
       }
@@ -140,7 +144,9 @@ describe('dateHistogram(req, panel, series)', () => {
           meta: {
             bucketSize: 20,
             intervalString: '20s',
-            timeField: 'timestamp'
+            timeField: 'timestamp',
+            to: '2017-01-01T01:00:00.000Z',
+            from: '2017-01-01T00:00:00.000Z'
           }
         }
       }
