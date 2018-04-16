@@ -78,7 +78,9 @@ class DataFormatPicker extends Component {
     if (defaultValue === 'duration') {
       const [from, to, decimals] = value.split(',');
       return (
-        <div className="vis_editor__data_format_picker-container">
+        <div
+          className="vis_editor__data_format_picker-container"
+        >
           <div className="vis_editor__label">
             {this.props.label}
           </div>
