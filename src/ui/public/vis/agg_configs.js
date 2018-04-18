@@ -12,9 +12,8 @@ import { IndexedArray } from 'ui/indexed_array';
 import { AggConfig } from 'ui/vis/agg_config';
 
 _.class(AggConfigs).inherits(IndexedArray);
-function AggConfigs(vis, configStates) {
+function AggConfigs(configStates, schemas) {
   const self = this;
-  self.vis = vis;
 
   configStates = AggConfig.ensureIds(configStates || []);
 
@@ -23,18 +22,25 @@ function AggConfigs(vis, configStates) {
     group: ['schema.group', 'type.name', 'schema.name'],
     initialSet: configStates.map(function (aggConfigState) {
       if (aggConfigState instanceof AggConfig) return aggConfigState;
-      return new AggConfig(vis, aggConfigState);
+      return new AggConfig(aggConfigState);
     })
   });
 
+
+  // vis type defines supported schemas
+  // schemas define AggConfig defaults ? (and limits)
+
+  // makes sense that visualization defines which schemas are supported (modeling function param)
+  // aggconfigs don't need to know about this (as we dont want to limit it to only what vis supports, thats the job of modeling func)
+  // the defaults provided with schemas also don't need to exist, but would be usefull to populate the aggconfigs in some scenarios
 
   // Set the defaults for any schema which has them. If the defaults
   // for some reason has more then the max only set the max number
   // of defaults (not sure why a someone define more...
   // but whatever). Also if a schema.name is already set then don't
   // set anything.
-  if (vis && vis.type && vis.type.schemas && vis.type.schemas.all) {
-    _(vis.type.schemas.all)
+  if (schemas) {
+    _(schemas)
       .filter(function (schema) {
         return Array.isArray(schema.defaults) && schema.defaults.length > 0;
       })
@@ -43,7 +49,7 @@ function AggConfigs(vis, configStates) {
           const defaults = schema.defaults.slice(0, schema.max);
           _.each(defaults, function (defaultState) {
             const state = _.defaults({ id: AggConfig.nextId(self) }, defaultState);
-            self.push(new AggConfig(vis, state));
+            self.push(new AggConfig(state, schemas));
           });
         }
       })
@@ -87,22 +93,20 @@ function parseParentAggs(dslLvlCursor, dsl) {
 AggConfigs.prototype.toDsl = function () {
   const dslTopLvl = {};
   let dslLvlCursor;
-  let nestedMetrics;
 
-  if (this.vis.isHierarchical()) {
-    // collect all metrics, and filter out the ones that we won't be copying
-    nestedMetrics = _(this.vis.aggs.bySchemaGroup.metrics)
-      .filter(function (agg) {
-        return agg.type.name !== 'count';
-      })
-      .map(function (agg) {
-        return {
-          config: agg,
-          dsl: agg.toDsl()
-        };
-      })
-      .value();
-  }
+  // collect all metrics, and filter out the ones that we won't be copying
+  const nestedMetrics = _(this.bySchemaGroup.metrics)
+    .filter(function (agg) {
+      return agg.type.name !== 'count';
+    })
+    .map(function (agg) {
+      return {
+        config: agg,
+        dsl: agg.toDsl()
+      };
+    })
+    .value();
+
   this.getRequestAggs()
     .filter(function (config) {
       return !config.type.hasNoDsl;
