@@ -9,13 +9,14 @@ import _ from 'lodash';
 import { fieldFormats } from 'ui/registry/field_formats';
 import { aggTypes } from 'ui/agg_types/index';
 
-export function AggConfig(vis, opts) {
+export function AggConfig(opts, indexPattern, schemas) {
   const self = this;
 
-  self.id = String(opts.id || AggConfig.nextId(vis.aggs));
-  self.vis = vis;
+  self.id = String(opts.id || AggConfig.nextId());
   self._opts = opts = (opts || {});
   self.enabled = typeof opts.enabled === 'boolean' ? opts.enabled : true;
+  self._indexPattern = indexPattern;
+  self._schemas = schemas;
 
   // start with empty params so that checks in type/schema setters don't freak
   // because self.params is undefined
@@ -102,7 +103,7 @@ Object.defineProperties(AggConfig.prototype, {
     },
     set: function (schema) {
       if (_.isString(schema)) {
-        schema = this.vis.type.schemas.all.byName[schema];
+        schema = this._schemas.all.byName[schema];
       }
 
       this.__schema = schema;
@@ -297,12 +298,11 @@ AggConfig.prototype.makeLabel = function () {
   }
 
   if (!this.type) return '';
-  let pre = (_.get(this.vis, 'params.mode') === 'percentage') ? 'Percentage of ' : '';
-  return pre += this.type.makeLabel(this);
+  this.type.makeLabel(this);
 };
 
 AggConfig.prototype.getIndexPattern = function () {
-  return this.vis.indexPattern;
+  return this._indexPattern;
 };
 
 AggConfig.prototype.getFieldOptions = function () {
@@ -335,6 +335,6 @@ AggConfig.prototype.fieldName = function () {
 };
 
 AggConfig.prototype.fieldIsTimeField = function () {
-  const timeFieldName = this.vis.indexPattern.timeFieldName;
+  const timeFieldName = this._indexPattern.timeFieldName;
   return timeFieldName && this.fieldName() === timeFieldName;
 };

@@ -16,7 +16,7 @@ export function tabifyGetColumns(aggs, minimal, hierarchical) {
 
   // seperate the metrics
   const grouped = _.groupBy(aggs, function (agg) {
-    return agg.schema.group;
+    return agg.type.type;
   });
 
   if (!grouped.buckets) {

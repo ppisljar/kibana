@@ -128,7 +128,7 @@ module.directive('vislibValueAxes', function () {
             if (isMatchingSeries) {
               let seriesNumber = 0;
               $scope.vis.getAggConfig().forEach(agg => {
-                if (agg.schema.name === 'metric') {
+                if (agg.type.name === 'metric') {
                   if (seriesNumber === i) matchingSeries.push(agg);
                   seriesNumber++;
                 }

@@ -28,7 +28,7 @@ function collectBucket(write, bucket, key, aggScale) {
   const aggInfo = agg.write();
   aggScale *= aggInfo.metricScale || 1;
 
-  switch (agg.schema.group) {
+  switch (agg.type.type) {
     case 'buckets':
       const buckets = new TabifyBuckets(bucket[agg.id], agg.params);
       if (buckets.length) {
@@ -84,7 +84,7 @@ function collectBucket(write, bucket, key, aggScale) {
 function passEmptyBuckets(write, bucket, key, aggScale) {
   const agg = write.aggStack.shift();
 
-  switch (agg.schema.group) {
+  switch (agg.type.type) {
     case 'metrics':
       // pass control back to collectBucket()
       write.aggStack.unshift(agg);

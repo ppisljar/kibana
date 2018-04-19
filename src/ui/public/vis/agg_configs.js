@@ -12,7 +12,7 @@ import { IndexedArray } from 'ui/indexed_array';
 import { AggConfig } from 'ui/vis/agg_config';
 
 _.class(AggConfigs).inherits(IndexedArray);
-function AggConfigs(configStates, schemas) {
+function AggConfigs(configStates, indexPattern, schemas) {
   const self = this;
 
   configStates = AggConfig.ensureIds(configStates || []);
@@ -22,7 +22,7 @@ function AggConfigs(configStates, schemas) {
     group: ['schema.group', 'type.name', 'schema.name'],
     initialSet: configStates.map(function (aggConfigState) {
       if (aggConfigState instanceof AggConfig) return aggConfigState;
-      return new AggConfig(aggConfigState);
+      return new AggConfig(aggConfigState, indexPattern, schemas);
     })
   });
 
@@ -49,7 +49,7 @@ function AggConfigs(configStates, schemas) {
           const defaults = schema.defaults.slice(0, schema.max);
           _.each(defaults, function (defaultState) {
             const state = _.defaults({ id: AggConfig.nextId(self) }, defaultState);
-            self.push(new AggConfig(state, schemas));
+            self.push(new AggConfig(state, indexPattern, schemas));
           });
         }
       })
@@ -130,7 +130,7 @@ AggConfigs.prototype.toDsl = function () {
 
       parseParentAggs(dslLvlCursor, dsl);
 
-      if (config.schema.group === 'buckets' && i < list.length - 1) {
+      if (config.type.type === 'buckets' && i < list.length - 1) {
       // buckets that are not the last item in the list accept sub-aggs
         subAggs = dsl.aggs || (dsl.aggs = {});
       }
@@ -154,7 +154,7 @@ AggConfigs.prototype.getRequestAggs = function () {
   }, []);
   //move metrics to the end
   return _.sortBy(aggregations, function (agg) {
-    return agg.schema.group === 'metrics' ? 1 : 0;
+    return agg.type.type === 'metrics' ? 1 : 0;
   });
 };
 

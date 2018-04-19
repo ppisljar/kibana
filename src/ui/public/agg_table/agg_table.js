@@ -90,12 +90,12 @@ uiModules
             const field = agg.getField();
             const formattedColumn = {
               title: col.title,
-              filterable: field && field.filterable && agg.schema.group === 'buckets'
+              filterable: field && field.filterable && agg.type.type === 'buckets'
             };
 
             const last = i === (table.columns.length - 1);
 
-            if (last || (agg.schema.group === 'metrics')) {
+            if (last || (agg.type.type === 'metrics')) {
               formattedColumn.class = 'visualize-table-right';
             }
 
