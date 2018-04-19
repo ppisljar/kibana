@@ -118,7 +118,7 @@ export const topHitMetricAgg = new MetricAggType({
       editor: null,
       filterFieldTypes: [ 'number', 'date', 'ip',  'string' ],
       default: function (agg) {
-        return agg.vis.indexPattern.timeFieldName;
+        return agg._indexPattern.timeFieldName;
       },
       write: _.noop // prevent default write, it is handled below
     },
@@ -168,7 +168,7 @@ export const topHitMetricAgg = new MetricAggType({
     const path = agg.params.field.name;
 
     let values = _(hits).map(hit => {
-      return path === '_source' ? hit._source : agg.vis.indexPattern.flattenHit(hit, true)[path];
+      return path === '_source' ? hit._source : agg._indexPattern.flattenHit(hit, true)[path];
     })
       .flatten()
       .value();

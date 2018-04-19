@@ -88,13 +88,12 @@ export default function AggParamWriterHelper(Private) {
       }
     }
 
-
-    const agg = new AggConfig(self.vis, {
+    const agg = new AggConfig({
       id: 1,
       schema: self.visAggSchema.name,
       type: self.aggType.name,
       params: paramValues
-    });
+    }, self.vis.indexPattern, self.vis.type.schemas.all);
 
     self.vis.setState({
       type: self.vis.type.name,

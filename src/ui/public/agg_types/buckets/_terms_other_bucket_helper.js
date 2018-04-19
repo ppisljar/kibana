@@ -90,13 +90,13 @@ const buildOtherBucketAgg = (aggConfigs, aggWithOtherBucket, response) => {
   const indexPattern = aggWithOtherBucket.params.field.indexPattern;
 
   // create filters aggregation
-  const filterAgg = new AggConfig(aggConfigs[index].vis, {
+  const filterAgg = new AggConfig({
     type: 'filters',
     id: 'other',
     schema: {
       group: 'buckets'
     }
-  });
+  }, aggConfigs[index]._indexPattern, aggConfigs[index]._schemas);
 
   // nest all the child aggregations of aggWithOtherBucket
   const resultAgg = {

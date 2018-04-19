@@ -120,7 +120,7 @@ export const termsBucketAgg = new BucketAggType({
       makeOrderAgg: function (termsAgg, state) {
         state = state || {};
         state.schema = orderAggSchema;
-        const orderAgg = new AggConfig(termsAgg.vis, state);
+        const orderAgg = new AggConfig(state, termsAgg._indexPattern, termsAgg._schemas);
         orderAgg.id = termsAgg.id + '-orderAgg';
         return orderAgg;
       },

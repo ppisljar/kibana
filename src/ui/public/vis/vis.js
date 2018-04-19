@@ -96,7 +96,7 @@ export function VisProvider(Private, Promise, indexPatterns, timefilter, getAppS
 
       updateVisualizationConfig(state.params, this.params);
 
-      this.aggs = new AggConfigs(state.aggs, this.type.schemas.all);
+      this.aggs = new AggConfigs(state.aggs, this.indexPattern, this.type.schemas.all);
     }
 
     setState(state, updateCurrentState = true) {
@@ -144,7 +144,7 @@ export function VisProvider(Private, Promise, indexPatterns, timefilter, getAppS
     }
 
     getAggConfig() {
-      return new AggConfigs(this.aggs.raw.filter(agg => agg.enabled), this.type.schemas.all);
+      return new AggConfigs(this.aggs.raw.filter(agg => agg.enabled), this.indexPattern, this.type.schemas.all);
     }
 
     getState() {

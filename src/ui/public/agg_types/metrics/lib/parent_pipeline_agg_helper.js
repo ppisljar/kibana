@@ -34,7 +34,7 @@ const parentPipelineAggHelper = {
         makeAgg: function (termsAgg, state) {
           state = state || { type: 'count' };
           state.schema = metricAggSchema;
-          const metricAgg = new AggConfig(termsAgg.vis, state);
+          const metricAgg = new AggConfig(state, termsAgg._indexPattern, termsAgg._schemas);
           metricAgg.id = termsAgg.id + '-metric';
           return metricAgg;
         },

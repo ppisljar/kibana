@@ -91,19 +91,19 @@ describe('params', function () {
           const vis = paramWriter.vis;
           vis.aggs.splice(0);
 
-          const histoConfig = new AggConfig(vis, {
+          const histoConfig = new AggConfig({
             type: aggTypes.byName.date_histogram,
             schema: 'segment',
             params: { interval: 's', field: timeField }
-          });
+          }, vis.indexPattern, vis.type.schemas.all);
 
           vis.aggs.push(histoConfig);
 
           typeNames.forEach(function (type) {
-            vis.aggs.push(new AggConfig(vis, {
+            vis.aggs.push(new AggConfig({
               type: aggTypes.byName[type],
               schema: 'metric'
-            }));
+            }, vis.indexPattern, vis.type.schemas.all));
           });
 
           const output = histoConfig.write();

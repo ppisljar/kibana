@@ -17,9 +17,9 @@ uiModules
         self.submit = function (schema) {
           self.form = false;
 
-          const aggConfig = new AggConfig($scope.vis, {
+          const aggConfig = new AggConfig({
             schema: schema
-          });
+          }, $scope.vis.indexPattern, $scope.vis.type.schemas.all);
           aggConfig.brandNew = true;
 
           $scope.vis.aggs.push(aggConfig);

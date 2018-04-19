@@ -11,10 +11,10 @@ export function PointSeriesFakeXAxisProvider() {
   });
 
   return function makeFakeXAxis(vis) {
-    const fake = new AggConfig(vis, {
+    const fake = new AggConfig({
       type: allAgg,
       schema: vis.type.schemas.all.byName.segment
-    });
+    }, vis.indexPattern, vis.type.schemas.all);
 
     return {
       i: -1,

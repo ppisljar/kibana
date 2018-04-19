@@ -12,7 +12,7 @@ import { aggTypes } from 'ui/agg_types/index';
 export function AggConfig(opts, indexPattern, schemas) {
   const self = this;
 
-  self.id = String(opts.id || AggConfig.nextId());
+  self.id = String(opts.id || 1);
   self._opts = opts = (opts || {});
   self.enabled = typeof opts.enabled === 'boolean' ? opts.enabled : true;
   self._indexPattern = indexPattern;
@@ -103,7 +103,7 @@ Object.defineProperties(AggConfig.prototype, {
     },
     set: function (schema) {
       if (_.isString(schema)) {
-        schema = this._schemas.all.byName[schema];
+        schema = this._schemas.byName[schema];
       }
 
       this.__schema = schema;
