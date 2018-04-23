@@ -9,21 +9,19 @@ import createTextHandler from '../lib/create_text_handler';
 import { htmlIdGenerator } from '@elastic/eui';
 
 export const FilterRatioAgg = props => {
-  const {
-    series,
-    fields,
-    panel
-  } = props;
+  const { series, fields, panel } = props;
 
   const handleChange = createChangeHandler(props.onChange, props.model);
   const handleSelectChange = createSelectHandler(handleChange);
   const handleTextChange = createTextHandler(handleChange);
-  const indexPattern = series.override_index_pattern && series.series_index_pattern || panel.index_pattern;
+  const indexPattern =
+    (series.override_index_pattern && series.series_index_pattern) ||
+    panel.index_pattern;
 
   const defaults = {
     numerator: '*',
     denominator: '*',
-    metric_agg: 'count'
+    metric_agg: 'count',
   };
 
   const model = { ...defaults, ...props.model };
@@ -44,6 +42,7 @@ export const FilterRatioAgg = props => {
           <div className="vis_editor__row_item">
             <div className="vis_editor__label">Aggregation</div>
             <AggSelect
+              timerangeMode={props.panel.timerange_mode}
               panelType={props.panel.type}
               siblings={props.siblings}
               value={model.type}
@@ -56,6 +55,7 @@ export const FilterRatioAgg = props => {
             </label>
             <input
               id={htmlId('numerator')}
+              data-test-subj="filterRatioNumerator"
               className="vis_editor__input-grows-100"
               onChange={handleTextChange('numerator')}
               value={model.numerator}
@@ -63,11 +63,15 @@ export const FilterRatioAgg = props => {
             />
           </div>
           <div className="vis_editor__row_item">
-            <label className="vis_editor__label" htmlFor={htmlId('denominator')}>
+            <label
+              className="vis_editor__label"
+              htmlFor={htmlId('denominator')}
+            >
               Denominator
             </label>
             <input
               id={htmlId('denominator')}
+              data-test-subj="filterRatioDenominator"
               className="vis_editor__input-grows-100"
               onChange={handleTextChange('denominator')}
               value={model.denominator}
@@ -76,16 +80,17 @@ export const FilterRatioAgg = props => {
           </div>
         </div>
         <div style={{ flex: '1 0 auto', display: 'flex', marginTop: '10px' }}>
-          <div className="vis_editor__row_item">
+          <div className="vis_editor__row_item" data-test-subj="filterRatioMetricAgg">
             <div className="vis_editor__label">Metric Aggregation</div>
             <AggSelect
               siblings={props.siblings}
-              panelType="metrics"
+              metricsOnly={true}
+              timerangeMode={props.panel.timerange_mode}
               value={model.metric_agg}
               onChange={handleSelectChange('metric_agg')}
             />
           </div>
-          { model.metric_agg !== 'count' ? (
+          {model.metric_agg !== 'count' ? (
             <div className="vis_editor__row_item">
               <label className="vis_editor__label" htmlFor={htmlId('aggField')}>
                 Field
@@ -99,7 +104,8 @@ export const FilterRatioAgg = props => {
                 value={model.field}
                 onChange={handleSelectChange('field')}
               />
-            </div>) : null }
+            </div>
+          ) : null}
         </div>
       </div>
     </AggRow>

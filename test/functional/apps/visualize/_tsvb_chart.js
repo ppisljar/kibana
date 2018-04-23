@@ -13,25 +13,45 @@ export default function ({ getService, getPageObjects }) {
 
       it('should show the correct count in the legend', async function () {
         const actualCount = await PageObjects.visualBuilder.getRhythmChartLegendValue();
-        expect(actualCount).to.be('156');
+        expect(actualCount).to.be('56');
       });
 
       it('should show the correct count in the legend with 2h offset', async function () {
         await PageObjects.visualBuilder.clickSeriesOption();
         await PageObjects.visualBuilder.enterOffsetSeries('2h');
+        await PageObjects.common.sleep(300);
         const actualCount = await PageObjects.visualBuilder.getRhythmChartLegendValue();
-        expect(actualCount).to.be('293');
+        expect(actualCount).to.be('379');
       });
 
       it('should show the correct count in the legend with -2h offset', async function () {
         await PageObjects.visualBuilder.enterOffsetSeries('-2h');
+        await PageObjects.common.sleep(300);
         const actualCount = await PageObjects.visualBuilder.getRhythmChartLegendValue();
-        expect(actualCount).to.be('53');
+        expect(actualCount).to.be('31');
       });
 
       after(async () => {
         // set back to no offset for the next test, an empty string didn't seem to work here
         await PageObjects.visualBuilder.enterOffsetSeries('0h');
+      });
+
+    });
+
+    describe('Filter Ratio', () => {
+      before(async () => {
+        await PageObjects.visualBuilder.resetPage();
+      });
+
+      it('should show the correct value for a filter ratio', async () => {
+        await PageObjects.visualBuilder.selectAggType('filter_ratio');
+        await PageObjects.visualBuilder.setFilterRatioNumerator('machine.os.raw:\'win xp\'');
+        await PageObjects.visualBuilder.selectAggType('avg', 1);
+        await PageObjects.visualBuilder.selectField('bytes', 1);
+        await PageObjects.visualBuilder.clickSeriesOption();
+        await PageObjects.visualBuilder.selectDataFormat('percent');
+        const actualCount = await PageObjects.visualBuilder.getRhythmChartLegendValue();
+        expect(actualCount).to.be('75.08%');
       });
 
     });
@@ -52,7 +72,38 @@ export default function ({ getService, getPageObjects }) {
       });
 
       it('should show correct data', async function () {
-        const expectedMetricValue =  '157';
+        const expectedMetricValue =  '57';
+        return PageObjects.visualBuilder.getMetricValue()
+          .then(function (value) {
+            log.debug(`metric value: ${value}`);
+            expect(value).to.eql(expectedMetricValue);
+          });
+      });
+
+    });
+
+    describe('Data Timerange', () => {
+      beforeEach(async () => {
+        await PageObjects.visualBuilder.resetPage();
+        await PageObjects.visualBuilder.clickMetric();
+      });
+
+      it('should display the correct value for entire timerange', async function () {
+        await PageObjects.visualBuilder.selectDataTimeRange('all');
+        await PageObjects.header.waitUntilLoadingHasFinished();
+        const expectedMetricValue =  '13,830';
+        return PageObjects.visualBuilder.getMetricValue()
+          .then(function (value) {
+            log.debug(`metric value: ${value}`);
+            expect(value).to.eql(expectedMetricValue);
+          });
+      });
+
+      it('should display the correct value for last value', async function () {
+        await PageObjects.visualBuilder.selectDataTimeRange('last');
+        await PageObjects.visualBuilder.setTimeRangeInterval('1d');
+        await PageObjects.header.waitUntilLoadingHasFinished();
+        const expectedMetricValue =  '4,459';
         return PageObjects.visualBuilder.getMetricValue()
           .then(function (value) {
             log.debug(`metric value: ${value}`);
@@ -74,7 +125,8 @@ export default function ({ getService, getPageObjects }) {
       });
 
       it('should show correct data', async function () {
-        const expectedMetricValue =  '156';
+        const expectedMetricValue =  '56';
+
         return PageObjects.visualBuilder.getMetricValue()
           .then(function (value) {
             log.debug(`metric value: ${value}`);
@@ -96,7 +148,7 @@ export default function ({ getService, getPageObjects }) {
         const labelString = await PageObjects.visualBuilder.getGaugeLabel();
         expect(labelString).to.be('Count');
         const gaugeCount = await PageObjects.visualBuilder.getGaugeCount();
-        expect(gaugeCount).to.be('156');
+        expect(gaugeCount).to.be('56');
       });
     });
 
@@ -112,7 +164,7 @@ export default function ({ getService, getPageObjects }) {
         const labelString = await PageObjects.visualBuilder.getTopNLabel();
         expect(labelString).to.be('Count');
         const gaugeCount = await PageObjects.visualBuilder.getTopNCount();
-        expect(gaugeCount).to.be('156');
+        expect(gaugeCount).to.be('56');
       });
     });
 
@@ -181,7 +233,7 @@ export default function ({ getService, getPageObjects }) {
       it('should be able verify that values are displayed in the table', async () => {
         const tableData = await PageObjects.visualBuilder.getViewTable();
         log.debug(`Values on ${tableData}`);
-        const expectedData = 'OS Count\nwin 8 13\nwin xp 10\nwin 7 12\nios 5\nosx 3';
+        const expectedData = 'OS Count\nwin 8 13\nwin 7 12\nwin xp 10\nios 5\nosx 3';
         expect(tableData).to.be(expectedData);
       });
 

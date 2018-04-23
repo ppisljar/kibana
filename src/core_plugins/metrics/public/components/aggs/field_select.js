@@ -15,14 +15,16 @@ function FieldSelect(props) {
     });
 
   return (
-    <Select
-      inputProps={{ id: props.id }}
-      placeholder="Select field..."
-      disabled={props.disabled}
-      options={options}
-      value={props.value}
-      onChange={props.onChange}
-    />
+    <div data-test-subj="fieldSelector" className="vis_editor__row_item">
+      <Select
+        inputProps={{ id: props.id }}
+        placeholder="Select field..."
+        disabled={props.disabled}
+        options={options}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    </div>
   );
 }
 

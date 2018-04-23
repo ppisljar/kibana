@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import Select from 'react-select';
+import { isMetric } from '../../../common/metric_types';
 
 const metricAggs = [
   { label: 'Average', value: 'avg' },
@@ -135,8 +136,12 @@ function filterByPanelType(panelType) {
   };
 }
 
+function includeCalculation() {
+  return agg => agg.value === 'calculation';
+}
+
 function AggSelect(props) {
-  const { siblings, panelType } = props;
+  const { siblings, panelType, timerangeMode, metricsOnly } = props;
 
   let enablePipelines = siblings.some(
     s => !!metricAggs.find(m => m.value === s.type)
@@ -144,8 +149,17 @@ function AggSelect(props) {
   if (siblings.length <= 1) enablePipelines = false;
 
   let options;
-  if (panelType === 'metrics') {
+  if (metricsOnly) {
     options = metricAggs;
+  } else if (isMetric(panelType) && timerangeMode === 'all') {
+    options = [
+      { label: 'Metric Aggregations', value: null, heading: true, disabled: true },
+      ...metricAggs,
+      { label: 'Parent Pipeline Aggregations', value: null, pipeline: true, heading: true, disabled: true },
+      ...pipelineAggs.filter(filterByPanelType(panelType))
+        .filter(includeCalculation())
+        .map(agg => ({ ...agg, disabled: !enablePipelines })),
+    ];
   } else {
     options = [
       {
@@ -204,11 +218,17 @@ function AggSelect(props) {
   );
 }
 
+AggSelect.defaultProps = {
+  metricsOnly: false
+};
+
 AggSelect.propTypes = {
   onChange: PropTypes.func,
   panelType: PropTypes.string,
   siblings: PropTypes.array,
   value: PropTypes.string,
+  timerangeMode: PropTypes.oneOf(['all', 'last']),
+  metricsOnly: PropTypes.bool
 };
 
 export default AggSelect;
