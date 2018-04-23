@@ -1,10 +1,12 @@
 import { Notifier } from 'ui/notify';
 import { VegaView } from './vega_view/vega_view';
 import { VegaMapView } from './vega_view/vega_map_view';
+import { FilterBarQueryFilterProvider } from 'ui/filter_bar/query_filter';
 
-export function VegaVisualizationProvider(vegaConfig, serviceSettings) {
+export function VegaVisualizationProvider(Private, vegaConfig, serviceSettings, indexPatterns, timefilter) {
 
   const notify = new Notifier({ location: 'Vega' });
+  const queryfilter = Private(FilterBarQueryFilterProvider);
 
   return class VegaVisualization {
     constructor(el, vis) {
@@ -46,10 +48,21 @@ export function VegaVisualizationProvider(vegaConfig, serviceSettings) {
           this._vegaView = null;
         }
 
+        const vegaViewParams = {
+          vegaConfig,
+          editorMode: this._vis.editorMode,
+          parentEl: this._el,
+          vegaParser,
+          serviceSettings,
+          queryfilter,
+          timefilter,
+          indexPatterns
+        };
+
         if (vegaParser.useMap) {
-          this._vegaView = new VegaMapView(vegaConfig, this._vis.editorMode, this._el, vegaParser, serviceSettings);
+          this._vegaView = new VegaMapView(vegaViewParams);
         } else {
-          this._vegaView = new VegaView(vegaConfig, this._vis.editorMode, this._el, vegaParser, serviceSettings);
+          this._vegaView = new VegaView(vegaViewParams);
         }
         await this._vegaView.init();
 
