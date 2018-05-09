@@ -49,7 +49,6 @@ uiModules
     return {
       restrict: 'E',
       scope: {
-        showSpyPanel: '=?',
         editorMode: '=?',
         savedObj: '=?',
         appState: '=?',
