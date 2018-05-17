@@ -82,7 +82,7 @@ const VisualizeLoaderProvider = ($compile, $rootScope, savedVisualizations) => {
       container.html(visHtml);
     }
 
-    return new EmbeddedVisualizeHandler(visHtml, scope);
+    return new EmbeddedVisualizeHandler(visHtml, scope, savedObj);
   };
 
   return {
