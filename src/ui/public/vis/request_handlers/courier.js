@@ -148,7 +148,7 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
       return new Promise((resolve, reject) => {
         if (shouldQuery()) {
           vis.API.inspectorAdapters.requests.reset();
-          const request = vis.API.inspectorAdapters.requests.start('Elasticsearch request', {
+          const request = vis.API.inspectorAdapters.requests.start('Data', {
             description: `This request will be executed against your Elasticsearch cluster from
               the Kibana server to fetch the data for this visualization.`,
           });
