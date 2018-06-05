@@ -180,7 +180,7 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
 
             vis.API.inspectorAdapters.data.setTabularLoader(
               () => buildTabularInspectorData(vis, searchSource),
-              { returnsFormattedData: true }
+              { returnsFormattedValues: true }
             );
 
             resolve(resp);
