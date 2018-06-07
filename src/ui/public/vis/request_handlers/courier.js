@@ -68,11 +68,6 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
       }, {});
     });
 
-    // TODO: Remove delay before merging
-    return await new Promise(resolve => {
-      setTimeout(() => resolve({ columns, rows }), 1000);
-    });
-
     return { columns, rows };
   }
 
@@ -159,11 +154,9 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
               timeRange: _.cloneDeep(timeRange)
             };
 
-            setTimeout(() => {
-              request
-                .stats(getResponseInspectorStats(searchSource, resp))
-                .ok({ json: resp });
-            }, 4000);
+            request
+              .stats(getResponseInspectorStats(searchSource, resp))
+              .ok({ json: resp });
 
             searchSource.rawResponse = resp;
 
