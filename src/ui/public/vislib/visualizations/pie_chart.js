@@ -31,6 +31,7 @@ export function VislibVisualizationsPieChartProvider(Private) {
 
   const defaults = {
     isDonut: false,
+    showTotal: false,
     showTooltip: true,
     color: undefined,
     fillColor: undefined
@@ -51,7 +52,7 @@ export function VislibVisualizationsPieChartProvider(Private) {
 
       const charts = this.handler.data.getVisData();
       this._validatePieData(charts);
-
+      this.ABBREVIATIONS = ['', 'k', 'M', 'G', 'T', 'P'];
       this._attr = _.defaults(handler.visConfig.get('chart', {}), defaults);
     }
 
@@ -346,6 +347,54 @@ export function VislibVisualizationsPieChartProvider(Private) {
       }
     }
 
+    readableNumber(number) {
+      let tier = Math.log10(Math.abs(number)) / 3 | 0;
+      if(tier === 0) return number;
+      if(tier >= this.ABBREVIATIONS.length) tier = this.ABBREVIATIONS.length - 1;
+      const postfix = this.ABBREVIATIONS[tier];
+      const scale = 10 ** (tier * 3);
+      const scaled = number / scale;
+      const formatted = Number(scaled.toFixed(1));
+      return `${formatted}${postfix}`;
+    }
+
+    addDonutDescriptor(svg, width, height) {
+      const metricLabel = this.events.handler.data.data
+        .raw.columns.find(function (element) {
+          return element.categoryName === 'metric';
+        }).label;
+      const descriptor = svg.append('text')
+        .style('text-anchor', 'middle')
+        .attr('font-size', function (chartData) {
+          const dividend = Math.min(width, height);
+          const length = chartData.raw ? chartData.raw.columns.length : 0;
+          const divisor = Math.max(length, 4);
+          return (dividend / divisor) + 'px';
+        })
+        .attr('dy', '.35em')
+        .text((chartData) => {
+          return this.readableNumber(chartData.slices.sumOfChildren);
+        });
+      let tooltip;
+      const mouseMove = function () {
+        if(tooltip === undefined) {
+          tooltip = d3.select('.vis-tooltip');
+        }
+        tooltip.style('visibility', 'visible');
+        tooltip.html('&nbsp&nbspTotal ' + metricLabel + '&nbsp&nbsp')
+          .style('left', d3.event.pageX + 'px')
+          .style('top', (d3.event.pageY + 12) + 'px');
+      };
+      const mouseOut = function () {
+        if(tooltip === undefined) {
+          tooltip = d3.select('.vis-tooltip');
+        }
+        tooltip.style('visibility', 'hidden');
+      };
+      descriptor.on('mousemove', mouseMove);
+      descriptor.on('mouseout', mouseOut);
+    }
+
     /**
      * Renders d3 visualization
      *
@@ -372,7 +421,9 @@ export function VislibVisualizationsPieChartProvider(Private) {
             .attr('height', height)
             .append('g')
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
-
+          if(self._attr.isDonut && self._attr.showTotal) {
+            self.addDonutDescriptor(svg, width, height);
+          }
           const path = self.addPath(width, height, svg, slices);
           self.addPathEvents(path);
 
