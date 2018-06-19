@@ -18,12 +18,11 @@
  */
 
 import _ from 'lodash';
-import { SearchSourceProvider } from '../../courier/data_source/search_source';
 import { VisRequestHandlersRegistryProvider } from '../../registry/vis_request_handlers';
 import { calculateObjectHash } from '../lib/calculate_object_hash';
+import { getTime } from '../../timefilter/get_time';
 
-const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
-  const SearchSource = Private(SearchSourceProvider);
+const CourierRequestHandlerProvider = function () {
 
   return {
     name: 'courier',
@@ -59,7 +58,7 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
       });
 
       timeFilterSearchSource.set('filter', () => {
-        return timefilter.get(searchSource.get('index'), timeRange);
+        return getTime(searchSource.get('index'), timeRange);
       });
 
       requestSearchSource.set('filter', filters);
@@ -75,14 +74,14 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
         return requestSearchSource.getSearchRequestBody().then(q => {
           const queryHash = calculateObjectHash(q);
           if (shouldQuery(queryHash)) {
-            requestSearchSource.onResults().then(resp => {
+            requestSearchSource.fetchAsRejectablePromise.then(resp => {
               searchSource.lastQuery = queryHash;
               searchSource.rawResponse = resp;
               return _.cloneDeep(resp);
             }).then(async resp => {
               for (const agg of vis.getAggConfig()) {
                 if (_.has(agg, 'type.postFlightRequest')) {
-                  const nestedSearchSource = new SearchSource().inherits(requestSearchSource);
+                  const nestedSearchSource = vis.API.createInheritedSearchSource(requestSearchSource);
                   resp = await agg.type.postFlightRequest(resp, vis.aggs, agg, nestedSearchSource);
                 }
               }
@@ -90,8 +89,6 @@ const CourierRequestHandlerProvider = function (Private, courier, timefilter) {
               searchSource.finalResponse = resp;
               resolve(resp);
             }).catch(e => reject(e));
-
-            courier.fetch();
           } else {
             resolve(searchSource.finalResponse);
           }
