@@ -55,6 +55,44 @@ export function VisProvider(Private, Promise, indexPatterns, timefilter, getAppS
   const SearchSource = Private(SearchSourceProvider);
   const savedObjectsClient = Private(SavedObjectsClientProvider);
 
+  const API = {
+    savedObjectsClient: savedObjectsClient,
+    SearchSource: SearchSource,
+    indexPatterns: indexPatterns,
+    timeFilter: timefilter,
+    queryFilter: queryFilter,
+    queryManager: queryManagerFactory(getAppState),
+    events: {
+      // the filter method will be removed in the near feature
+      // you should rather use addFilter method below
+      filter: (event) => {
+        const appState = getAppState();
+        filterBarClickHandler(appState)(event);
+      },
+      addFilter: (data, columnIndex, rowIndex) => {
+        const agg = data.columns[columnIndex].aggConfig;
+        let filter = [];
+        const value = data.rows[rowIndex][columnIndex];
+        if (agg.type.name === 'terms' && agg.params.otherBucket) {
+          const terms = getTerms(data, columnIndex, rowIndex);
+          filter = agg.createFilter(value, { terms });
+        } else {
+          filter = agg.createFilter(value);
+        }
+        queryFilter.addFilters(filter);
+      }, brush: (event) => {
+        const appState = getAppState();
+        brushEvent(appState)(event);
+      }
+    },
+    createInheritedSearchSource: (parentSearchSource) => {
+      if (!parentSearchSource) {
+        throw new Error('Unable to inherit search source, visualize saved object does not have search source.');
+      }
+      return new SearchSource().inherits(parentSearchSource);
+    }
+  };
+
   class Vis extends EventEmitter {
     constructor(indexPattern, visState) {
       super();
@@ -79,44 +117,10 @@ export function VisProvider(Private, Promise, indexPatterns, timefilter, getAppS
       // For instance, map bounds, which depends on the view port, browser window size, etc.
       this.sessionState = {};
 
-      this.API = {
-        savedObjectsClient: savedObjectsClient,
-        SearchSource: SearchSource,
-        indexPatterns: indexPatterns,
-        timeFilter: timefilter,
-        queryFilter: queryFilter,
-        queryManager: queryManagerFactory(getAppState),
-        events: {
-          // the filter method will be removed in the near feature
-          // you should rather use addFilter method below
-          filter: (event) => {
-            const appState = getAppState();
-            filterBarClickHandler(appState)(event);
-          },
-          addFilter: (data, columnIndex, rowIndex) => {
-            const agg = data.columns[columnIndex].aggConfig;
-            let filter = [];
-            const value = data.rows[rowIndex][columnIndex];
-            if (agg.type.name === 'terms' && agg.params.otherBucket) {
-              const terms = getTerms(data, columnIndex, rowIndex);
-              filter = agg.createFilter(value, { terms });
-            } else {
-              filter = agg.createFilter(value);
-            }
-            queryFilter.addFilters(filter);
-          }, brush: (event) => {
-            const appState = getAppState();
-            brushEvent(appState)(event);
-          }
-        },
-        createInheritedSearchSource: (parentSearchSource) => {
-          if (!parentSearchSource) {
-            throw new Error('Unable to inherit search source, visualize saved object does not have search source.');
-          }
-          return new SearchSource().inherits(parentSearchSource);
-        }
-      };
+      this.API = API;
     }
+
+    static API = API;
 
     isEditorMode() {
       return this.editorMode || false;
