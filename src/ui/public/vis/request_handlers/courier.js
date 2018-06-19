@@ -26,7 +26,7 @@ const CourierRequestHandlerProvider = function () {
 
   return {
     name: 'courier',
-    handler: function (vis, { searchSource, timeRange, query, filters, forceFetch }) {
+    handler: function ({ searchSource, aggs, timeRange, query, filters, forceFetch }) {
 
       // Create a new search source that inherits the original search source
       // but has the propriate timeRange applied via a filter.
@@ -50,11 +50,14 @@ const CourierRequestHandlerProvider = function () {
       });
 
       requestSearchSource.aggs(function () {
-        return vis.getAggConfig().toDsl();
+        return aggs.toDsl();
       });
 
       requestSearchSource.onRequestStart((searchSource, searchRequest) => {
-        return vis.onSearchRequestStart(searchSource, searchRequest);
+        return Promise.map(
+          this.aggs.getRequestAggs(),
+          agg => agg.onSearchRequestStart(searchSource, searchRequest)
+        );
       });
 
       timeFilterSearchSource.set('filter', () => {
@@ -79,10 +82,10 @@ const CourierRequestHandlerProvider = function () {
               searchSource.rawResponse = resp;
               return _.cloneDeep(resp);
             }).then(async resp => {
-              for (const agg of vis.getAggConfig()) {
+              for (const agg of aggs) {
                 if (_.has(agg, 'type.postFlightRequest')) {
-                  const nestedSearchSource = vis.API.createInheritedSearchSource(requestSearchSource);
-                  resp = await agg.type.postFlightRequest(resp, vis.aggs, agg, nestedSearchSource);
+                  const nestedSearchSource = requestSearchSource.makeChild();
+                  resp = await agg.type.postFlightRequest(resp, aggs, agg, nestedSearchSource);
                 }
               }
 
