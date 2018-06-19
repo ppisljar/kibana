@@ -66,6 +66,11 @@ export function VisProvider(Private, Promise, indexPatterns, timefilter, getAppS
         };
       }
       this.indexPattern = indexPattern;
+      if (typeof this.indexPattern === 'string') {
+        indexPatterns.get(this.indexPattern).then(indexPattern => {
+          this.indexPattern = indexPattern;
+        });
+      }
       this._setUiState(new PersistedState());
       this.setCurrentState(visState);
       this.setState(this.getCurrentState(), false);
