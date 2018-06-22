@@ -99,13 +99,7 @@ const CourierRequestHandlerProvider = function () {
         return aggs.toDsl();
       });
 
-      requestSearchSource.onRequestStart((searchSource, searchRequest) => {
-        return Promise.all(
-          aggs.getRequestAggs().map(agg =>
-            agg.onSearchRequestStart(searchSource, searchRequest)
-          )
-        );
-      });
+      requestSearchSource.onRequestStart(aggs.onSearchRequestStart);
 
       timeFilterSearchSource.set('filter', () => {
         return getTime(searchSource.get('index'), timeRange);

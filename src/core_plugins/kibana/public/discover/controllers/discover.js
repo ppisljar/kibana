@@ -732,9 +732,7 @@ function discoverController(
         aggs: visStateAggs
       });
 
-      $scope.searchSource.onRequestStart((searchSource, searchRequest) => {
-        return $scope.vis.onSearchRequestStart(searchSource, searchRequest);
-      });
+      $scope.searchSource.onRequestStart($scope.vis.getAggConfig().onSearchRequestStart);
 
       $scope.searchSource.aggs(function () {
         return $scope.vis.getAggConfig().toDsl();
