@@ -104,7 +104,7 @@ test('add control btn', () => {
       return false;
     }
     return true;
-  }, 'control not added to vis.params'));
+  }, 'control not added to editorState.params'));
 });
 
 test('remove control btn', () => {
