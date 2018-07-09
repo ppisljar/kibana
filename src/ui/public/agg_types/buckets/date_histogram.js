@@ -62,9 +62,13 @@ export const dateHistogramBucketAgg = new BucketAggType({
     date: true
   },
   makeLabel: function (agg) {
-    const output = this.params.write(agg);
+    const interval = agg.params.interval.display.toLowerCase();
     const field = agg.getFieldDisplayName();
-    return field + ' per ' + (output.metricScaleText || output.bucketInterval.description);
+    if (interval === 'auto') {
+      return field;
+    }
+
+    return field + ' per ' + interval;
   },
   createFilter: createFilterDateHistogram,
   decorateAggConfig: function () {
