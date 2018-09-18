@@ -5,9 +5,9 @@
  */
 
 import expect from 'expect.js';
+import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { testTable } from '@kbn/interpreter-utils/common/__tests__/fixtures/test_tables';
 import { axisConfig } from '../axisConfig';
-import { functionWrapper } from '../../../../__tests__/helpers/function_wrapper';
-import { testTable } from '../__tests__/fixtures/test_tables';
 
 describe('axisConfig', () => {
   const fn = functionWrapper(axisConfig);

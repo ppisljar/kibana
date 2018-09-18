@@ -5,9 +5,9 @@
  */
 
 import { map, zipObject } from 'lodash';
-import { normalizeType } from '../../../../server/lib/normalize_type';
-import { buildBoolArray } from '../../../../server/lib/build_bool_array';
-import { sanitizeName } from '../../../../server/lib/sanitize_name';
+import { normalizeType } from '@kbn/interpreter-utils/server/normalize_type';
+import { buildBoolArray } from '@kbn/interpreter-utils/server/build_bool_array';
+import { sanitizeName } from '@kbn/interpreter-utils/server/sanitize_name';
 
 export const essql = () => ({
   name: 'essql',

@@ -5,11 +5,11 @@
  */
 
 import expect from 'expect.js';
-import { getFieldType } from '../get_field_type';
 import {
   emptyTable,
   testTable,
-} from '../../../canvas_plugin_src/functions/common/__tests__/fixtures/test_tables';
+} from '@kbn/interpreter-utils/common/__tests__/fixtures/test_tables';
+import { getFieldType } from '../get_field_type';
 
 describe('getFieldType', () => {
   it('returns type of a field in a datatable', () => {

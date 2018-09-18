@@ -6,7 +6,9 @@
 
 import chrome from 'ui/chrome';
 import $script from 'scriptjs';
-import { typesRegistry } from '../../common/lib/types_registry';
+import { typesRegistry } from '@kbn/interpreter-utils/common/lib/types_registry';
+import { renderFunctionsRegistry } from '@kbn/interpreter-utils/ui/lib/render_functions_registry';
+import { functionsRegistry as browserFunctions } from '@kbn/interpreter-utils/common/lib/functions_registry';
 import {
   argTypeRegistry,
   datasourceRegistry,
@@ -15,8 +17,6 @@ import {
   viewRegistry,
 } from '../expression_types';
 import { elementsRegistry } from './elements_registry';
-import { renderFunctionsRegistry } from './render_functions_registry';
-import { functionsRegistry as browserFunctions } from './functions_registry';
 import { loadPrivateBrowserFunctions } from './load_private_browser_functions';
 
 const types = {

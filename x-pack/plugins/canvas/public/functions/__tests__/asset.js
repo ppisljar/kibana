@@ -5,7 +5,7 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '../../../__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
 import { asset } from '../asset';
 
 // TODO: restore this test

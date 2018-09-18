@@ -5,8 +5,8 @@
  */
 
 import expect from 'expect.js';
+import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
 import { plot } from '../plot';
-import { functionWrapper } from '../../../../__tests__/helpers/function_wrapper';
 import { testPlot } from './fixtures/test_pointseries';
 import {
   fontStyle,
