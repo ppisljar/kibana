@@ -17,12 +17,12 @@
  * under the License.
  */
 
-import { socketInterpreterProvider } from '@kbn/interpreter-utils/common/interpreter/socket_interpret';
-import { serializeProvider } from '@kbn/interpreter-utils/common/lib/serialize';
-import { typesRegistry } from '@kbn/interpreter-utils/common/lib/types_registry';
-import { createHandlers } from '@kbn/interpreter-utils/ui/lib/create_handlers';
-import { functionsRegistry } from '@kbn/interpreter-utils/ui/lib/functions_registry';
+import { socketInterpreterProvider } from '@kbn/interpreter/common/interpreter/socket_interpret';
+import { serializeProvider } from '@kbn/interpreter/common/lib/serialize';
+import { typesRegistry } from '@kbn/interpreter/common/lib/types_registry';
+import { functionsRegistry } from '@kbn/interpreter/common/lib/functions_registry';
 import { socket } from './socket';
+import { createHandlers } from './create_handlers';
 
 // Create the function list
 socket.emit('getFunctionList');

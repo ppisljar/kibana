@@ -17,13 +17,15 @@
  * under the License.
  */
 
-import { Registry } from '../../common/lib/registry';
-import { RenderFunction } from './render_function';
+import { mapValues } from 'lodash';
 
-class RenderFunctionsRegistry extends Registry {
-  wrapper(obj) {
-    return new RenderFunction(obj);
-  }
-}
+// It takes a function spec and passes in default args into the spec fn
+export const functionWrapper = (fnSpec, mockReduxStore) => {
+  const spec = fnSpec();
+  const defaultArgs = mapValues(spec.args, argSpec => {
+    return argSpec.default;
+  });
 
-export const renderFunctionsRegistry = new RenderFunctionsRegistry();
+  return (context, args, handlers) =>
+    spec.fn(context, { ...defaultArgs, ...args }, handlers, mockReduxStore);
+};

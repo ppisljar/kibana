@@ -19,8 +19,8 @@
 
 import expect from 'expect.js';
 import { table } from '../table';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
-import { testTable } from '@kbn/interpreter-utils/common/__tests__/fixtures/test_tables';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
+import { testTable } from '@kbn/interpreter/common/__tests__/fixtures/test_tables';
 import { fontStyle } from '../../../../../../x-pack/plugins/canvas/canvas_plugin_src/functions/common/__tests__/fixtures/test_styles';
 
 describe('table', () => {

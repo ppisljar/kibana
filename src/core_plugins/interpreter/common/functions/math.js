@@ -18,7 +18,7 @@
  */
 
 import { evaluate } from 'tinymath';
-import { pivotObjectArray } from '@kbn/interpreter-utils/common/lib/pivot_object_array';
+import { pivotObjectArray } from '@kbn/interpreter/common/lib/pivot_object_array';
 
 export const math = () => ({
   name: 'math',

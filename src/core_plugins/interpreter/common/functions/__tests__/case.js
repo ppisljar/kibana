@@ -19,7 +19,7 @@
 
 import expect from 'expect.js';
 import { caseFn } from '../case';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
 
 describe('case', () => {
   const fn = functionWrapper(caseFn);

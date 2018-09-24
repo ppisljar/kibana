@@ -19,7 +19,7 @@
 
 import expect from 'expect.js';
 import { neq } from '../neq';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
 
 describe('neq', () => {
   const fn = functionWrapper(neq);

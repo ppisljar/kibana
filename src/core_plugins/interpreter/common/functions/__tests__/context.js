@@ -19,8 +19,8 @@
 
 import expect from 'expect.js';
 import { context } from '../context';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
-import { testTable, emptyTable } from '@kbn/interpreter-utils/common/__tests__/fixtures/test_tables';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
+import { testTable, emptyTable } from '@kbn/interpreter/common/__tests__/fixtures/test_tables';
 
 describe('context', () => {
   const fn = functionWrapper(context);

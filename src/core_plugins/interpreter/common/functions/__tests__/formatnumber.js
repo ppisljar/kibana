@@ -19,7 +19,7 @@
 
 import expect from 'expect.js';
 import { formatnumber } from '../formatnumber';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
 
 describe('formatnumber', () => {
   const fn = functionWrapper(formatnumber);

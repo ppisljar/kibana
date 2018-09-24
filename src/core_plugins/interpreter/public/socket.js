@@ -19,7 +19,7 @@
 
 import chrome from 'ui/chrome';
 import io from 'socket.io-client';
-import { functionsRegistry } from '@kbn/interpreter-utils/common/lib/functions_registry';
+import { functionsRegistry } from '@kbn/interpreter/common/lib/functions_registry';
 
 const basePath = chrome.getBasePath();
 export const socket = io(undefined, { path: `${basePath}/socket.io` });

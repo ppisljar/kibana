@@ -18,7 +18,7 @@
  */
 
 
-import { getType } from '@kbn/interpreter-utils/common/lib/get_type';
+import { getType } from '@kbn/interpreter/common/lib/get_type';
 
 export const mapColumn = () => ({
   name: 'mapColumn',
