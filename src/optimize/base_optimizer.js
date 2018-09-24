@@ -152,8 +152,8 @@ export default class BaseOptimizer {
           test,
           //include: /[\/\\]node_modules[\/\\]x-pack[\/\\]/,
           //exclude: /[\/\\]node_modules[\/\\]x-pack[\/\\]node_modules[\/\\]/,
-          include: /[\/\\]node_modules[\/\\](x-pack|@kbn[\/\\]interpreter-utils)[\/\\]/,
-          exclude: /[\/\\]node_modules[\/\\](x-pack|@kbn[\/\\]interpreter-utils)[\/\\]node_modules[\/\\]/,
+          include: /[\/\\]node_modules[\/\\](x-pack|@kbn[\/\\]interpreter)[\/\\]/,
+          exclude: /[\/\\]node_modules[\/\\](x-pack|@kbn[\/\\]interpreter)[\/\\]node_modules[\/\\]/,
         }
       ];
     };

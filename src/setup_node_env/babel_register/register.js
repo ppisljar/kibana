@@ -40,7 +40,7 @@ var ignore = [
   // ignore paths matching `/node_modules/{a}/{b}`, unless `a`
   // is `x-pack` and `b` is not `node_modules`
   // /\/node_modules\/(?!x-pack\/(?!node_modules)([^\/]+))([^\/]+\/[^\/]+)/
-  /\/node_modules\/(?!(x-pack\/|@kbn\/interpreter-utils\/)(?!node_modules)([^\/]+))([^\/]+\/[^\/]+)/
+  /\/node_modules\/(?!(x-pack\/|@kbn\/interpreter\/)(?!node_modules)([^\/]+))([^\/]+\/[^\/]+)/
 ];
 
 if (global.__BUILT_WITH_BABEL__) {
