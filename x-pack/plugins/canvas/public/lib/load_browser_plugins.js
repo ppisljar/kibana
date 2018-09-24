@@ -7,7 +7,7 @@
 import chrome from 'ui/chrome';
 import $script from 'scriptjs';
 import { typesRegistry } from '@kbn/interpreter/common/lib/types_registry';
-import { renderFunctionsRegistry } from '@kbn/interpreter/public/render_functions_registry';
+import { renderFunctionsRegistry } from '@kbn/interpreter/public';
 import { functionsRegistry as browserFunctions } from '@kbn/interpreter/common/lib/functions_registry';
 import {
   argTypeRegistry,

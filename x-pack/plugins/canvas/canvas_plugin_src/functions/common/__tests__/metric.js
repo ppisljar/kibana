@@ -5,9 +5,8 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
+import { functionWrapper, fontStyle } from '@kbn/interpreter/test_utils';
 import { metric } from '../metric';
-import { fontStyle } from './fixtures/test_styles';
 
 describe('metric', () => {
   const fn = functionWrapper(metric);

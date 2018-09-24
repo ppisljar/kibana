@@ -18,7 +18,7 @@
  */
 
 import socket from 'socket.io';
-import { createHandlers } from '@kbn/interpreter/server/create_handlers';
+import { createHandlers } from '@kbn/interpreter/server';
 import { socketInterpreterProvider } from '@kbn/interpreter/common/interpreter/socket_interpret';
 import { serializeProvider } from '@kbn/interpreter/common/lib/serialize';
 import { functionsRegistry } from '@kbn/interpreter/common/lib/functions_registry';

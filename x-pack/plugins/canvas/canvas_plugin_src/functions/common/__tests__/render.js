@@ -5,10 +5,8 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
-import { testTable } from '@kbn/interpreter/common/__tests__/fixtures/test_tables';
+import { functionWrapper, testTable, fontStyle, containerStyle } from '@kbn/interpreter/test_utils';
 import { render } from '../render';
-import { fontStyle, containerStyle } from './fixtures/test_styles';
 
 const renderTable = {
   type: 'render',

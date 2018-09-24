@@ -20,7 +20,7 @@
 import expect from 'expect.js';
 import { openSans } from '@kbn/interpreter/common/lib/fonts';
 import { font } from '../font';
-import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/test_utils';
 
 describe('font', () => {
   const fn = functionWrapper(font);

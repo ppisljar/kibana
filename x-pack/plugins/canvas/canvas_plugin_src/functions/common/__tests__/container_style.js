@@ -5,7 +5,7 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/test_utils';
 import { containerStyle } from '../containerStyle';
 import { elasticLogo } from '../../../lib/elastic_logo';
 

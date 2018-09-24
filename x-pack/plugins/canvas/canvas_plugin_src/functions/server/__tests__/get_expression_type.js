@@ -5,7 +5,7 @@
  */
 
 import expect from 'expect.js';
-import { emptyTable, testTable } from '@kbn/interpreter/common/__tests__/fixtures/test_tables';
+import { emptyTable, testTable } from '@kbn/interpreter/test_utils';
 import { getExpressionType } from '../pointseries/lib/get_expression_type';
 
 describe('getExpressionType', () => {

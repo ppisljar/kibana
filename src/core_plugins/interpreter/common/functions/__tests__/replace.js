@@ -19,7 +19,7 @@
 
 import expect from 'expect.js';
 import { replace } from '../replace';
-import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/test_utils';
 
 describe('replace', () => {
   const fn = functionWrapper(replace);

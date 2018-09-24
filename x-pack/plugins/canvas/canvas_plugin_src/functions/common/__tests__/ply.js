@@ -5,8 +5,7 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
-import { testTable } from '@kbn/interpreter/common/__tests__/fixtures/test_tables';
+import { functionWrapper, testTable } from '@kbn/interpreter/test_utils';
 import { ply } from '../ply';
 
 const averagePrice = datatable => {
