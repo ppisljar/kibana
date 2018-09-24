@@ -18,7 +18,7 @@
  */
 
 import { routes } from './server/routes';
-import { functionsRegistry } from '@kbn/interpreter-utils/common/lib/functions_registry';
+import { functionsRegistry } from '@kbn/interpreter/common/lib/functions_registry';
 import { loadServerPlugins } from './server/lib/load_server_plugins';
 
 export default function (server /*options*/) {

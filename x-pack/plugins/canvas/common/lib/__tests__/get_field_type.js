@@ -5,10 +5,7 @@
  */
 
 import expect from 'expect.js';
-import {
-  emptyTable,
-  testTable,
-} from '@kbn/interpreter-utils/common/__tests__/fixtures/test_tables';
+import { emptyTable, testTable } from '@kbn/interpreter/common/__tests__/fixtures/test_tables';
 import { getFieldType } from '../get_field_type';
 
 describe('getFieldType', () => {

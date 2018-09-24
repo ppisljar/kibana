@@ -18,11 +18,11 @@
  */
 
 import socket from 'socket.io';
-import { createHandlers } from '@kbn/interpreter-utils/server/create_handlers';
-import { socketInterpreterProvider } from '@kbn/interpreter-utils/common/interpreter/socket_interpret';
-import { serializeProvider } from '@kbn/interpreter-utils/common/lib/serialize';
-import { functionsRegistry } from '@kbn/interpreter-utils/common/lib/functions_registry';
-import { typesRegistry } from '@kbn/interpreter-utils/common/lib/types_registry';
+import { createHandlers } from '@kbn/interpreter/server/create_handlers';
+import { socketInterpreterProvider } from '@kbn/interpreter/common/interpreter/socket_interpret';
+import { serializeProvider } from '@kbn/interpreter/common/lib/serialize';
+import { functionsRegistry } from '@kbn/interpreter/common/lib/functions_registry';
+import { typesRegistry } from '@kbn/interpreter/common/lib/types_registry';
 import { getAuthHeader } from '../lib/get_auth_header';
 import { loadServerPlugins } from '../lib/load_server_plugins';
 

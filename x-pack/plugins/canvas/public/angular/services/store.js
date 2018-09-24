@@ -6,7 +6,7 @@
 
 import { uiModules } from 'ui/modules';
 import uniqBy from 'lodash.uniqby';
-import { functionsRegistry } from '@kbn/interpreter-utils/common/lib/functions_registry';
+import { functionsRegistry } from '@kbn/interpreter/common/lib/functions_registry';
 import { createStore } from '../../state/store';
 import { getInitialState } from '../../state/initial_state';
 

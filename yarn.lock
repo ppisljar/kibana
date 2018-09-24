@@ -167,7 +167,7 @@
   version "0.0.0"
   uid ""
 
-"@kbn/interpreter-utils@link:packages/kbn-interpreter-utils":
+"@kbn/interpreter@link:packages/kbn-interpreter":
   version "0.0.0"
   uid ""
 

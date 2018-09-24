@@ -5,7 +5,7 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
 import { pie } from '../pie';
 import { testPie } from './fixtures/test_pointseries';
 import { fontStyle, grayscalePalette, seriesStyle } from './fixtures/test_styles';

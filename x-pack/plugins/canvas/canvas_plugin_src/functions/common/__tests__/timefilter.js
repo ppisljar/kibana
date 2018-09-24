@@ -6,7 +6,7 @@
 
 import expect from 'expect.js';
 import sinon from 'sinon';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
 import { timefilter } from '../timefilter';
 import { emptyFilter } from './fixtures/test_filters';
 

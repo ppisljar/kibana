@@ -5,8 +5,8 @@
  */
 
 import { interpretAst } from 'plugins/interpreter/interpreter';
-import { fromExpression } from '@kbn/interpreter-utils/common/lib/ast';
-import { typesRegistry } from '@kbn/interpreter-utils/common/lib/types_registry';
+import { fromExpression } from '@kbn/interpreter/common/lib/ast';
+import { typesRegistry } from '@kbn/interpreter/common/lib/types_registry';
 import { getState } from '../state/store';
 import { getGlobalFilterExpression } from '../state/selectors/workpad';
 

@@ -5,7 +5,7 @@
  */
 
 import expect from 'expect.js';
-import { functionWrapper } from '@kbn/interpreter-utils/common/__tests__/helpers/function_wrapper';
+import { functionWrapper } from '@kbn/interpreter/common/__tests__/helpers/function_wrapper';
 import { metric } from '../metric';
 import { fontStyle } from './fixtures/test_styles';
 

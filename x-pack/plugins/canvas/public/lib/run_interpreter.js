@@ -5,8 +5,8 @@
  */
 
 import { interpretAst } from 'plugins/interpreter/interpreter';
-import { fromExpression } from '@kbn/interpreter-utils/common/lib/ast';
-import { getType } from '@kbn/interpreter-utils/common/lib/get_type';
+import { fromExpression } from '@kbn/interpreter/common/lib/ast';
+import { getType } from '@kbn/interpreter/common/lib/get_type';
 import { notify } from './notify';
 
 /**
