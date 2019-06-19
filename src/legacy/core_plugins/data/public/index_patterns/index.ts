@@ -24,6 +24,5 @@ export {
   IndexPatternsSetup,
   IndexPattern,
   StaticIndexPattern,
-  StaticIndexPatternField,
   Field,
 } from './index_patterns_service';
