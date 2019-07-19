@@ -18,6 +18,7 @@
  */
 
 import { FilterStateStore, toggleFilterNegated } from '@kbn/es-query';
+import { IndexPattern, Field } from '../../../../index';
 import { mockFields, mockIndexPattern } from 'ui/index_patterns/fixtures';
 import {
   buildFilter,
@@ -42,8 +43,8 @@ import { phraseFilter } from './fixtures/phrase_filter';
 import { phrasesFilter } from './fixtures/phrases_filter';
 import { rangeFilter } from './fixtures/range_filter';
 
-const mockedFields = mockFields as any;
-const mockedIndexPattern = mockIndexPattern as any;
+const mockedFields = mockFields as Field[];
+const mockedIndexPattern = mockIndexPattern as IndexPattern;
 
 describe('Filter editor utils', () => {
   describe('getQueryDslFromFilter', () => {
