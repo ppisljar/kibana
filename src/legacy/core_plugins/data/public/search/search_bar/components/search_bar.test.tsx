@@ -21,6 +21,8 @@ import React from 'react';
 import { mountWithIntl } from 'test_utils/enzyme_helpers';
 import { SearchBar } from './search_bar';
 
+import { IndexPattern } from '../../../../public';
+
 jest.mock('../../../filter/filter_bar', () => {
   return {
     FilterBar: () => <div className="filterBar"></div>,
@@ -65,7 +67,7 @@ const mockIndexPattern = {
       searchable: true,
     },
   ],
-};
+} as IndexPattern;
 
 const kqlQuery = {
   query: 'response:200',
