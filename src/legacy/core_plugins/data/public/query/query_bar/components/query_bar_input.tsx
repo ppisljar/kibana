@@ -34,7 +34,7 @@ import chrome from 'ui/chrome';
 import { kfetch } from 'ui/kfetch';
 import { Storage } from 'ui/storage';
 import { localStorage } from 'ui/storage/storage_service';
-import { IndexPattern, StaticIndexPattern } from '../../../index';
+import { IndexPattern, StaticIndexPattern } from '../../../../public';
 import { Query } from '../index';
 import { fromUser, matchPairs, toUser } from '../lib';
 import { QueryLanguageSwitcher } from './language_switcher';
@@ -111,10 +111,10 @@ export class QueryBarInputUI extends Component<Props, State> {
       indexPattern => typeof indexPattern !== 'string'
     ) as IndexPattern[];
 
-    const objectPatternsFromStrings = await fetchIndexPatterns(stringPatterns);
+    const objectPatternsFromStrings = (await fetchIndexPatterns(stringPatterns)) as IndexPattern[];
 
     this.setState({
-      indexPatterns: [...(objectPatterns as any), ...objectPatternsFromStrings],
+      indexPatterns: [...objectPatterns, ...objectPatternsFromStrings],
     });
   };
 
