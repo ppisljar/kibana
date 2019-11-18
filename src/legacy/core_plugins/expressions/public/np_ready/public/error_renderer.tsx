@@ -17,19 +17,19 @@
  * under the License.
  */
 
-import { NotificationsStart } from 'kibana/public';
-import { ExpressionInterpreter } from './types';
-import { createGetterSetter } from '../../../../../../plugins/kibana_utils/public';
-import { Start as IInspector } from '../../../../../../plugins/inspector/public';
-import { ExpressionsSetup } from './plugin';
+import { Data, IInterpreterRenderHandlers } from '../../../../../../plugins/expressions/public';
+import { getNotifications } from './services';
 
-export const [getInspector, setInspector] = createGetterSetter<IInspector>('Inspector');
-export const [getNotifications, setNotifications] = createGetterSetter<NotificationsStart>(
-  'Notifications'
-);
-export const [getInterpreter, setInterpreter] = createGetterSetter<ExpressionInterpreter>(
-  'Interpreter'
-);
-export const [getRenderersRegistry, setRenderersRegistry] = createGetterSetter<
-  ExpressionsSetup['__LEGACY']['renderers']
->('Renderers registry');
+export const errorRenderer = {
+  name: 'error_renderer',
+  displayName: 'error rederer',
+  reuseDomNode: true,
+  render: async (element: HTMLElement, data: Data, handlers: IInterpreterRenderHandlers) => {
+    getNotifications().toasts.addError(data.error, {
+      title: 'error',
+      toastMessage: 'request failed',
+    });
+
+    handlers.done();
+  },
+};

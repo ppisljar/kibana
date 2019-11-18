@@ -34,7 +34,7 @@ import {
   Setup as InspectorSetup,
 } from '../../../../../../plugins/inspector/public';
 import { ExpressionInterpreter } from './types';
-import { setInterpreter, setInspector, setRenderersRegistry } from './services';
+import { setInterpreter, setInspector, setRenderersRegistry, setNotifications } from './services';
 import { ExpressionRendererImplementation } from './expression_renderer';
 import { ExpressionLoader, loader } from './loader';
 import { ExpressionDataHandler, execute } from './execute';
@@ -79,6 +79,7 @@ export class ExpressionsPublicPlugin
 
   public start(core: CoreStart, { inspector }: ExpressionsStartDeps) {
     setInspector(inspector);
+    setNotifications(core.notifications);
 
     return {
       execute,

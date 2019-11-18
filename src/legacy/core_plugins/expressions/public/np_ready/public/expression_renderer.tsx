@@ -29,7 +29,6 @@ import { ExpressionLoader } from './loader';
 export interface ExpressionRendererProps extends IExpressionLoaderParams {
   dataAttrs?: string[];
   expression: string | ExpressionAST;
-  renderError?: (error?: string | null) => React.ReactElement | React.ReactElement[];
 }
 
 interface State {
@@ -49,7 +48,6 @@ const defaultState: State = {
 export const ExpressionRendererImplementation = ({
   dataAttrs,
   expression,
-  renderError,
   ...options
 }: ExpressionRendererProps) => {
   const mountpoint: React.MutableRefObject<null | HTMLDivElement> = useRef(null);
@@ -68,6 +66,7 @@ export const ExpressionRendererImplementation = ({
     options.context,
     options.variables,
     options.disableCaching,
+    options.errorRenderer,
   ]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -86,18 +85,10 @@ export const ExpressionRendererImplementation = ({
         if (!handlerRef.current) {
           return;
         }
-        if (typeof item !== 'number') {
-          setState(() => ({
-            ...defaultState,
-            isEmpty: false,
-            error: item.error,
-          }));
-        } else {
-          setState(() => ({
-            ...defaultState,
-            isEmpty: false,
-          }));
-        }
+        setState(() => ({
+          ...defaultState,
+          isEmpty: false,
+        }));
       });
     }
   }, [mountpoint.current]);
@@ -121,13 +112,6 @@ export const ExpressionRendererImplementation = ({
     <div {...dataAttrs} className={classes}>
       {state.isEmpty ? <EuiLoadingChart mono size="l" /> : null}
       {state.isLoading ? <EuiProgress size="xs" color="accent" position="absolute" /> : null}
-      {!state.isLoading && state.error ? (
-        renderError ? (
-          renderError(state.error.message)
-        ) : (
-          <div data-test-subj="expression-renderer-error">{state.error.message}</div>
-        )
-      ) : null}
       <div className="expExpressionRenderer__expression" ref={mountpoint} />
     </div>
   );

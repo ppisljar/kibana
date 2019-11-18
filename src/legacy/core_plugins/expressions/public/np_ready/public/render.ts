@@ -22,6 +22,8 @@ import * as Rx from 'rxjs';
 import { filter, share } from 'rxjs/operators';
 import { event, RenderId, Data, IInterpreterRenderHandlers } from './types';
 import { getRenderersRegistry } from './services';
+import { errorRenderer as defaultErrorRenderer } from './error_renderer';
+import { ExpressionRenderDefinition } from '../../../../../../plugins/expressions/public';
 
 interface RenderError {
   type: 'error';
@@ -42,9 +44,11 @@ export class ExpressionRenderHandler {
   private eventsSubject: Rx.Subject<unknown>;
   private updateSubject: Rx.Subject<unknown>;
   private handlers: IInterpreterRenderHandlers;
+  private errorRenderer: ExpressionRenderDefinition;
 
-  constructor(element: HTMLElement) {
+  constructor(element: HTMLElement, errorRenderer?: ExpressionRenderDefinition) {
     this.element = element;
+    this.errorRenderer = errorRenderer || defaultErrorRenderer;
 
     this.eventsSubject = new Rx.Subject();
     this.events$ = this.eventsSubject.asObservable().pipe(share());
@@ -80,32 +84,44 @@ export class ExpressionRenderHandler {
 
   render = async (data: Data, extraHandlers: IExpressionRendererExtraHandlers = {}) => {
     if (!data || typeof data !== 'object') {
-      this.renderSubject.next({
-        type: 'error',
-        error: {
-          message: 'invalid data provided to the expression renderer',
+      this.errorRenderer.render(
+        this.element,
+        {
+          type: 'error',
+          error: {
+            message: 'invalid data provided to the expression renderer',
+          },
         },
-      });
+        this.handlers
+      );
       return;
     }
 
     if (data.type !== 'render' || !data.as) {
       if (data.type === 'error') {
-        this.renderSubject.next(data);
+        this.errorRenderer.render(this.element, data, this.handlers);
       } else {
-        this.renderSubject.next({
-          type: 'error',
-          error: { message: 'invalid data provided to the expression renderer' },
-        });
+        this.errorRenderer.render(
+          this.element,
+          {
+            type: 'error',
+            error: { message: 'invalid data provided to the expression renderer' },
+          },
+          this.handlers
+        );
       }
       return;
     }
 
     if (!getRenderersRegistry().get(data.as)) {
-      this.renderSubject.next({
-        type: 'error',
-        error: { message: `invalid renderer id '${data.as}'` },
-      });
+      this.errorRenderer.render(
+        this.element,
+        {
+          type: 'error',
+          error: { message: `invalid renderer id '${data.as}'` },
+        },
+        this.handlers
+      );
       return;
     }
 
@@ -115,10 +131,14 @@ export class ExpressionRenderHandler {
         .get(data.as)!
         .render(this.element, data.value, { ...this.handlers, ...extraHandlers });
     } catch (e) {
-      this.renderSubject.next({
-        type: 'error',
-        error: { type: e.type, message: e.message },
-      });
+      this.errorRenderer.render(
+        this.element,
+        {
+          type: 'error',
+          error: { type: e.type, message: e.message },
+        },
+        this.handlers
+      );
     }
   };
 

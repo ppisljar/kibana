@@ -22,6 +22,7 @@ import { TimeRange } from '../../../data/public';
 import { Adapters } from '../../../inspector/public';
 import { Query } from '../../../data/public';
 import { esFilters } from '../../../../plugins/data/public';
+import { ExpressionRenderDefinition } from '../registries';
 
 export { ArgumentType } from './arguments';
 export {
@@ -89,6 +90,7 @@ export interface IExpressionLoaderParams {
   customFunctions?: [];
   customRenderers?: [];
   extraHandlers?: Record<string, any>;
+  errorRenderer?: ExpressionRenderDefinition;
   inspectorAdapters?: Adapters;
 }
 
@@ -139,3 +141,5 @@ export interface IInterpreter {
     handlers: IInterpreterHandlers
   ): Promise<IInterpreterResult>;
 }
+
+export { ExpressionRenderDefinition };
