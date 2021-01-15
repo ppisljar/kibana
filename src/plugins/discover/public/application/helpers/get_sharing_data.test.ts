@@ -7,63 +7,67 @@
  */
 
 import { Capabilities } from 'kibana/public';
-import { getSharingData, showPublicUrlSwitch } from './get_sharing_data';
-import { IUiSettingsClient } from 'kibana/public';
+import { uiSettingsServiceMock } from 'src/core/public/mocks';
 import { createSearchSourceMock } from '../../../../data/common/search/search_source/mocks';
 import { indexPatternMock } from '../../__mocks__/index_pattern';
-import { SORT_DEFAULT_ORDER_SETTING } from '../../../common';
+import { getSharingData, showPublicUrlSwitch } from './get_sharing_data';
 
 describe('getSharingData', () => {
+  const uiSettings = uiSettingsServiceMock.createStartContract();
   test('returns valid data for sharing', async () => {
     const searchSourceMock = createSearchSourceMock({ index: indexPatternMock });
-    const result = await getSharingData(
-      searchSourceMock,
-      { columns: [] },
-      ({
-        get: (key: string) => {
-          if (key === SORT_DEFAULT_ORDER_SETTING) {
-            return 'desc';
-          }
-          return false;
+    const result = getSharingData({ searchSource: searchSourceMock } as any, uiSettings);
+    expect(result).toMatchInlineSnapshot(`
+      Object {
+        "searchSource": Object {
+          "fields": Array [
+            "*",
+          ],
+          "index": "the-index-pattern-id",
         },
-      } as unknown) as IUiSettingsClient,
-      () => Promise.resolve({})
+      }
+    `);
+  });
+
+  test('searchSource fields come from savedSearch columns', () => {
+    const searchSourceMock = createSearchSourceMock({ index: indexPatternMock });
+    const result = getSharingData(
+      {
+        searchSource: searchSourceMock,
+        columns: ['alpha', 'beta', 'cigna'],
+      } as any,
+      uiSettings
     );
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "conflictedTypesFields": Array [],
-        "fields": Array [],
-        "indexPatternId": "the-index-pattern-id",
-        "metaFields": Array [
-          "_index",
-          "_score",
-        ],
-        "searchRequest": Object {
-          "body": Object {
-            "_source": Object {},
-            "fields": Array [],
-            "query": Object {
-              "bool": Object {
-                "filter": Array [],
-                "must": Array [],
-                "must_not": Array [],
-                "should": Array [],
-              },
-            },
-            "runtime_mappings": Object {},
-            "script_fields": Object {},
-            "sort": Array [
-              Object {
-                "_score": Object {
-                  "order": "desc",
-                },
-              },
-            ],
-            "stored_fields": Array [
-              "*",
-            ],
-          },
-          "index": "the-index-pattern-title",
+        "searchSource": Object {
+          "fields": Array [
+            "alpha",
+            "beta",
+            "cigna",
+          ],
+          "index": "the-index-pattern-id",
+        },
+      }
+    `);
+  });
+
+  test('searchSource fields default to `all`', () => {
+    const searchSourceMock = createSearchSourceMock({ index: indexPatternMock });
+    const result = getSharingData(
+      {
+        searchSource: searchSourceMock,
+        columns: [],
+      } as any,
+      uiSettings
+    );
+    expect(result).toMatchInlineSnapshot(`
+      Object {
+        "searchSource": Object {
+          "fields": Array [
+            "*",
+          ],
+          "index": "the-index-pattern-id",
         },
       }
     `);

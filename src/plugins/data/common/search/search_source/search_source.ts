@@ -59,25 +59,24 @@
  */
 
 import { setWith } from '@elastic/safer-lodash-set';
-import { uniqueId, keyBy, pick, difference, omit, isObject, isFunction } from 'lodash';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { difference, isFunction, isObject, keyBy, omit, pick, uniqueId } from 'lodash';
 import { defer, from } from 'rxjs';
-import { normalizeSortRequest } from './normalize_sort_request';
-import { fieldWildcardFilter } from '../../../../kibana_utils/common';
-import { IIndexPattern } from '../../index_patterns';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { ISearchGeneric, ISearchOptions } from '../..';
+import { fieldWildcardFilter } from '../../../../kibana_utils/common';
+import { buildEsQuery, Filter, getEsQueryConfig, UI_SETTINGS } from '../../../common';
+import { getHighlightRequest } from '../../../common/field_formats';
+import { IIndexPattern } from '../../index_patterns';
+import { extractReferences } from './extract_references';
+import { FetchHandlers, getSearchParamsFromRequest, RequestFailure, SearchRequest } from './fetch';
+import { fetchSoon } from './legacy';
+import { normalizeSortRequest } from './normalize_sort_request';
 import type {
   ISearchSource,
   SearchFieldValue,
-  SearchSourceOptions,
   SearchSourceFields,
+  SearchSourceOptions,
 } from './types';
-import { FetchHandlers, RequestFailure, getSearchParamsFromRequest, SearchRequest } from './fetch';
-
-import { getEsQueryConfig, buildEsQuery, Filter, UI_SETTINGS } from '../../../common';
-import { getHighlightRequest } from '../../../common/field_formats';
-import { fetchSoon } from './legacy';
-import { extractReferences } from './extract_references';
 
 /** @internal */
 export const searchSourceRequiredUiSettings = [

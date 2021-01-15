@@ -7,73 +7,48 @@
  */
 
 import { Capabilities, IUiSettingsClient } from 'kibana/public';
-import { DOC_HIDE_TIME_COLUMN_SETTING, SORT_DEFAULT_ORDER_SETTING } from '../../../common';
-import { getSortForSearchSource } from '../angular/doc_table';
-import { SearchSource } from '../../../../data/common';
-import { AppState } from '../angular/discover_state';
-import { SortOrder } from '../../saved_searches/types';
+import { SavedSearch } from '../../';
 
-const getSharingDataFields = async (
-  getFieldCounts: () => Promise<Record<string, number>>,
-  selectedFields: string[],
-  timeFieldName: string,
-  hideTimeColumn: boolean
-) => {
-  if (selectedFields.length === 1 && selectedFields[0] === '_source') {
-    const fieldCounts = await getFieldCounts();
-    return {
-      searchFields: undefined,
-      selectFields: Object.keys(fieldCounts).sort(),
-    };
-  }
-
-  const fields =
-    timeFieldName && !hideTimeColumn ? [timeFieldName, ...selectedFields] : selectedFields;
-  return {
-    searchFields: fields,
-    selectFields: fields,
-  };
-};
+const UI_SETTINGS_DOCTABLE_HIDETIME = 'doc_table:hideTimeColumn';
 
 /**
  * Preparing data to share the current state as link or CSV/Report
  */
-export async function getSharingData(
-  currentSearchSource: SearchSource,
-  state: AppState,
-  config: IUiSettingsClient,
-  getFieldCounts: () => Promise<Record<string, number>>
-) {
-  const searchSource = currentSearchSource.createCopy();
-  const index = searchSource.getField('index')!;
-
-  const { searchFields, selectFields } = await getSharingDataFields(
-    getFieldCounts,
-    state.columns || [],
-    index.timeFieldName || '',
-    config.get(DOC_HIDE_TIME_COLUMN_SETTING)
-  );
-  searchSource.setField('fieldsFromSource', searchFields);
-  searchSource.setField(
-    'sort',
-    getSortForSearchSource(state.sort as SortOrder[], index, config.get(SORT_DEFAULT_ORDER_SETTING))
-  );
+// FIXME: code is duplicated with plugins/reporting/public/panel.../get_csv_panel_action
+export function getSharingData(savedSearch: SavedSearch, uiSettings: IUiSettingsClient) {
+  const searchSource = savedSearch.searchSource.createCopy();
   searchSource.removeField('highlight');
   searchSource.removeField('highlightAll');
   searchSource.removeField('aggs');
   searchSource.removeField('size');
 
-  const body = await searchSource.getSearchRequestBody();
+  searchSource.removeField('fields');
+  searchSource.removeField('fieldsFromSource');
+
+  const { columns } = savedSearch;
+
+  // sanitize columns: can't be [_source]
+  if (/^_source$/.test(columns.join())) {
+    columns.length = 0;
+  }
+
+  if (columns && columns.length > 0) {
+    searchSource.setField('fields', columns);
+    // If time column should _not_ be hidden in doc tables, then add the time field to the searchSource fields
+    const hideTimeColumn = uiSettings.get(UI_SETTINGS_DOCTABLE_HIDETIME);
+    const index = searchSource.getField('index');
+    if (!hideTimeColumn && index) {
+      const { timeFieldName } = index;
+      if (timeFieldName) {
+        searchSource.setField('fields', [timeFieldName, ...columns]);
+      }
+    }
+  } else {
+    searchSource.setField('fields', ['*']);
+  }
 
   return {
-    searchRequest: {
-      index: index.title,
-      body,
-    },
-    fields: selectFields,
-    metaFields: index.metaFields,
-    conflictedTypesFields: index.fields.filter((f) => f.type === 'conflict').map((f) => f.name),
-    indexPatternId: index.id,
+    searchSource: searchSource.getSerializedFields(true),
   };
 }
 

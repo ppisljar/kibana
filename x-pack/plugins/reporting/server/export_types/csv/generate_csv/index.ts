@@ -13,15 +13,16 @@ import { CSV_BOM_CHARS } from '../../../../common/constants';
 import { byteSizeValueToNumber } from '../../../../common/schema_utils';
 import { LevelLogger } from '../../../lib';
 import { getFieldFormats } from '../../../services';
-import { IndexPatternSavedObjectDeprecatedCSV, SavedSearchGeneratorResult } from '../types';
+import { createEscapeValue } from '../../csv_searchsource/generate_csv/escape_value';
+import { MaxSizeStringBuilder } from '../../csv_searchsource/generate_csv/max_size_string_builder';
+import { SavedSearchGeneratorResult } from '../../csv_searchsource/types';
+import { IndexPatternSavedObjectDeprecatedCSV } from '../types';
 import { checkIfRowsHaveFormulas } from './check_cells_for_formulas';
-import { createEscapeValue } from './escape_value';
 import { fieldFormatMapFactory } from './field_format_map';
 import { createFlattenHit } from './flatten_hit';
 import { createFormatCsvValues } from './format_csv_values';
 import { getUiSettings } from './get_ui_settings';
 import { createHitIterator, EndpointCaller } from './hit_iterator';
-import { MaxSizeStringBuilder } from './max_size_string_builder';
 
 interface SearchRequest {
   index: string;
