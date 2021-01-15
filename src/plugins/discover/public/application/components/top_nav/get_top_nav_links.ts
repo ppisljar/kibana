@@ -114,8 +114,11 @@ export const getTopNavLinks = ({
         objectId: savedSearch.id,
         objectType: 'search',
         sharingData: {
-          ...sharingData,
-          title: savedSearch.title,
+          taskType: 'csv',
+          taskConfig: {
+            ...sharingData,
+            title: savedSearch.title,
+          },
         },
         isDirty: !savedSearch.id || state.isAppStateDirty(),
       });

@@ -5,7 +5,7 @@
  */
 
 import {
-  CSV_JOB_TYPE_DEPRECATED as jobType,
+  CSV_JOB_TYPE as jobType,
   LICENSE_TYPE_BASIC,
   LICENSE_TYPE_ENTERPRISE,
   LICENSE_TYPE_GOLD,
@@ -17,11 +17,11 @@ import { CreateJobFn, ExportTypeDefinition, RunTaskFn } from '../../types';
 import { createJobFnFactory } from './create_job';
 import { runTaskFnFactory } from './execute_job';
 import { metadata } from './metadata';
-import { JobParamsDeprecatedCSV, TaskPayloadDeprecatedCSV } from './types';
+import { JobParamsCSV, TaskPayloadCSV } from './types';
 
 export const getExportType = (): ExportTypeDefinition<
-  CreateJobFn<JobParamsDeprecatedCSV>,
-  RunTaskFn<TaskPayloadDeprecatedCSV>
+  CreateJobFn<JobParamsCSV>,
+  RunTaskFn<TaskPayloadCSV>
 > => ({
   ...metadata,
   jobType,

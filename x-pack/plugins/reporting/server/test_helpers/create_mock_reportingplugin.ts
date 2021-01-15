@@ -30,10 +30,7 @@ import { createMockLevelLogger } from './create_mock_levellogger';
 
 (chromium as any).createDriverFactory.mockImplementation(() => ({}));
 
-const createMockPluginSetup = (
-  mockReportingCore: ReportingCore,
-  setupMock?: any
-): ReportingInternalSetup => {
+export const createMockReportingSetup = (setupMock?: any): ReportingInternalSetup => {
   return {
     features: featuresPluginMock.createSetup(),
     elasticsearch: setupMock.elasticsearch || { legacy: { client: {} } },
@@ -46,16 +43,35 @@ const createMockPluginSetup = (
 
 const logger = createMockLevelLogger();
 
-const createMockPluginStart = (
-  mockReportingCore: ReportingCore,
+const createMockReportingStore = () => ({} as ReportingStore);
+
+export const createMockReportingStart = (
+  mockReportingCore: ReportingCore | undefined,
   startMock?: any
 ): ReportingInternalStart => {
-  const store = new ReportingStore(mockReportingCore, logger);
+  const store = mockReportingCore
+    ? new ReportingStore(mockReportingCore, logger)
+    : createMockReportingStore();
+
   return {
     browserDriverFactory: startMock.browserDriverFactory,
     esqueue: startMock.esqueue,
     savedObjects: startMock.savedObjects || { getScopedClient: jest.fn() },
     uiSettings: startMock.uiSettings || { asScopedToClient: () => ({ get: jest.fn() }) },
+    data: startMock.data || {
+      search: {
+        asScopedToClient: jest.fn(),
+        searchSource: {
+          asScoped: jest.fn().mockImplementation(() => ({
+            create: jest.fn().mockImplementation(() => ({
+              getField: jest.fn(),
+              setField: jest.fn(),
+              fetch: jest.fn().mockImplementation(async () => ({ hits: { hits: [] } })),
+            })),
+          })),
+        },
+      },
+    },
     store,
   };
 };
@@ -122,16 +138,17 @@ export const createMockReportingCore = async (
   setupDepsMock: ReportingInternalSetup | undefined = undefined,
   startDepsMock: ReportingInternalStart | undefined = undefined
 ) => {
-  const mockReportingCore = {
+  const mockReportingCore = ({
     getConfig: () => config,
     getElasticsearchService: () => setupDepsMock?.elasticsearch,
-  } as ReportingCore;
+    getSearchService: () => startDepsMock?.data?.search,
+  } as unknown) as ReportingCore;
 
   if (!setupDepsMock) {
-    setupDepsMock = createMockPluginSetup(mockReportingCore, {});
+    setupDepsMock = createMockReportingSetup({});
   }
   if (!startDepsMock) {
-    startDepsMock = createMockPluginStart(mockReportingCore, {});
+    startDepsMock = createMockReportingStart(mockReportingCore, {});
   }
 
   config = config || {};

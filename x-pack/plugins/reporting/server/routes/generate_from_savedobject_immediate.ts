@@ -7,26 +7,17 @@
 import { schema } from '@kbn/config-schema';
 import { KibanaRequest } from 'src/core/server';
 import { ReportingCore } from '../';
-import { createJobFnFactory } from '../export_types/csv_from_savedobject/create_job';
 import { runTaskFnFactory } from '../export_types/csv_from_savedobject/execute_job';
-import {
-  JobParamsPanelCsv,
-  JobParamsPanelCsvPost,
-} from '../export_types/csv_from_savedobject/types';
+import { JobParamsDownloadCSV } from '../export_types/csv_from_savedobject/types';
 import { LevelLogger as Logger } from '../lib';
 import { TaskRunResult } from '../lib/tasks';
 import { authorizedUserPreRoutingFactory } from './lib/authorized_user_pre_routing';
-import { getJobParamsFromRequest } from './lib/get_job_params_from_request';
 import { HandlerErrorFunction } from './types';
 
 const API_BASE_URL_V1 = '/api/reporting/v1';
 const API_BASE_GENERATE_V1 = `${API_BASE_URL_V1}/generate`;
 
-export type CsvFromSavedObjectRequest = KibanaRequest<
-  JobParamsPanelCsv,
-  unknown,
-  JobParamsPanelCsvPost
->;
+export type CsvFromSavedObjectRequest = KibanaRequest<unknown, unknown, JobParamsDownloadCSV>;
 
 /*
  * This function registers API Endpoints for immediate Reporting jobs. The API inputs are:
@@ -53,36 +44,30 @@ export function registerGenerateCsvFromSavedObjectImmediate(
    */
   router.post(
     {
-      path: `${API_BASE_GENERATE_V1}/immediate/csv/saved-object/{savedObjectType}:{savedObjectId}`,
+      path: `${API_BASE_GENERATE_V1}/immediate/csv/search_source`,
       validate: {
-        params: schema.object({
-          savedObjectType: schema.string({ minLength: 5 }),
-          savedObjectId: schema.string({ minLength: 5 }),
-        }),
         body: schema.object({
-          state: schema.object({}, { unknowns: 'allow' }),
+          searchSource: schema.object({}, { unknowns: 'allow' }),
           timerange: schema.object({
-            timezone: schema.string({ defaultValue: 'UTC' }),
             min: schema.nullable(schema.oneOf([schema.number(), schema.string({ minLength: 5 })])),
             max: schema.nullable(schema.oneOf([schema.number(), schema.string({ minLength: 5 })])),
+            timezone: schema.string({ defaultValue: 'UTC' }),
           }),
+          title: schema.string(),
         }),
       },
     },
     userHandler(async (user, context, req: CsvFromSavedObjectRequest, res) => {
       const logger = parentLogger.clone(['savedobject-csv']);
-      const jobParams = getJobParamsFromRequest(req);
-      const createJob = createJobFnFactory(reporting, logger);
       const runTaskFn = runTaskFnFactory(reporting, logger);
 
       try {
         // FIXME: no create job for immediate download
-        const payload = await createJob(jobParams, context, req);
         const {
           content_type: jobOutputContentType,
           content: jobOutputContent,
           size: jobOutputSize,
-        }: TaskRunResult = await runTaskFn(null, payload, context, req);
+        }: TaskRunResult = await runTaskFn(null, req.body, context, req);
 
         logger.info(`Job output size: ${jobOutputSize} bytes`);
 

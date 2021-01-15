@@ -5,7 +5,6 @@
  */
 import dateMath from '@elastic/datemath';
 import { i18n } from '@kbn/i18n';
-import _ from 'lodash';
 import moment from 'moment-timezone';
 import { CoreSetup } from 'src/core/public';
 import {
@@ -19,6 +18,7 @@ import {
 } from '../../../../../src/plugins/ui_actions/public';
 import { LicensingPluginSetup } from '../../../licensing/public';
 import { API_GENERATE_IMMEDIATE, CSV_REPORTING_ACTION } from '../../common/constants';
+import { JobParamsDownloadCSV } from '../../server/export_types/csv_from_savedobject/types';
 import { checkLicense } from '../lib/license_check';
 
 function isSavedSearchEmbeddable(
@@ -59,19 +59,6 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
     });
   }
 
-  public getSearchRequestBody({ searchEmbeddable }: { searchEmbeddable: any }) {
-    const adapters = searchEmbeddable.getInspectorAdapters();
-    if (!adapters) {
-      return {};
-    }
-
-    if (adapters.requests.requests.length === 0) {
-      return {};
-    }
-
-    return searchEmbeddable.getSavedSearch().searchSource.getSearchRequestBody();
-  }
-
   public isCompatible = async (context: ActionContext) => {
     if (!this.canDownloadCSV) {
       return false;
@@ -97,31 +84,30 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
       timeRange: { to, from },
     } = embeddable.getInput();
 
-    const searchEmbeddable = embeddable;
-    const searchRequestBody = await this.getSearchRequestBody({ searchEmbeddable });
-    const state = _.pick(searchRequestBody, ['sort', 'docvalue_fields', 'query']);
     const kibanaTimezone = this.core.uiSettings.get('dateFormat:tz');
 
-    const id = `search:${embeddable.getSavedSearch().id}`;
-    const filename = embeddable.getSavedSearch().title;
     const timezone = kibanaTimezone === 'Browser' ? moment.tz.guess() : kibanaTimezone;
     const fromTime = dateMath.parse(from);
     const toTime = dateMath.parse(to, { roundUp: true });
-
     if (!fromTime || !toTime) {
       return this.onGenerationFail(
         new Error(`Invalid time range: From: ${fromTime}, To: ${toTime}`)
       );
     }
 
-    const body = JSON.stringify({
+    const { searchSource } = embeddable.getSavedSearch();
+
+    const immediateJobParams: JobParamsDownloadCSV = {
+      searchSource: searchSource.getSerializedFields(),
       timerange: {
         min: fromTime.format(),
         max: toTime.format(),
         timezone,
       },
-      state,
-    });
+      title: embeddable.getSavedSearch().title,
+    };
+
+    const body = JSON.stringify(immediateJobParams);
 
     this.isDownloading = true;
 
@@ -136,11 +122,11 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
     });
 
     await this.core.http
-      .post(`${API_GENERATE_IMMEDIATE}/${id}`, { body })
+      .post(`${API_GENERATE_IMMEDIATE}`, { body })
       .then((rawResponse: string) => {
         this.isDownloading = false;
 
-        const download = `${filename}.csv`;
+        const download = `${embeddable.getSavedSearch().title}.csv`;
         const blob = new Blob([rawResponse], { type: 'text/csv;charset=utf-8;' });
 
         // Hack for IE11 Support

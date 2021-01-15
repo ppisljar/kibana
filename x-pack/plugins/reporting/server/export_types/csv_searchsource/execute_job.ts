@@ -8,15 +8,14 @@ import { CONTENT_TYPE_CSV, CSV_JOB_TYPE } from '../../../common/constants';
 import { RunTaskFn, RunTaskFnFactory } from '../../types';
 import { decryptJobHeaders } from '../common';
 import { createGenerateCsv } from './generate_csv';
-import { TaskPayloadDeprecatedCSV } from './types';
+import { TaskPayloadCSV } from './types';
 
 export const runTaskFnFactory: RunTaskFnFactory<
-  RunTaskFn<TaskPayloadDeprecatedCSV>
+  RunTaskFn<TaskPayloadCSV>
 > = function executeJobFactoryFn(reporting, parentLogger) {
   const config = reporting.getConfig();
 
   return async function runTask(jobId, job, cancellationToken) {
-    const elasticsearch = reporting.getElasticsearchService();
     const logger = parentLogger.clone([CSV_JOB_TYPE, 'execute-job', jobId]);
     const generateCsv = createGenerateCsv(logger);
 
@@ -25,15 +24,14 @@ export const runTaskFnFactory: RunTaskFnFactory<
     const fakeRequest = reporting.getFakeRequest({ headers }, job.spaceId, logger);
     const uiSettingsClient = await reporting.getUiSettingsClient(fakeRequest, logger);
 
-    const { callAsCurrentUser } = elasticsearch.legacy.client.asScoped(fakeRequest);
-    const callEndpoint = (endpoint: string, clientParams = {}, options = {}) =>
-      callAsCurrentUser(endpoint, clientParams, options);
+    const searchService = await reporting.getSearchService();
+    const searchSourceService = await searchService.searchSource.asScoped(fakeRequest);
 
     const { content, maxSizeReached, size, csvContainsFormulas, warnings } = await generateCsv(
       job,
       config,
       uiSettingsClient,
-      callEndpoint,
+      searchSourceService,
       cancellationToken
     );
 

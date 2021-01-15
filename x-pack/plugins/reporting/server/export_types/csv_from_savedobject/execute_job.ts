@@ -9,9 +9,9 @@ import { CancellationToken } from '../../../common';
 import { CONTENT_TYPE_CSV, CSV_FROM_SAVEDOBJECT_JOB_TYPE } from '../../../common/constants';
 import { TaskRunResult } from '../../lib/tasks';
 import { RunTaskFnFactory } from '../../types';
-import { createGenerateCsv } from '../csv/generate_csv';
-import { getGenerateCsvParams } from './lib/get_csv_job';
-import { JobPayloadPanelCsv } from './types';
+import { createGenerateCsv } from '../csv_searchsource/generate_csv';
+import { JobParamsDownloadCSV } from './types';
+import { ISearchStart } from '../../../../../../src/plugins/data/server';
 
 /*
  * ImmediateExecuteFn receives the job doc payload because the payload was
@@ -19,7 +19,7 @@ import { JobPayloadPanelCsv } from './types';
  */
 export type ImmediateExecuteFn = (
   jobId: null,
-  job: JobPayloadPanelCsv,
+  job: JobParamsDownloadCSV,
   context: RequestHandlerContext,
   req: KibanaRequest
 ) => Promise<TaskRunResult>;
@@ -31,24 +31,24 @@ export const runTaskFnFactory: RunTaskFnFactory<ImmediateExecuteFn> = function e
   const config = reporting.getConfig();
   const logger = parentLogger.clone([CSV_FROM_SAVEDOBJECT_JOB_TYPE, 'execute-job']);
 
-  return async function runTask(jobId, jobPayload, context, req) {
+  return async function runTask(jobId, immediateJobParams, context, req) {
     const generateCsv = createGenerateCsv(logger);
-    const { panel, visType } = jobPayload;
-
-    logger.debug(`Execute job generating [${visType}] csv`);
 
     const savedObjectsClient = context.core.savedObjects.client;
     const uiSettingsClient = await reporting.getUiSettingsServiceFactory(savedObjectsClient);
-    const job = await getGenerateCsvParams(jobPayload, panel, savedObjectsClient, uiSettingsClient);
+    const searchService: ISearchStart = await reporting.getSearchService();
+    const searchSourceService = await searchService.searchSource.asScoped(req);
 
-    const elasticsearch = reporting.getElasticsearchService();
-    const { callAsCurrentUser } = elasticsearch.legacy.client.asScoped(req);
+    const job = {
+      objectType: 'immediate-search',
+      ...immediateJobParams,
+    };
 
     const { content, maxSizeReached, size, csvContainsFormulas, warnings } = await generateCsv(
       job,
       config,
       uiSettingsClient,
-      callAsCurrentUser,
+      searchSourceService,
       new CancellationToken() // can not be cancelled
     );
 
