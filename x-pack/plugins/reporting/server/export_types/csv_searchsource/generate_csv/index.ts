@@ -17,11 +17,13 @@ import { createEscapeValue } from './escape_value';
 import { getUiSettings } from './get_ui_settings';
 import { MaxSizeStringBuilder } from './max_size_string_builder';
 import {
+  tabify,
+  IFieldFormat,
+  IFieldFormatsRegistry,
   EsQuerySearchAfter,
   ISearchStartSearchSource,
-} from '../../../../../../../src/plugins/data/common/search/search_source';
-import { tabify } from '../../../../../../../src/plugins/data/common/search/tabify';
-import { Datatable } from '../../../../../../../src/plugins/expressions/common/expression_types/specs';
+} from '../../../../../../../src/plugins/data/common';
+import { Datatable } from '../../../../../../../src/plugins/expressions/common';
 
 export function createGenerateCsv(logger: LevelLogger) {
   return async function generateCsv(
@@ -29,6 +31,7 @@ export function createGenerateCsv(logger: LevelLogger) {
     config: ReportingConfig,
     uiSettingsClient: IUiSettingsClient,
     searchSourceService: ISearchStartSearchSource,
+    fieldFormatsRegistry: IFieldFormatsRegistry,
     cancellationToken: CancellationToken
   ): Promise<SavedSearchGeneratorResult> {
     const settings = await getUiSettings(job.browserTimezone, uiSettingsClient, config, logger);
@@ -46,14 +49,16 @@ export function createGenerateCsv(logger: LevelLogger) {
     let csvContainsFormulas = false;
     let lastSortId: EsQuerySearchAfter | undefined;
     const warnings: string[] = [];
+    const formatters: Record<string, IFieldFormat> = {};
 
     while (currentRecord < totalRecords) {
       if (lastSortId) {
         searchSource.setField('searchAfter', lastSortId);
       }
       const results = await searchSource.fetch();
-      const table = tabify(searchSource as any, results, {
-        source: true,
+
+      const table: Datatable = tabify(searchSource as any, results, {
+        shallow: true,
       }) as Datatable;
       totalRecords = results.hits.total;
 
@@ -66,11 +71,15 @@ export function createGenerateCsv(logger: LevelLogger) {
         lastSortId = results.hits.hits[results.hits.hits.length - 1].sort as EsQuerySearchAfter;
       }
 
+      const columnNames = table.columns.map((c) => c.name);
+
       if (first) {
-        const header = `${table.columns
-          .map((c) => c.name)
-          .map(escapeValue)
-          .join(settings.separator)}\n`;
+        const header = `${columnNames.map(escapeValue).join(settings.separator)}\n`;
+
+        table.columns.map((c) => {
+          const fieldFormat = fieldFormatsRegistry.deserialize(c.meta.params);
+          formatters[c.id] = fieldFormat;
+        });
 
         if (!builder.tryAppend(header)) {
           return {
@@ -94,14 +103,11 @@ export function createGenerateCsv(logger: LevelLogger) {
           csvContainsFormulas = true;
         }
 
-        const columns = table.columns.map((c) => {
-          // we are working on this utilities, its not there yet but should be in a week or so, which will get us the formatted values
-          // const formatter = search.table.getFieldFormatter(c);
-          // return formatter(hit[c.id]);
-          return hit[c.id];
+        const row = table.columns.map((c) => {
+          return formatters[c.id].convert(hit[c.id]);
         });
 
-        if (!builder.tryAppend(columns + '\n')) {
+        if (!builder.tryAppend(row.map(escapeValue).join(settings.separator) + '\n')) {
           logger.warn('max Size Reached');
           maxSizeReached = true;
           if (cancellationToken) {

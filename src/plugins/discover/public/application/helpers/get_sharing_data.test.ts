@@ -41,38 +41,9 @@ describe('getSharingData', () => {
     );
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "conflictedTypesFields": Array [],
-        "fields": Array [],
-        "indexPatternId": "the-index-pattern-id",
-        "metaFields": Array [
-          "_index",
-          "_score",
-        ],
-        "searchRequest": Object {
-          "body": Object {
-            "_source": Object {},
-            "fields": Array [],
-            "query": Object {
-              "bool": Object {
-                "filter": Array [],
-                "must": Array [],
-                "must_not": Array [],
-                "should": Array [],
-              },
-            },
-            "script_fields": Object {},
-            "sort": Array [
-              Object {
-                "_score": Object {
-                  "order": "desc",
-                },
-              },
-            ],
-            "stored_fields": Array [
-              "*",
-            ],
-          },
-          "index": "the-index-pattern-title",
+        "searchSource": Object {
+          "fieldsFromSource": Array [],
+          "index": "the-index-pattern-id",
         },
       }
     `);

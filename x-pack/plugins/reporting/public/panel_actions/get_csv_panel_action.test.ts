@@ -51,7 +51,7 @@ describe('GetCsvReportPanelAction', () => {
     context = {
       embeddable: {
         type: 'search',
-        getSavedSearch: () => ({ id: 'lebowski' }),
+        getSavedSearch: () => ({ searchSource: { getSerializedFields: () => ({}) } }),
         getTitle: () => `The Dude`,
         getInspectorAdapters: () => null,
         getInput: () => ({

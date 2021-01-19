@@ -48,7 +48,7 @@ export const csvReportingProvider = ({
       ? moment.tz.guess()
       : uiSettings.get('dateFormat:tz');
 
-  const getShareMenuItems = ({ objectType, sharingData, onClose }: ShareContext) => {
+  const getShareMenuItems = ({ objectType, sharingData, onClose, isDirty }: ShareContext) => {
     const { taskType, taskConfig } = sharingData;
     if (taskType !== 'csv') {
       return [];
@@ -93,7 +93,7 @@ export const csvReportingProvider = ({
               layoutId={undefined}
               objectId="DUMMY_ID"
               getJobParams={getJobParams}
-              isDirty={false}
+              isDirty={isDirty}
               onClose={onClose}
             />
           ),

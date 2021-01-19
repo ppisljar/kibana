@@ -9,6 +9,7 @@ import { RunTaskFn, RunTaskFnFactory } from '../../types';
 import { decryptJobHeaders } from '../common';
 import { createGenerateCsv } from './generate_csv';
 import { TaskPayloadCSV } from './types';
+import { getFieldFormats } from '../../services';
 
 export const runTaskFnFactory: RunTaskFnFactory<
   RunTaskFn<TaskPayloadCSV>
@@ -26,12 +27,16 @@ export const runTaskFnFactory: RunTaskFnFactory<
 
     const searchService = await reporting.getSearchService();
     const searchSourceService = await searchService.searchSource.asScoped(fakeRequest);
+    const fieldFormatsRegistry = await getFieldFormats().fieldFormatServiceFactory(
+      uiSettingsClient
+    );
 
     const { content, maxSizeReached, size, csvContainsFormulas, warnings } = await generateCsv(
       job,
       config,
       uiSettingsClient,
       searchSourceService,
+      fieldFormatsRegistry,
       cancellationToken
     );
 
