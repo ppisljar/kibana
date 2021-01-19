@@ -57,14 +57,21 @@ export const LAYOUT_TYPES = {
 
 // Export Type Definitions
 export const CSV_REPORT_TYPE = 'CSV';
+export const CSV_JOB_TYPE = 'csv_searchsource';
+
 export const PDF_REPORT_TYPE = 'printablePdf';
+export const PDF_JOB_TYPE = 'printable_pdf';
+
+export const PNG_JOB_TYPE = 'PNG';
 export const PNG_REPORT_TYPE = 'PNG';
 
-export const PDF_JOB_TYPE = 'printable_pdf';
-export const PNG_JOB_TYPE = 'PNG';
-export const CSV_JOB_TYPE = 'csv';
 export const CSV_FROM_SAVEDOBJECT_JOB_TYPE = 'csv_from_savedobject';
+
 export const USES_HEADLESS_JOB_TYPES = [PDF_JOB_TYPE, PNG_JOB_TYPE];
+
+// Non-support for runtime fields, needed for scripted automation
+export const CSV_REPORT_TYPE_DEPRECATED = 'CSV';
+export const CSV_JOB_TYPE_DEPRECATED = 'csv';
 
 // Licenses
 export const LICENSE_TYPE_TRIAL = 'trial';
@@ -82,7 +89,7 @@ export const API_DIAGNOSE_URL = `${API_BASE_URL}/diagnose`;
 
 // hacky endpoint
 export const API_BASE_URL_V1 = '/api/reporting/v1'; //
-export const API_GENERATE_IMMEDIATE = `${API_BASE_URL_V1}/generate/immediate/csv/saved-object`;
+export const API_GENERATE_IMMEDIATE = `${API_BASE_URL_V1}/generate/immediate/csv/search_source`;
 
 // Management UI route
 export const REPORTING_MANAGEMENT_HOME = '/app/management/insightsAndAlerting/reporting';

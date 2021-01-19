@@ -10,7 +10,7 @@ import React from 'react';
 import { IUiSettingsClient, ToastsSetup } from 'src/core/public';
 import { ShareContext } from '../../../../../src/plugins/share/public';
 import { LicensingPluginSetup } from '../../../licensing/public';
-import { JobParamsCSV, SearchRequest } from '../../server/export_types/csv/types';
+import { JobParamsCSV } from '../../server/export_types/csv_searchsource/types';
 import { ReportingPanelContent } from '../components/reporting_panel_content_lazy';
 import { checkLicense } from '../lib/license_check';
 import { ReportingAPIClient } from '../lib/reporting_api_client';
@@ -48,26 +48,20 @@ export const csvReportingProvider = ({
       ? moment.tz.guess()
       : uiSettings.get('dateFormat:tz');
 
-  const getShareMenuItems = ({
-    objectType,
-    objectId,
-    sharingData,
-    isDirty,
-    onClose,
-  }: ShareContext) => {
-    if ('search' !== objectType) {
+  const getShareMenuItems = ({ objectType, sharingData, onClose }: ShareContext) => {
+    const { taskType, taskConfig } = sharingData;
+    if (taskType !== 'csv') {
       return [];
     }
 
     const jobParams: JobParamsCSV = {
-      browserTimezone,
+      timerange: {
+        timezone: browserTimezone,
+        // FIXME: min, max
+      },
+      title: (taskConfig as any).title as string,
       objectType,
-      title: sharingData.title as string,
-      indexPatternId: sharingData.indexPatternId as string,
-      searchRequest: sharingData.searchRequest as SearchRequest,
-      fields: sharingData.fields as string[],
-      metaFields: sharingData.metaFields as string[],
-      conflictedTypesFields: sharingData.conflictedTypesFields as string[],
+      searchSource: (taskConfig as any).searchSource as object,
     };
 
     const getJobParams = () => jobParams;
@@ -95,11 +89,11 @@ export const csvReportingProvider = ({
             <ReportingPanelContent
               apiClient={apiClient}
               toasts={toasts}
-              reportType="csv"
+              reportType="csv_searchsource"
               layoutId={undefined}
-              objectId={objectId}
+              objectId="DUMMY_ID"
               getJobParams={getJobParams}
-              isDirty={isDirty}
+              isDirty={false}
               onClose={onClose}
             />
           ),

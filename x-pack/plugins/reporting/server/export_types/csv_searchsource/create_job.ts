@@ -7,14 +7,10 @@
 import { CSV_JOB_TYPE } from '../../../common/constants';
 import { cryptoFactory } from '../../lib';
 import { CreateJobFn, CreateJobFnFactory } from '../../types';
-import {
-  IndexPatternSavedObjectDeprecatedCSV,
-  JobParamsDeprecatedCSV,
-  TaskPayloadDeprecatedCSV,
-} from './types';
+import { JobParamsCSV, TaskPayloadCSV } from './types';
 
 export const createJobFnFactory: CreateJobFnFactory<
-  CreateJobFn<JobParamsDeprecatedCSV, TaskPayloadDeprecatedCSV>
+  CreateJobFn<JobParamsCSV, TaskPayloadCSV>
 > = function createJobFactoryFn(reporting, parentLogger) {
   const logger = parentLogger.clone([CSV_JOB_TYPE, 'create-job']);
 
@@ -24,16 +20,9 @@ export const createJobFnFactory: CreateJobFnFactory<
   return async function createJob(jobParams, context, request) {
     const serializedEncryptedHeaders = await crypto.encrypt(request.headers);
 
-    const savedObjectsClient = context.core.savedObjects.client;
-    const indexPatternSavedObject = ((await savedObjectsClient.get(
-      'index-pattern',
-      jobParams.indexPatternId
-    )) as unknown) as IndexPatternSavedObjectDeprecatedCSV; // FIXME
-
     return {
       headers: serializedEncryptedHeaders,
       spaceId: reporting.getSpaceId(request, logger),
-      indexPatternSavedObject,
       ...jobParams,
     };
   };
