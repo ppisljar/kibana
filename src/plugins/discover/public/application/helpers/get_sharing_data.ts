@@ -28,7 +28,7 @@ export function getSharingData(savedSearch: SavedSearch, uiSettings: IUiSettings
   const { columns } = savedSearch;
 
   // sanitize columns: can't be [_source]
-  if (/^_source$/.test(columns.join())) {
+  if (columns && columns.length === 1 && /^_source$/.test(columns.join())) {
     columns.length = 0;
   }
 

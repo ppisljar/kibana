@@ -72,6 +72,27 @@ describe('getSharingData', () => {
       }
     `);
   });
+
+  test('searchSource fields default to `all`, with [_source]', () => {
+    const searchSourceMock = createSearchSourceMock({ index: indexPatternMock });
+    const result = getSharingData(
+      {
+        searchSource: searchSourceMock,
+        columns: ['_source'],
+      } as any,
+      uiSettings
+    );
+    expect(result).toMatchInlineSnapshot(`
+      Object {
+        "searchSource": Object {
+          "fields": Array [
+            "*",
+          ],
+          "index": "the-index-pattern-id",
+        },
+      }
+    `);
+  });
 });
 
 describe('showPublicUrlSwitch', () => {
