@@ -25,8 +25,6 @@ import { cellHasFormulas } from './cell_has_formula';
 import { CsvExportSettings, getExportSettings } from './get_export_settings';
 import { MaxSizeStringBuilder } from './max_size_string_builder';
 
-const isAllFields = (fields: SearchFieldValue[]) => fields[0] === '*';
-
 export class CsvGenerator {
   private _columnMap: number[] | null = null;
   private _formatters: Record<string, FieldFormat> | null = null;
@@ -50,7 +48,7 @@ export class CsvGenerator {
     }
 
     // if there are selected fields, re-initialize columnMap with field order is set in searchSource fields
-    if (fields && !isAllFields(fields)) {
+    if (fields && fields[0] !== '*') {
       this._columnMap = fields.map((field) =>
         table.columns.findIndex((column) => column.id === field)
       );
@@ -92,11 +90,18 @@ export class CsvGenerator {
     this.logger.debug(`Building CSV header row...`);
     const header =
       columnMap
-        .map((columnIndex) => {
-          const value = table.columns[columnIndex].name;
+        .map((columnIndex, position) => {
+          let value: string;
+          if (columnIndex > -1) {
+            value = table.columns[columnIndex].name;
+          } else {
+            value = fields && fields[position] ? (fields[position] as string) : 'unknown';
+          }
+
           if (checkForFormulas && cellHasFormulas(value)) {
             this.csvContainsFormulas = true; // set warning if heading value has a formula
           }
+
           return escapeValue(value);
         })
         .join(separator) + `\n`;
@@ -131,22 +136,27 @@ export class CsvGenerator {
         columnMap
           .map((columnIndex) => {
             const tableColumn = table.columns[columnIndex];
+            let cell: string;
 
-            let cell = this.getFormatters(table)[tableColumn.id].convert(
-              dataTableRow[tableColumn.id]
-            );
+            if (tableColumn != null) {
+              cell = this.getFormatters(table)[tableColumn.id].convert(
+                dataTableRow[tableColumn.id]
+              );
 
-            try {
-              // expected values are a string of JSON where the value(s) is in an array
-              cell = JSON.parse(cell);
-            } catch (e) {
-              // value is not stringified in some unit tests
-            }
+              try {
+                // expected values are a string of JSON where the value(s) is in an array
+                cell = JSON.parse(cell);
+              } catch (e) {
+                // value is not stringified in some unit tests
+              }
 
-            // We have to strip singular array values out of their array wrapper,
-            // So that the value appears the visually the same as seen in Discover
-            if (Array.isArray(cell) && cell.length === 1) {
-              cell = cell[0];
+              // We have to strip singular array values out of their array wrapper,
+              // So that the value appears the visually the same as seen in Discover
+              if (Array.isArray(cell) && cell.length === 1) {
+                cell = cell[0];
+              }
+            } else {
+              cell = 'sad face';
             }
 
             return cell;
