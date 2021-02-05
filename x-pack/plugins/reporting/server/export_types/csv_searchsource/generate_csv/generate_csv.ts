@@ -134,9 +134,9 @@ export class CsvGenerator {
       const columnMap = this.getColumnMap(fields, table);
       const row =
         columnMap
-          .map((columnIndex) => {
+          .map((columnIndex, position) => {
             const tableColumn = table.columns[columnIndex];
-            let cell: string;
+            let cell = '-';
 
             if (tableColumn != null) {
               cell = this.getFormatters(table)[tableColumn.id].convert(
@@ -156,7 +156,7 @@ export class CsvGenerator {
                 cell = cell[0];
               }
             } else {
-              cell = 'sad face';
+              this.logger.warn(`Unrecognized field: ${(fields && fields[position]) || 'unknown'}`);
             }
 
             return cell;
@@ -219,7 +219,7 @@ export class CsvGenerator {
         lastSortId = results.hits.hits[results.hits.hits.length - 1].sort as EsQuerySearchAfter; // BUG
       }
 
-      const table = tabifyDocs(results, index, { shallow: true });
+      const table = tabifyDocs(results, index, { shallow: true, meta: true });
       if (table.columns.length < 1) {
         break;
       }

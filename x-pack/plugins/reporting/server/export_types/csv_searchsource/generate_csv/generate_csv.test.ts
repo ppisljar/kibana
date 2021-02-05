@@ -262,11 +262,11 @@ it('warns if max size was reached', async () => {
   `);
 });
 
-describe.only('fields', () => {
+describe('fields', () => {
   it('provides top-level underscored fields as columns', async () => {
     mockSearchSourceGetField.mockImplementation((key: string) => {
       if (key === 'fields') {
-        return ['_id', '_index', '@date', 'message'];
+        return ['_id', '_index', 'date', 'message'];
       }
       if (key === 'index') {
         return { fields: { getByName: jest.fn() } };
@@ -310,8 +310,8 @@ describe.only('fields', () => {
     const csvResult = await generateCsv.generateData();
 
     expect(csvResult.content).toMatchInlineSnapshot(`
-      "\\"_id\\",\\"_index\\",\\"'@date\\",message
-      \\"sad face\\",\\"sad face\\",\\"sad face\\",\\"it's nice to see you\\"
+      "\\"_id\\",\\"_index\\",date,message
+      \\"my-cool-id\\",\\"my-cool-index\\",\\"2020-12-31T00:14:28.000Z\\",\\"it's nice to see you\\"
       "
     `);
     expect(csvResult.csvContainsFormulas).toBe(false);

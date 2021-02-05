@@ -196,8 +196,8 @@ exports[`Reporting APIs CSV generation from SearchSource date formatting With fi
 
 exports[`Reporting APIs CSV generation from SearchSource non-timebased Handle _id and _index columns 1`] = `
 "date,message,\\"_id\\",\\"_index\\"
-\\"Jan 1, 2015 @ 12:10:30.123456789\\",\\"Hello 2\\",\\"insert_real_id\\",\\"insert_real_index\\"
-\\"Jan 1, 2015 @ 12:10:30.000000000\\",\\"Hello 1\\",\\"insert_real_id\\",\\"insert_real_index\\"
+\\"Jan 1, 2015 @ 12:10:30.123456789\\",\\"Hello 2\\",2,nanos
+\\"Jan 1, 2015 @ 12:10:30.000000000\\",\\"Hello 1\\",1,nanos
 "
 `;
 
