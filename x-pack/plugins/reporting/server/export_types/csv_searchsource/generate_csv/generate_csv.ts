@@ -191,17 +191,18 @@ export class CsvGenerator {
 
     const index = searchSource.getField('index');
     const fields = searchSource.getField('fields');
+
     const { maxSizeBytes, bom, escapeFormulaValues } = settings;
+    const recordsAtATime = settings.scrollSize;
+    searchSource.setField('size', recordsAtATime);
 
     const builder = new MaxSizeStringBuilder(byteSizeValueToNumber(maxSizeBytes), bom);
 
-    const recordsAtATime = settings.scrollSize;
     let currentRecord = -1;
     let totalRecords = 0;
     let first = true;
     let lastSortId: EsQuerySearchAfter | undefined;
     const warnings: string[] = [];
-    searchSource.setField('size', recordsAtATime);
 
     while (currentRecord < totalRecords) {
       if (lastSortId) {
@@ -209,6 +210,7 @@ export class CsvGenerator {
       }
 
       const results = await searchSource.fetch(); // ignores the selected fields option
+
       totalRecords = results.hits.total;
       if (totalRecords == null) {
         throw new Error('Expected total number of records in the search response');

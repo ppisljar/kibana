@@ -262,6 +262,62 @@ it('warns if max size was reached', async () => {
   `);
 });
 
+describe.only('fields', () => {
+  it('provides top-level underscored fields as columns', async () => {
+    mockSearchSourceGetField.mockImplementation((key: string) => {
+      if (key === 'fields') {
+        return ['_id', '_index', '@date', 'message'];
+      }
+      if (key === 'index') {
+        return { fields: { getByName: jest.fn() } };
+      }
+    });
+    mockSearchSourceFetch.mockResolvedValueOnce({
+      hits: {
+        hits: [
+          {
+            _id: 'my-cool-id',
+            _index: 'my-cool-index',
+            _version: 4,
+            fields: {
+              date: ['2020-12-31T00:14:28.000Z'],
+              message: [`it's nice to see you`],
+            },
+          },
+        ],
+        total: 1,
+      },
+    });
+
+    const generateCsv = new CsvGenerator(
+      createMockJob({
+        searchSource: {
+          query: { query: '', language: 'kuery' },
+          sort: [{ '@date': 'desc' }],
+          index: '93f4bc50-6662-11eb-98bc-f550e2308366',
+          fields: ['_id', '_index', '@date', 'message'],
+          filter: [],
+        },
+      }),
+      mockConfig,
+      mockUiSettingsClient,
+      mockSearchSourceService,
+      mockFieldFormatsRegistry,
+      new CancellationToken(),
+      logger
+    );
+
+    const csvResult = await generateCsv.generateData();
+
+    expect(csvResult.content).toMatchInlineSnapshot(`
+      "\\"_id\\",\\"_index\\",\\"'@date\\",message
+      \\"sad face\\",\\"sad face\\",\\"sad face\\",\\"it's nice to see you\\"
+      "
+    `);
+    expect(csvResult.csvContainsFormulas).toBe(false);
+  });
+});
+
 describe('formulas', () => {
   const TEST_FORMULA = '=SUM(A1:A2)';
 
@@ -290,7 +346,9 @@ describe('formulas', () => {
       new CancellationToken(),
       logger
     );
+
     const csvResult = await generateCsv.generateData();
+
     expect(csvResult.content).toMatchInlineSnapshot(`
       "date,ip,message
       \\"2020-12-31T00:14:28.000Z\\",\\"110.135.176.89\\",\\"'=SUM(A1:A2)\\"
@@ -333,7 +391,9 @@ describe('formulas', () => {
       new CancellationToken(),
       logger
     );
+
     const csvResult = await generateCsv.generateData();
+
     expect(csvResult.content).toMatchInlineSnapshot(`
       "date,ip,\\"'=SUM(A1:A2)\\"
       \\"2020-12-31T00:14:28.000Z\\",\\"110.135.176.89\\",\\"This is great data\\"
@@ -377,7 +437,9 @@ describe('formulas', () => {
       new CancellationToken(),
       logger
     );
+
     const csvResult = await generateCsv.generateData();
+
     expect(csvResult.content).toMatchInlineSnapshot(`
       "date,ip,message
       \\"2020-12-31T00:14:28.000Z\\",\\"110.135.176.89\\",\\"=SUM(A1:A2)\\"
