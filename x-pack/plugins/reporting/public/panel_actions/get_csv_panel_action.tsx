@@ -76,7 +76,7 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
     searchSource.removeField('fields');
     searchSource.removeField('fieldsFromSource');
 
-    const { columns } = savedSearch;
+    const columns = savedSearch.columns || [];
 
     // sanitize columns: can't be [_source]
     if (/^_source$/.test(columns.join())) {

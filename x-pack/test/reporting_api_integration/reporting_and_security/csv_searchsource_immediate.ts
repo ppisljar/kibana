@@ -273,52 +273,10 @@ export default function ({ getService }: FtrProviderContext) {
 
         await esArchiver.unload('reporting/sales');
       });
-
-      it('With scripted fields and field formatters', async () => {
-        // load test data that contains a saved search and documents
-        await esArchiver.load('reporting/scripted_small2');
-
-        const {
-          status: resStatus,
-          text: resText,
-          type: resType,
-        } = (await generateAPI.getCSVFromSearchSource(
-          getMockJobParams({
-            searchSource: {
-              query: { query: '', language: 'lucene' },
-              version: true,
-              index: '89655130-5013-11e9-bce7-4dabcb8bef24',
-              sort: [{ date: 'desc' }],
-              fields: ['date', 'name', 'percent', 'value', 'year', 'years_ago', 'gender'],
-              filter: [
-                {
-                  meta: { index: '89655130-5013-11e9-bce7-4dabcb8bef24', params: {} },
-                  range: {
-                    date: {
-                      gte: '1979-01-01T10:00:00Z',
-                      lte: '1981-01-01T10:00:00Z',
-                      format: 'strict_date_optional_time',
-                    },
-                  },
-                },
-              ],
-            },
-          })
-        )) as supertest.Response;
-
-        expect(resStatus).to.eql(200);
-        expect(resType).to.eql('text/csv');
-        expectSnapshot(resText).toMatch();
-
-        await esArchiver.unload('reporting/scripted_small2');
-      });
     });
 
     describe('validation', () => {
       it('Return a 404', async () => {
-        // load test data that contains a saved search and documents
-        await esArchiver.load('reporting/scripted_small2');
-
         const { body } = (await generateAPI.getCSVFromSearchSource(
           getMockJobParams({
             searchSource: {
@@ -334,7 +292,7 @@ export default function ({ getService }: FtrProviderContext) {
         expect(body).to.eql(expectedBody);
       });
 
-      it('Stops at Max Size Reached', async () => {
+      it(`Searches "huge" data, stops at Max Size Reached`, async () => {
         // load test data that contains a saved search and documents
         await esArchiver.load('reporting/hugedata');
 
@@ -349,7 +307,16 @@ export default function ({ getService }: FtrProviderContext) {
               version: true,
               sort: [{ date: 'desc' }],
               index: '89655130-5013-11e9-bce7-4dabcb8bef24',
-              fields: ['date', 'year', 'name', 'value', 'years_ago'],
+              fields: [
+                '_id',
+                'date',
+                'name',
+                'gender',
+                'value',
+                'year',
+                'years_ago',
+                'date_informal',
+              ],
               filter: [
                 {
                   meta: { index: '89655130-5013-11e9-bce7-4dabcb8bef24', params: {} },

@@ -25,7 +25,7 @@ export function getSharingData(savedSearch: SavedSearch, uiSettings: IUiSettings
   searchSource.removeField('fields');
   searchSource.removeField('fieldsFromSource');
 
-  const { columns } = savedSearch;
+  const columns = savedSearch.columns || [];
 
   // sanitize columns: can't be [_source]
   if (columns && columns.length === 1 && /^_source$/.test(columns.join())) {
