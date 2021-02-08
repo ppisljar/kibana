@@ -120,6 +120,7 @@ export class CsvGenerator {
     fields: SearchFieldValue[] | undefined,
     table: Datatable,
     builder: MaxSizeStringBuilder,
+    formatters: Record<string, FieldFormat>,
     settings: CsvExportSettings
   ) {
     // write the rows
@@ -139,9 +140,7 @@ export class CsvGenerator {
             let cell = '-';
 
             if (tableColumn != null) {
-              cell = this.getFormatters(table)[tableColumn.id].convert(
-                dataTableRow[tableColumn.id]
-              );
+              cell = formatters[tableColumn.id].convert(dataTableRow[tableColumn.id]);
 
               try {
                 // expected values are a string of JSON where the value(s) is in an array
@@ -219,14 +218,17 @@ export class CsvGenerator {
         lastSortId = results.hits.hits[results.hits.hits.length - 1].sort as EsQuerySearchAfter; // BUG
       }
 
-      const table = tabifyDocs(results, index, { shallow: true, meta: true });
+      const table = tabifyDocs(
+        results,
+        index,
+        { shallow: true, meta: true },
+        { timezone: settings.timezone }
+      );
       if (table.columns.length < 1) {
         break;
       }
 
       currentRecord += table.rows.length;
-
-      this.getFormatters(table);
 
       // write the header and initialize formatters / column orderer
       if (first) {
@@ -239,7 +241,8 @@ export class CsvGenerator {
         break;
       }
 
-      this.generateRows(fields, table, builder, settings);
+      const formatters = this.getFormatters(table);
+      this.generateRows(fields, table, builder, formatters, settings);
     }
 
     const size = builder.getSizeInBytes();

@@ -23,11 +23,11 @@ export default function ({ getService }: FtrProviderContext) {
   const reportingAPI = getService('reportingAPI');
 
   const generateAPI = {
-    getCSVFromSearchSource: async ({ title, searchSource }: JobParamsDownloadCSV) => {
+    getCSVFromSearchSource: async (job: JobParamsDownloadCSV) => {
       return await supertestSvc
         .post(`/api/reporting/v1/generate/immediate/csv_searchsource`)
         .set('kbn-xsrf', 'xxx')
-        .send({ searchSource, title });
+        .send(job);
     },
   };
 
@@ -129,7 +129,7 @@ export default function ({ getService }: FtrProviderContext) {
         expectSnapshot(resText).toMatch();
       });
 
-      it('With filters and timebased data, custom timezone', async () => {
+      it('With filters and timebased data, custom timezone (Phoenix)', async () => {
         const res = (await generateAPI.getCSVFromSearchSource(
           getMockJobParams({
             browserTimezone: 'America/Phoenix',
@@ -191,7 +191,7 @@ export default function ({ getService }: FtrProviderContext) {
         await esArchiver.unload('reporting/nanos');
       });
 
-      it('Formatted date_nanos data, custom time zone', async () => {
+      it('Formatted date_nanos data, custom timezone (New York)', async () => {
         await esArchiver.load('reporting/nanos');
 
         const res = await generateAPI.getCSVFromSearchSource(

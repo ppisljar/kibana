@@ -74,7 +74,8 @@ export function flattenHit(
 export const tabifyDocs = (
   esResponse: SearchResponse<unknown>,
   index?: IndexPattern,
-  params: TabifyDocsOptions = {}
+  params: TabifyDocsOptions = {},
+  formatParams: Record<string, any> = {}
 ): Datatable => {
   const columns: DatatableColumn[] = [];
 
@@ -86,7 +87,7 @@ export const tabifyDocs = (
         const fieldName = field?.name || key;
         if (!columns.find((c) => c.id === fieldName)) {
           const fieldType = (field?.type as DatatableColumnType) || typeof value;
-          const formatter = field && index?.getFormatterForField(field);
+          const formatter = field && index?.getFormatterForField(field, formatParams);
           columns.push({
             id: fieldName,
             name: fieldName,
