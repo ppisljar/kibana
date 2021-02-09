@@ -5,13 +5,19 @@
  * 2.0.
  */
 
-import nodeCrypto from '@elastic/node-crypto';
-import { savedObjectsClientMock, uiSettingsServiceMock } from 'src/core/server/mocks';
-import { fieldFormats } from 'src/plugins/data/server';
-import { ReportingCore } from '../../';
+jest.mock('./generate_csv/generate_csv', () => ({
+  CsvGenerator: class CsvGeneratorMock {
+    generateData() {
+      return {
+        content: 'test\n123',
+      };
+    }
+  },
+}));
 
+import nodeCrypto from '@elastic/node-crypto';
+import { ReportingCore } from '../../';
 import { CancellationToken } from '../../../common';
-import { setFieldFormats } from '../../services';
 import {
   createMockConfig,
   createMockConfigSchema,
@@ -42,22 +48,10 @@ beforeAll(async () => {
 
   encryptedHeaders = await crypto.encrypt(headers);
 
-  const uiSettingsClient = uiSettingsServiceMock
-    .createStartContract()
-    .asScopedToClient(savedObjectsClientMock.create());
-
   reportingCore = await createMockReportingCore(config);
-  reportingCore.getUiSettingsClient = jest.fn().mockResolvedValue(uiSettingsClient);
-
-  setFieldFormats({
-    fieldFormatServiceFactory() {
-      const fieldFormatsRegistry = new fieldFormats.FieldFormatsRegistry();
-      return Promise.resolve(fieldFormatsRegistry);
-    },
-  });
 });
 
-test('decorates job parameters', async () => {
+test('gets the csv content from job parameters', async () => {
   const runTask = runTaskFnFactory(reportingCore, logger);
 
   const payload = await runTask(
@@ -72,5 +66,15 @@ test('decorates job parameters', async () => {
     new CancellationToken()
   );
 
-  expect(payload).toMatchInlineSnapshot(`Promise {}`);
+  expect(payload).toMatchInlineSnapshot(`
+    Object {
+      "content": "test
+    123",
+      "content_type": "text/csv",
+      "csv_contains_formulas": undefined,
+      "max_size_reached": undefined,
+      "size": undefined,
+      "warnings": undefined,
+    }
+  `);
 });

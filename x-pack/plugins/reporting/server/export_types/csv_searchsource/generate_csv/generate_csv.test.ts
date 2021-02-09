@@ -7,6 +7,7 @@
 
 import { identity, range } from 'lodash';
 import { IUiSettingsClient } from 'src/core/server';
+import { savedObjectsClientMock, uiSettingsServiceMock } from 'src/core/server/mocks';
 import {
   FieldFormatsRegistry,
   ISearchSource,
@@ -14,6 +15,11 @@ import {
 } from 'src/plugins/data/common';
 import { ReportingConfig } from '../../../';
 import { CancellationToken } from '../../../../common';
+import {
+  UI_SETTINGS_CSV_QUOTE_VALUES,
+  UI_SETTINGS_CSV_SEPARATOR,
+  UI_SETTINGS_DATEFORMAT_TZ,
+} from '../../../../common/constants';
 import {
   createMockConfig,
   createMockConfigSchema,
@@ -28,9 +34,7 @@ const createMockJob = (baseObj: any = {}): JobParamsCSV => ({
 
 let mockConfig: ReportingConfig;
 
-const mockUiSettingsClient = ({
-  get: jest.fn(),
-} as unknown) as jest.Mocked<IUiSettingsClient>;
+let uiSettingsClient: IUiSettingsClient;
 
 const mockSearchSourceFetch = jest.fn();
 const mockSearchSourceGetField = jest.fn();
@@ -53,14 +57,17 @@ const mockFieldFormatsRegistry = ({
 } as unknown) as FieldFormatsRegistry;
 
 beforeEach(async () => {
-  mockUiSettingsClient.get.mockImplementation((key): any => {
+  uiSettingsClient = uiSettingsServiceMock
+    .createStartContract()
+    .asScopedToClient(savedObjectsClientMock.create());
+  uiSettingsClient.get = jest.fn().mockImplementation((key): any => {
     switch (key) {
-      case 'dateFormat:tz':
-        return 'UTC';
-      case 'csv:separator':
-        return ',';
-      case 'csv:quoteValues':
+      case UI_SETTINGS_CSV_QUOTE_VALUES:
         return true;
+      case UI_SETTINGS_CSV_SEPARATOR:
+        return ',';
+      case UI_SETTINGS_DATEFORMAT_TZ:
+        return 'Browser';
     }
   });
 
@@ -98,7 +105,7 @@ it('formats an empty search result to CSV content', async () => {
   const generateCsv = new CsvGenerator(
     createMockJob({}),
     mockConfig,
-    mockUiSettingsClient,
+    uiSettingsClient,
     mockSearchSourceService,
     mockFieldFormatsRegistry,
     new CancellationToken(),
@@ -127,7 +134,7 @@ it('formats a search result to CSV content', async () => {
   const generateCsv = new CsvGenerator(
     createMockJob({}),
     mockConfig,
-    mockUiSettingsClient,
+    uiSettingsClient,
     mockSearchSourceService,
     mockFieldFormatsRegistry,
     new CancellationToken(),
@@ -160,7 +167,7 @@ it('formats a search result to CSV content, with serialized data', async () => {
   const generateCsv = new CsvGenerator(
     createMockJob({}),
     mockConfig,
-    mockUiSettingsClient,
+    uiSettingsClient,
     mockSearchSourceService,
     mockFieldFormatsRegistry,
     new CancellationToken(),
@@ -200,7 +207,7 @@ it('calculates the bytes of the content', async () => {
   const generateCsv = new CsvGenerator(
     createMockJob({}),
     mockConfig,
-    mockUiSettingsClient,
+    uiSettingsClient,
     mockSearchSourceService,
     mockFieldFormatsRegistry,
     new CancellationToken(),
@@ -242,7 +249,7 @@ it('warns if max size was reached', async () => {
   const generateCsv = new CsvGenerator(
     createMockJob({}),
     mockConfig,
-    mockUiSettingsClient,
+    uiSettingsClient,
     mockSearchSourceService,
     mockFieldFormatsRegistry,
     new CancellationToken(),
@@ -300,7 +307,7 @@ describe('fields', () => {
         },
       }),
       mockConfig,
-      mockUiSettingsClient,
+      uiSettingsClient,
       mockSearchSourceService,
       mockFieldFormatsRegistry,
       new CancellationToken(),
@@ -340,7 +347,7 @@ describe('formulas', () => {
     const generateCsv = new CsvGenerator(
       createMockJob({}),
       mockConfig,
-      mockUiSettingsClient,
+      uiSettingsClient,
       mockSearchSourceService,
       mockFieldFormatsRegistry,
       new CancellationToken(),
@@ -385,7 +392,7 @@ describe('formulas', () => {
     const generateCsv = new CsvGenerator(
       createMockJob({}),
       mockConfig,
-      mockUiSettingsClient,
+      uiSettingsClient,
       mockSearchSourceService,
       mockFieldFormatsRegistry,
       new CancellationToken(),
@@ -431,7 +438,7 @@ describe('formulas', () => {
     const generateCsv = new CsvGenerator(
       createMockJob({}),
       mockConfig,
-      mockUiSettingsClient,
+      uiSettingsClient,
       mockSearchSourceService,
       mockFieldFormatsRegistry,
       new CancellationToken(),

@@ -50,7 +50,6 @@ export const runTaskFnFactory: RunTaskFnFactory<RunTaskFn<TaskPayloadCSV>> = (
       warnings,
     } = await csv.generateData();
 
-    // @TODO: Consolidate these one-off warnings into the warnings array (max-size reached and csv contains formulas)
     return {
       content_type: CONTENT_TYPE_CSV,
       content,

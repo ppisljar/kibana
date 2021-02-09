@@ -12,6 +12,7 @@ jest.mock('../lib/create_queue');
 
 import _ from 'lodash';
 import * as Rx from 'rxjs';
+import { fieldFormats } from 'src/plugins/data/server';
 import { ReportingConfig, ReportingCore } from '../';
 import { featuresPluginMock } from '../../../features/server/mocks';
 import {
@@ -22,6 +23,7 @@ import {
 import { ReportingConfigType } from '../config';
 import { ReportingInternalSetup, ReportingInternalStart } from '../core';
 import { ReportingStore } from '../lib';
+import { setFieldFormats } from '../services';
 import { ReportingStartDeps } from '../types';
 import { createMockLevelLogger } from './create_mock_levellogger';
 
@@ -161,6 +163,13 @@ export const createMockReportingCore = async (
 
   core.pluginStart(startDepsMock);
   await core.pluginStartsUp();
+
+  setFieldFormats({
+    fieldFormatServiceFactory() {
+      const fieldFormatsRegistry = new fieldFormats.FieldFormatsRegistry();
+      return Promise.resolve(fieldFormatsRegistry);
+    },
+  });
 
   return core;
 };
