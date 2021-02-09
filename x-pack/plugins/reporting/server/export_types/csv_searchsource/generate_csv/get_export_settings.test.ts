@@ -20,15 +20,15 @@ import {
 import { getExportSettings } from './get_export_settings';
 
 describe('getExportSettings', () => {
-  let uiSettings: IUiSettingsClient;
+  let uiSettingsClient: IUiSettingsClient;
   const config = createMockConfig(createMockConfigSchema({}));
   const logger = createMockLevelLogger();
 
   beforeEach(() => {
-    uiSettings = uiSettingsServiceMock
+    uiSettingsClient = uiSettingsServiceMock
       .createStartContract()
       .asScopedToClient(savedObjectsClientMock.create());
-    uiSettings.get = jest.fn().mockImplementation((key: string) => {
+    uiSettingsClient.get = jest.fn().mockImplementation((key: string) => {
       switch (key) {
         case UI_SETTINGS_CSV_QUOTE_VALUES:
           return true;
@@ -43,7 +43,7 @@ describe('getExportSettings', () => {
   });
 
   test('getExportSettings: returns the expected result', async () => {
-    expect(await getExportSettings(uiSettings, config, '', logger)).toMatchInlineSnapshot(`
+    expect(await getExportSettings(uiSettingsClient, config, '', logger)).toMatchInlineSnapshot(`
       Object {
         "bom": "",
         "checkForFormulas": undefined,
@@ -58,7 +58,7 @@ describe('getExportSettings', () => {
   });
 
   test('escapeValue function', async () => {
-    const { escapeValue } = await getExportSettings(uiSettings, config, '', logger);
+    const { escapeValue } = await getExportSettings(uiSettingsClient, config, '', logger);
     expect(escapeValue(`test`)).toBe(`test`);
     expect(escapeValue(`this is, a test`)).toBe(`"this is, a test"`);
     expect(escapeValue(`"tet"`)).toBe(`"""tet"""`);
@@ -66,7 +66,7 @@ describe('getExportSettings', () => {
   });
 
   test('non-default timezone', async () => {
-    uiSettings.get = jest.fn().mockImplementation((key: string) => {
+    uiSettingsClient.get = jest.fn().mockImplementation((key: string) => {
       switch (key) {
         case UI_SETTINGS_DATEFORMAT_TZ:
           return `America/Aruba`;
@@ -74,7 +74,7 @@ describe('getExportSettings', () => {
     });
 
     expect(
-      await getExportSettings(uiSettings, config, '', logger).then(({ timezone }) => timezone)
+      await getExportSettings(uiSettingsClient, config, '', logger).then(({ timezone }) => timezone)
     ).toBe(`America/Aruba`);
   });
 });
