@@ -11,6 +11,7 @@ import { IUiSettingsClient } from 'kibana/server';
 import { ReportingConfig } from '../../../';
 import {
   CSV_BOM_CHARS,
+  UI_SETTINGS_DATEFORMAT_TZ,
   UI_SETTINGS_CSV_QUOTE_VALUES,
   UI_SETTINGS_CSV_SEPARATOR,
 } from '../../../../common/constants';
@@ -29,9 +30,9 @@ export interface CsvExportSettings {
 }
 
 export const getExportSettings = async (
-  timezone: string | undefined,
   client: IUiSettingsClient,
   config: ReportingConfig,
+  timezone: string | undefined,
   logger: LevelLogger
 ): Promise<CsvExportSettings> => {
   // Timezone
@@ -41,7 +42,7 @@ export const getExportSettings = async (
     setTimezone = timezone;
   } else {
     // timezone in settings?
-    setTimezone = await client.get('dateFormat:tz');
+    setTimezone = await client.get(UI_SETTINGS_DATEFORMAT_TZ);
     if (setTimezone === 'Browser') {
       // if `Browser`, hardcode it to 'UTC' so the export has data that makes sense
       logger.warn(

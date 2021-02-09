@@ -184,7 +184,7 @@ export class CsvGenerator {
 
   public async generateData(): Promise<SavedSearchGeneratorResult> {
     const [settings, searchSource] = await Promise.all([
-      getExportSettings(this.job.browserTimezone, this.uiSettingsClient, this.config, this.logger),
+      getExportSettings(this.uiSettingsClient, this.config, this.job.browserTimezone, this.logger),
       this.searchSourceService.create(this.job.searchSource),
     ]);
 

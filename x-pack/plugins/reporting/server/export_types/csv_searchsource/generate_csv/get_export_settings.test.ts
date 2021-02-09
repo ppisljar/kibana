@@ -4,3 +4,77 @@
  * 2.0; you may not use this file except in compliance with the Elastic License
  * 2.0.
  */
+
+import {
+  UI_SETTINGS_DATEFORMAT_TZ,
+  UI_SETTINGS_CSV_QUOTE_VALUES,
+  UI_SETTINGS_CSV_SEPARATOR,
+} from '../../../../common/constants';
+import { IUiSettingsClient } from 'kibana/server';
+import { savedObjectsClientMock, uiSettingsServiceMock } from 'src/core/server/mocks';
+import {
+  createMockConfig,
+  createMockConfigSchema,
+  createMockLevelLogger,
+} from '../../../test_helpers';
+import { getExportSettings } from './get_export_settings';
+
+describe('getExportSettings', () => {
+  let uiSettings: IUiSettingsClient;
+  const config = createMockConfig(createMockConfigSchema({}));
+  const logger = createMockLevelLogger();
+
+  beforeEach(() => {
+    uiSettings = uiSettingsServiceMock
+      .createStartContract()
+      .asScopedToClient(savedObjectsClientMock.create());
+    uiSettings.get = jest.fn().mockImplementation((key: string) => {
+      switch (key) {
+        case UI_SETTINGS_CSV_QUOTE_VALUES:
+          return true;
+        case UI_SETTINGS_CSV_SEPARATOR:
+          return ',';
+        case UI_SETTINGS_DATEFORMAT_TZ:
+          return 'Browser';
+      }
+
+      return 'helo world';
+    });
+  });
+
+  test('getExportSettings: returns the expected result', async () => {
+    expect(await getExportSettings(uiSettings, config, '', logger)).toMatchInlineSnapshot(`
+      Object {
+        "bom": "",
+        "checkForFormulas": undefined,
+        "escapeFormulaValues": undefined,
+        "escapeValue": [Function],
+        "maxSizeBytes": undefined,
+        "scrollSize": undefined,
+        "separator": ",",
+        "timezone": "UTC",
+      }
+    `);
+  });
+
+  test('escapeValue function', async () => {
+    const { escapeValue } = await getExportSettings(uiSettings, config, '', logger);
+    expect(escapeValue(`test`)).toBe(`test`);
+    expect(escapeValue(`this is, a test`)).toBe(`"this is, a test"`);
+    expect(escapeValue(`"tet"`)).toBe(`"""tet"""`);
+    expect(escapeValue(`@foo`)).toBe(`"@foo"`);
+  });
+
+  test('non-default timezone', async () => {
+    uiSettings.get = jest.fn().mockImplementation((key: string) => {
+      switch (key) {
+        case UI_SETTINGS_DATEFORMAT_TZ:
+          return `America/Aruba`;
+      }
+    });
+
+    expect(
+      await getExportSettings(uiSettings, config, '', logger).then(({ timezone }) => timezone)
+    ).toBe(`America/Aruba`);
+  });
+});

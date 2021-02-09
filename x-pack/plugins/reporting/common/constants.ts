@@ -50,6 +50,7 @@ export const KBN_SCREENSHOT_HEADER_BLOCK_LIST_STARTS_WITH_PATTERN = ['proxy-'];
 export const UI_SETTINGS_CUSTOM_PDF_LOGO = 'xpackReporting:customPdfLogo';
 export const UI_SETTINGS_CSV_SEPARATOR = 'csv:separator';
 export const UI_SETTINGS_CSV_QUOTE_VALUES = 'csv:quoteValues';
+export const UI_SETTINGS_DATEFORMAT_TZ = 'dateFormat:tz';
 
 export const LAYOUT_TYPES = {
   PRESERVE_LAYOUT: 'preserve_layout',
