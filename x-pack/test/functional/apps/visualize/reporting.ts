@@ -59,6 +59,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
       });
 
       it('downloaded PDF has OK status', async function () {
+        // FIXME: what is the timepicker range in this report?
         // Generating and then comparing reports can take longer than the default 60s timeout
         this.timeout(180000);
 
