@@ -41,6 +41,7 @@ export const runTaskFnFactory: RunTaskFnFactory<ImmediateExecuteFn> = function e
     const fieldFormatsRegistry = await getFieldFormats().fieldFormatServiceFactory(
       uiSettingsClient
     );
+    const esClient = await (await reporting.getEsClient()).asScoped(req);
 
     const job = {
       objectType: 'immediate-search',
@@ -50,6 +51,7 @@ export const runTaskFnFactory: RunTaskFnFactory<ImmediateExecuteFn> = function e
     const csv = new CsvGenerator(
       job,
       config,
+      esClient,
       uiSettingsClient,
       searchSourceService,
       fieldFormatsRegistry,

@@ -114,6 +114,11 @@ export class SearchSource {
   constructor(fields: SearchSourceFields = {}, dependencies: SearchSourceDependencies) {
     this.fields = fields;
     this.dependencies = dependencies;
+
+    if (fields.parent) {
+      this.setParent(new SearchSource(fields.parent, dependencies));
+      delete this.fields.parent;
+    }
   }
 
   /** ***
@@ -186,35 +191,7 @@ export class SearchSource {
     } else {
       thisFilter = [];
     }
-
-    if (recurse) {
-      const parent = this.getParent();
-      if (parent) {
-        const parentFields = parent.getFields(recurse);
-
-        let parentFilter = parentFields.filter; // type is single value, array, or function
-        if (parentFilter) {
-          if (typeof parentFilter === 'function') {
-            parentFilter = parentFilter() || []; // type is single value or array
-          }
-
-          if (Array.isArray(parentFilter)) {
-            thisFilter.push(...parentFilter);
-          } else {
-            thisFilter.push(parentFilter);
-          }
-        }
-
-        // add combined filters to the fields
-        const thisFields = {
-          ...this.fields,
-          filter: thisFilter,
-        };
-
-        return { ...parentFields, ...thisFields };
-      }
-    }
-    return { ...this.fields };
+    return { ...this.fields, filter: thisFilter };
   }
 
   /**
@@ -649,9 +626,7 @@ export class SearchSource {
    * serializes search source fields (which can later be passed to {@link ISearchStartSearchSource})
    */
   public getSerializedFields(recurse = false) {
-    const { filter: originalFilters, ...searchSourceFields } = omit(this.getFields(recurse), [
-      'size',
-    ]);
+    const { filter: originalFilters, ...searchSourceFields } = omit(this.getFields(), ['size']);
     let serializedSearchSourceFields: SearchSourceFields = {
       ...searchSourceFields,
       index: (searchSourceFields.index ? searchSourceFields.index.id : undefined) as any,
@@ -662,6 +637,9 @@ export class SearchSource {
         ...serializedSearchSourceFields,
         filter: filters,
       };
+    }
+    if (recurse && this.getParent()) {
+      serializedSearchSourceFields.parent = this.getParent()!.getSerializedFields(recurse);
     }
     return serializedSearchSourceFields;
   }

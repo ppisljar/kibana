@@ -103,6 +103,7 @@ export interface SearchSourceFields {
     id: string;
     keep_alive?: string;
   };
+  parent?: SearchSourceFields;
 }
 
 export interface SearchSourceOptions {
