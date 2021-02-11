@@ -48,6 +48,7 @@ export interface TaskRunResult {
   content_type: string | null;
   content: string | null;
   csv_contains_formulas?: boolean;
+  csv_row_count?: boolean;
   size: number;
   max_size_reached?: boolean;
   warnings?: string[];

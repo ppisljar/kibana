@@ -5,13 +5,13 @@
  * 2.0.
  */
 
-import dateMath from '@elastic/datemath';
 import { i18n } from '@kbn/i18n';
-import _ from 'lodash';
 import moment from 'moment-timezone';
 import { CoreSetup } from 'src/core/public';
+import { SearchSource } from 'src/plugins/data/public';
 import {
   ISearchEmbeddable,
+  SavedSearch,
   SEARCH_EMBEDDABLE_TYPE,
 } from '../../../../../src/plugins/discover/public';
 import { IEmbeddable, ViewMode } from '../../../../../src/plugins/embeddable/public';
@@ -21,6 +21,7 @@ import {
 } from '../../../../../src/plugins/ui_actions/public';
 import { LicensingPluginSetup } from '../../../licensing/public';
 import { API_GENERATE_IMMEDIATE, CSV_REPORTING_ACTION } from '../../common/constants';
+import { JobParamsDownloadCSV } from '../../server/export_types/csv_searchsource_immediate/types';
 import { checkLicense } from '../lib/license_check';
 
 function isSavedSearchEmbeddable(
@@ -32,6 +33,8 @@ function isSavedSearchEmbeddable(
 interface ActionContext {
   embeddable: ISearchEmbeddable;
 }
+
+const UI_SETTINGS_DOCTABLE_HIDETIME = 'doc_table:hideTimeColumn';
 
 export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> {
   private isDownloading: boolean;
@@ -61,19 +64,50 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
     });
   }
 
-  public getSearchRequestBody({ searchEmbeddable }: { searchEmbeddable: any }) {
-    const adapters = searchEmbeddable.getInspectorAdapters();
-    if (!adapters) {
-      return {};
+  // FIXME: code is duplicated with plugins/discover/.../get_sharing_data
+  public getSearchSource(savedSearch: SavedSearch, embeddable: ISearchEmbeddable) {
+    const searchSource = savedSearch.searchSource.createCopy();
+
+    searchSource.removeField('highlight');
+    searchSource.removeField('highlightAll');
+    searchSource.removeField('aggs');
+    searchSource.removeField('size');
+
+    searchSource.removeField('fields');
+    searchSource.removeField('fieldsFromSource');
+
+    const columns = savedSearch.columns || [];
+
+    // sanitize columns: can't be [_source]
+    if (/^_source$/.test(columns.join())) {
+      columns.length = 0;
     }
 
-    if (adapters.requests.requests.length === 0) {
-      return {};
+    if (columns && columns.length > 0) {
+      searchSource.setField('fields', columns);
+      // If time column should _not_ be hidden in doc tables, then add the time field to the searchSource fields
+      const hideTimeColumn = this.core.uiSettings.get(UI_SETTINGS_DOCTABLE_HIDETIME);
+      const index = searchSource.getField('index');
+      if (!hideTimeColumn && index) {
+        const { timeFieldName } = index;
+        if (timeFieldName) {
+          searchSource.setField('fields', [timeFieldName, ...columns]);
+        }
+      }
+    } else {
+      searchSource.setField('fields', ['*']);
     }
 
-    return searchEmbeddable.getSavedSearch().searchSource.getSearchRequestBody();
+    // Dashboard query bar and filters from embeddable.filtersSearchSource
+    const { filtersSearchSource } = (embeddable as unknown) as {
+      filtersSearchSource: SearchSource;
+    };
+    if (filtersSearchSource) {
+      searchSource.setParent(filtersSearchSource);
+    }
+
+    return searchSource.getSerializedFields(true);
   }
-
   public isCompatible = async (context: ActionContext) => {
     if (!this.canDownloadCSV) {
       return false;
@@ -95,34 +129,18 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
       return;
     }
 
-    const {
-      timeRange: { to, from },
-    } = embeddable.getInput();
+    const savedSearch = embeddable.getSavedSearch();
+    const searchSource = this.getSearchSource(savedSearch, embeddable);
 
-    const searchEmbeddable = embeddable;
-    const searchRequestBody = await this.getSearchRequestBody({ searchEmbeddable });
-    const state = _.pick(searchRequestBody, ['sort', 'docvalue_fields', 'query']);
     const kibanaTimezone = this.core.uiSettings.get('dateFormat:tz');
+    const browserTimezone = kibanaTimezone === 'Browser' ? moment.tz.guess() : kibanaTimezone;
+    const immediateJobParams: JobParamsDownloadCSV = {
+      searchSource,
+      browserTimezone,
+      title: savedSearch.title,
+    };
 
-    const id = `search:${embeddable.getSavedSearch().id}`;
-    const timezone = kibanaTimezone === 'Browser' ? moment.tz.guess() : kibanaTimezone;
-    const fromTime = dateMath.parse(from);
-    const toTime = dateMath.parse(to, { roundUp: true });
-
-    if (!fromTime || !toTime) {
-      return this.onGenerationFail(
-        new Error(`Invalid time range: From: ${fromTime}, To: ${toTime}`)
-      );
-    }
-
-    const body = JSON.stringify({
-      timerange: {
-        min: fromTime.format(),
-        max: toTime.format(),
-        timezone,
-      },
-      state,
-    });
+    const body = JSON.stringify(immediateJobParams);
 
     this.isDownloading = true;
 
@@ -137,11 +155,11 @@ export class GetCsvReportPanelAction implements ActionDefinition<ActionContext> 
     });
 
     await this.core.http
-      .post(`${API_GENERATE_IMMEDIATE}/${id}`, { body })
+      .post(`${API_GENERATE_IMMEDIATE}`, { body })
       .then((rawResponse: string) => {
         this.isDownloading = false;
 
-        const download = `${embeddable.getSavedSearch().title}.csv`;
+        const download = `${savedSearch.title}.csv`;
         const blob = new Blob([rawResponse], { type: 'text/csv;charset=utf-8;' });
 
         // Hack for IE11 Support
