@@ -36,10 +36,16 @@ export function getSearchParamsFromRequest(
 ): ISearchRequestParams {
   const { getConfig } = dependencies;
   const searchParams = getSearchParams(getConfig);
+  const searchRequestParams: ISearchRequestParams = {
+    body: searchRequest.body,
+  };
+
+  if (searchRequest.index) {
+    searchRequestParams.index = searchRequest.index.title || searchRequest.index;
+  }
 
   return {
-    index: searchRequest.index.title || searchRequest.index,
-    body: searchRequest.body,
+    ...searchRequestParams,
     ...searchParams,
   };
 }

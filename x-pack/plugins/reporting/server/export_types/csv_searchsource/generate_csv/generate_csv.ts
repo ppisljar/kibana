@@ -6,7 +6,7 @@
  */
 
 import { i18n } from '@kbn/i18n';
-import { IUiSettingsClient } from 'src/core/server';
+import { IScopedClusterClient, IUiSettingsClient } from 'src/core/server';
 import { Datatable } from 'src/plugins/expressions/server';
 import { ReportingConfig } from '../../..';
 import {
@@ -35,6 +35,7 @@ export class CsvGenerator {
   constructor(
     private job: JobParamsCSV,
     private config: ReportingConfig,
+    private esClient: IScopedClusterClient,
     private uiSettingsClient: IUiSettingsClient,
     private searchSourceService: ISearchStartSearchSource,
     private fieldFormatsRegistry: IFieldFormatsRegistry,
@@ -203,6 +204,19 @@ export class CsvGenerator {
     let lastSortId: EsQuerySearchAfter | undefined;
     const warnings: string[] = [];
 
+    // use _pit API
+    this.logger.debug('Opening PIT');
+    const { body, statusCode } = await this.esClient.asCurrentUser.openPointInTime({
+      index: index!.title,
+      keep_alive: '2m',
+    });
+    if (statusCode === 404) {
+      this.logger.error('we need an error message');
+    }
+    const pitId = body.id;
+    searchSource.setField('pit', { id: pitId, keep_alive: '2m' });
+    searchSource.removeField('index');
+
     while (currentRecord < totalRecords) {
       if (lastSortId) {
         searchSource.setField('searchAfter', lastSortId);
@@ -257,6 +271,10 @@ export class CsvGenerator {
         })
       );
     }
+
+    // clean PIT
+    this.logger.debug(`Closing PIT`);
+    await this.esClient.asCurrentUser.closePointInTime({ body: { id: pitId } });
 
     return {
       content: builder.getString(),

@@ -11,6 +11,7 @@ import { first, map, take } from 'rxjs/operators';
 import {
   BasePath,
   ElasticsearchServiceSetup,
+  IClusterClient,
   KibanaRequest,
   SavedObjectsClientContract,
   SavedObjectsServiceStart,
@@ -46,6 +47,7 @@ export interface ReportingInternalStart {
   store: ReportingStore;
   savedObjects: SavedObjectsServiceStart;
   uiSettings: UiSettingsServiceStart;
+  esClient: IClusterClient;
   data: DataPluginStart;
 }
 
@@ -245,5 +247,10 @@ export class ReportingCore {
   public async getSearchService() {
     const startDeps = await this.getPluginStartDeps();
     return startDeps.data.search;
+  }
+
+  public async getEsClient() {
+    const startDeps = await this.getPluginStartDeps();
+    return startDeps.esClient;
   }
 }

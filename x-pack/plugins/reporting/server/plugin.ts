@@ -124,6 +124,7 @@ export class ReportingPlugin
         uiSettings: core.uiSettings,
         esqueue,
         store,
+        esClient: core.elasticsearch.client,
       });
 
       this.logger.debug('Start complete');

@@ -32,9 +32,12 @@ export const runTaskFnFactory: RunTaskFnFactory<RunTaskFn<TaskPayloadCSV>> = (
       uiSettingsClient
     );
 
+    const esClient = (await reporting.getEsClient()).asScoped(fakeRequest);
+
     const csv = new CsvGenerator(
       job,
       config,
+      esClient,
       uiSettingsClient,
       searchSourceService,
       fieldFormatsRegistry,
