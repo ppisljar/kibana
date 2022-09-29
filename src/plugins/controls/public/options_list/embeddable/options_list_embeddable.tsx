@@ -285,6 +285,7 @@ export class OptionsListEmbeddable extends Embeddable<OptionsListEmbeddableInput
       query,
       timeRange: globalTimeRange,
       timeslice,
+      allowedOptions,
     } = this.getInput();
 
     if (this.abortController) this.abortController.abort();
@@ -297,20 +298,21 @@ export class OptionsListEmbeddable extends Embeddable<OptionsListEmbeddableInput
             mode: 'absolute' as 'absolute',
           }
         : globalTimeRange;
-    const { suggestions, invalidSelections, totalCardinality } =
-      await this.optionsListService.runOptionsListRequest(
-        {
-          field,
-          query,
-          filters,
-          dataView,
-          timeRange,
-          searchString,
-          runPastTimeout,
-          selectedOptions,
-        },
-        this.abortController.signal
-      );
+    const { suggestions, invalidSelections, totalCardinality } = allowedOptions
+      ? { suggestions: allowedOptions, invalidSelections: [], totalCardinality: 1 }
+      : await this.optionsListService.runOptionsListRequest(
+          {
+            field,
+            query,
+            filters,
+            dataView,
+            timeRange,
+            searchString,
+            runPastTimeout,
+            selectedOptions,
+          },
+          this.abortController.signal
+        );
     if (!selectedOptions || isEmpty(invalidSelections) || ignoreParentSettings?.ignoreValidations) {
       dispatch(
         updateQueryResults({

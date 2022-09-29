@@ -47,6 +47,8 @@ import { FilterButtonGroup } from '../filter_bar/filter_button_group/filter_butt
 import type { SuggestionsListSize } from '../typeahead/suggestions_component';
 import { TextBasedLanguagesEditor } from './text_based_languages_editor';
 import './query_bar.scss';
+import {EmbeddableRenderer} from "@kbn/embeddable-plugin/public";
+import {OptionsListEmbeddable, OptionsListEmbeddableFactory} from "@kbn/controls-plugin/public";
 
 const SuperDatePicker = React.memo(
   EuiSuperDatePicker as any
@@ -191,7 +193,6 @@ export const QueryBarTopRow = React.memo(
     } = kibana.services;
 
     const isQueryLangSelected = props.query && !isOfQueryType(props.query);
-
     const queryLanguage = props.query && isOfQueryType(props.query) && props.query.language;
     const queryRef = useRef<Query | QT | undefined>(props.query);
     queryRef.current = props.query;
@@ -463,6 +464,26 @@ export const QueryBarTopRow = React.memo(
       );
     }
 
+    const [controlEmbeddable, setControlEmbeddable] = useState<OptionsListEmbeddable>(undefined);
+
+    useEffect(() => {
+      data.dataViews
+        .get(props.dataViewPickerComponentProps?.currentDataViewId!)
+        .then((dataView) => {
+          new OptionsListEmbeddableFactory()
+            .create({
+              dataViewId: dataView.id!,
+              fieldName: '_index',
+              id: 'index_control',
+              allowedOptions: dataView.title.split(','),
+              defaultMessage: 'Filter index ...',
+            })
+            .then((embeddable) => {
+              setControlEmbeddable(embeddable);
+            });
+        });
+    }, [props.dataViewPickerComponentProps]);
+
     function renderDataViewsPicker() {
       if (!props.dataViewPickerComponentProps) return;
       let textBasedLanguage;
@@ -470,17 +491,23 @@ export const QueryBarTopRow = React.memo(
         const query = props.query as AggregateQuery;
         textBasedLanguage = getAggregateQueryMode(query);
       }
+
       return (
-        <EuiFlexItem style={{ maxWidth: '100%' }} grow={isMobile}>
-          <DataViewPicker
-            {...props.dataViewPickerComponentProps}
-            trigger={{ fullWidth: isMobile, ...props.dataViewPickerComponentProps.trigger }}
-            onTextLangQuerySubmit={props.onTextLangQuerySubmit}
-            textBasedLanguage={textBasedLanguage}
-            onSaveTextLanguageQuery={props.onTextBasedSavedAndExit}
-            isDisabled={props.isDisabled}
-          />
-        </EuiFlexItem>
+        <>
+          <EuiFlexItem style={{ maxWidth: '100%' }} grow={isMobile}>
+            <DataViewPicker
+              {...props.dataViewPickerComponentProps}
+              trigger={{ fullWidth: isMobile, ...props.dataViewPickerComponentProps.trigger }}
+              onTextLangQuerySubmit={props.onTextLangQuerySubmit}
+              textBasedLanguage={textBasedLanguage}
+              onSaveTextLanguageQuery={props.onTextBasedSavedAndExit}
+              isDisabled={props.isDisabled}
+            />
+          </EuiFlexItem>
+          <EuiFlexItem style={{ maxWidth: '150px' }}>
+            <EmbeddableRenderer embeddable={controlEmbeddable} />
+          </EuiFlexItem>
+        </>
       );
     }
 

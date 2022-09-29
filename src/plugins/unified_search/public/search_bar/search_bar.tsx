@@ -20,6 +20,7 @@ import { withKibana, KibanaReactContextValue } from '@kbn/kibana-react-plugin/pu
 import type { TimeHistoryContract, SavedQuery } from '@kbn/data-plugin/public';
 import type { SavedQueryAttributes } from '@kbn/data-plugin/common';
 import { DataView } from '@kbn/data-views-plugin/public';
+import { OptionsListEmbeddableFactory } from '@kbn/controls-plugin/public';
 
 import type { IUnifiedSearchPluginServices } from '../types';
 import { SavedQueryMeta, SaveQueryForm } from '../saved_query_form';
@@ -30,7 +31,6 @@ import QueryBarTopRow, { QueryBarTopRowProps } from '../query_string_input/query
 import { FilterBar, FilterItems } from '../filter_bar';
 import type { SuggestionsListSize } from '../typeahead/suggestions_component';
 import { searchBarStyles } from './search_bar.styles';
-
 export interface SearchBarInjectedDeps {
   kibana: KibanaReactContextValue<IUnifiedSearchPluginServices>;
   intl: InjectedIntl;
@@ -421,6 +421,9 @@ class SearchBarUI<QT extends (Query | AggregateQuery) | Query = Query> extends C
       this.props.displayStyle && styles[this.props.displayStyle],
       isScreenshotMode && styles.hidden,
     ];
+
+
+
 
     const classes = classNames('uniSearchBar', {
       [`uniSearchBar--hidden`]: isScreenshotMode,

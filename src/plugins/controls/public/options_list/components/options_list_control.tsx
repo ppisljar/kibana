@@ -43,6 +43,7 @@ export const OptionsListControl = ({ typeaheadSubject }: { typeaheadSubject: Sub
   const controlStyle = select((state) => state.explicitInput.controlStyle);
   const singleSelect = select((state) => state.explicitInput.singleSelect);
   const id = select((state) => state.explicitInput.id);
+  const defaultMessage = select((state) => state.explicitInput.defaultMessage);
 
   const loading = select((state) => state.output.loading);
 
@@ -103,7 +104,7 @@ export const OptionsListControl = ({ typeaheadSubject }: { typeaheadSubject: Sub
         numActiveFilters={validSelectionsCount}
         hasActiveFilters={Boolean(validSelectionsCount)}
       >
-        {hasSelections ? selectionDisplayNode : OptionsListStrings.control.getPlaceholder()}
+        {hasSelections ? selectionDisplayNode : (defaultMessage ? defaultMessage :OptionsListStrings.control.getPlaceholder())}
       </EuiFilterButton>
     </div>
   );
