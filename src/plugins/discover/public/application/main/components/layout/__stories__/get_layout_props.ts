@@ -24,6 +24,7 @@ import { esHits } from '../../../../../__mocks__/es_hits';
 import { SavedSearch } from '../../../../..';
 import { DiscoverLayoutProps } from '../types';
 import { GetStateReturn } from '../../../services/discover_state';
+import {TablesAdapter} from "@kbn/expressions-plugin/common";
 
 const documentObservables = {
   main$: new BehaviorSubject({
@@ -83,7 +84,7 @@ const getCommonProps = (dataView: DataView) => {
   return {
     dataView,
     dataViewList,
-    inspectorAdapters: { requests: new RequestAdapter() },
+    inspectorAdapters: { requests: new RequestAdapter(), tables: new TablesAdapter() },
     navigateTo: action('navigate to somewhere nice'),
     onChangeDataView: action('change the data view'),
     onUpdateQuery: action('update the query'),

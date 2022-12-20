@@ -81,7 +81,7 @@ export function fetchAll(
     // Start fetching all required requests
     const documents =
       useSql && query
-        ? fetchSql(query, dataView, data, services.expressions)
+        ? fetchSql(query, dataView, fetchDeps)
         : fetchDocuments(searchSource.createCopy(), fetchDeps);
 
     // Handle results of the individual queries and forward the results to the corresponding dataSubjects

@@ -16,6 +16,7 @@ import {
   filtersToAst,
   timerangeToAst,
 } from '..';
+import { ExpressionFunctionLogTableDefinition } from '@kbn/expressions-plugin/common/expression_functions/specs/log_table';
 
 interface Args extends QueryState {
   timeFieldName?: string;
@@ -55,6 +56,12 @@ export function textBasedQueryStateToExpressionAst({
 
       if (essql) {
         ast.chain.push(essql);
+
+        const logTable = buildExpressionFunction<ExpressionFunctionLogTableDefinition>(
+          'logTable',
+          {}
+        ).toAst();
+        ast.chain.push(logTable);
       }
     }
   }

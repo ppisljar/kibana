@@ -8,12 +8,11 @@
 import { pluck } from 'rxjs/operators';
 import { lastValueFrom } from 'rxjs';
 import { Query, AggregateQuery, Filter } from '@kbn/es-query';
-import type { DataPublicPluginStart } from '@kbn/data-plugin/public';
-import type { ExpressionsStart } from '@kbn/expressions-plugin/public';
 import type { Datatable } from '@kbn/expressions-plugin/public';
 import type { DataView } from '@kbn/data-views-plugin/common';
 import { textBasedQueryStateToAstWithValidation } from '@kbn/data-plugin/common';
 import { DataTableRecord } from '../../../types';
+import { FetchDeps } from './fetch_all';
 
 interface SQLErrorResponse {
   error: {
@@ -25,12 +24,11 @@ interface SQLErrorResponse {
 export function fetchSql(
   query: Query | AggregateQuery,
   dataView: DataView,
-  data: DataPublicPluginStart,
-  expressions: ExpressionsStart,
+  fetchDeps: FetchDeps,
   filters?: Filter[],
   inputQuery?: Query
 ) {
-  const timeRange = data.query.timefilter.timefilter.getTime();
+  const timeRange = fetchDeps.data.query.timefilter.timefilter.getTime();
   return textBasedQueryStateToAstWithValidation({
     filters,
     query,
@@ -40,7 +38,9 @@ export function fetchSql(
   })
     .then((ast) => {
       if (ast) {
-        const execution = expressions.run(ast, null);
+        const execution = fetchDeps.services.expressions.run(ast, null, {
+          inspectorAdapters: fetchDeps.inspectorAdapters,
+        });
         let finalData: DataTableRecord[] = [];
         let error: string | undefined;
         execution.pipe(pluck('result')).subscribe((resp) => {

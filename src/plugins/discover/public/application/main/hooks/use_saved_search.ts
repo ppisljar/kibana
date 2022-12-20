@@ -26,6 +26,7 @@ import { sendResetMsg } from './use_saved_search_messages';
 import { getFetch$ } from '../utils/get_fetch_observable';
 import type { DataTableRecord } from '../../../types';
 import type { InspectorAdapters } from './use_inspector';
+import {TablesAdapter} from "@kbn/expressions-plugin/common";
 
 export interface SavedSearchData {
   main$: DataMain$;
@@ -115,7 +116,10 @@ export const useSavedSearch = ({
 
   const recordRawType = useMemo(() => getRawRecordType(query), [query]);
 
-  const inspectorAdapters = useMemo(() => ({ requests: new RequestAdapter() }), []);
+  const inspectorAdapters = useMemo(
+    () => ({ requests: new RequestAdapter(), tables: new TablesAdapter() }),
+    []
+  );
 
   /**
    * The observables the UI (aka React component) subscribes to get notified about

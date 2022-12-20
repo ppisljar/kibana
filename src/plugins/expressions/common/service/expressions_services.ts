@@ -24,7 +24,7 @@ import { AnyExpressionRenderDefinition, ExpressionRendererRegistry } from '../ex
 import { ExpressionAstExpression } from '../ast';
 import { ExecutionContract, ExecutionResult } from '../execution';
 import { AnyExpressionTypeDefinition, ExpressionValueError } from '../expression_types';
-import { AnyExpressionFunctionDefinition } from '../expression_functions';
+import { AnyExpressionFunctionDefinition, logTable } from '../expression_functions';
 import {
   clog,
   createTable,
@@ -465,6 +465,7 @@ export class ExpressionsService
       mapColumn,
       math,
       mathColumn,
+      logTable,
     ]) {
       this.registerFunction(fn);
     }
