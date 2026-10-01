@@ -290,6 +290,41 @@ describe('installAutomationTemplateHandler', () => {
     expect(saveAutomationHandlerMock).not.toHaveBeenCalled();
   });
 
+  it('overwrites the given workflowId directly when the workflow exists', async () => {
+    getWorkflow.mockResolvedValue({ id: 'wf-explicit', name: 'Explicit target', tags: [] });
+
+    const result = await installAutomationTemplateHandler({
+      params: { ...documentParams, workflowId: 'wf-explicit' },
+      ...createDeps([{ type: 'workflow', value: 'wf-existing-tagged' }]),
+    });
+
+    expect(result.replaced).toBe(true);
+    expect(saveAutomationHandlerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ workflowId: 'wf-explicit' }),
+      })
+    );
+    // Tag-based lookup should not have been used — only one getWorkflow call for the explicit id.
+    expect(getWorkflow).toHaveBeenCalledTimes(1);
+    expect(getWorkflow).toHaveBeenCalledWith('wf-explicit', 'default', expect.anything());
+  });
+
+  it('creates a new workflow when the given workflowId does not exist', async () => {
+    getWorkflow.mockResolvedValue(null);
+
+    const result = await installAutomationTemplateHandler({
+      params: { ...documentParams, workflowId: 'wf-nonexistent' },
+      ...createDeps([]),
+    });
+
+    expect(result.replaced).toBe(false);
+    expect(saveAutomationHandlerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.not.objectContaining({ workflowId: expect.anything() }),
+      })
+    );
+  });
+
   it('checks write access before reading attached workflows', async () => {
     jest.mocked(assertContextEngineWriteAccess).mockRejectedValueOnce(new Error('no write'));
 

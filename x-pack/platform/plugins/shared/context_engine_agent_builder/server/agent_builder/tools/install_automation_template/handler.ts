@@ -39,14 +39,22 @@ import {
 
 type WorkflowsManagementApi = WorkflowsServerPluginSetup['management'];
 
+interface WithWorkflowId {
+  /** When set, targets this workflow directly instead of the tag-based lookup. */
+  workflowId?: string;
+}
+
 export type InstallAutomationTemplateParams =
   | ({ template: 'document_orchestration' } & Omit<
       DocumentOrchestrationTemplateValues,
       'aiIndexId'
-    >)
-  | ({ template: 'index_metadata' } & Omit<IndexMetadataTemplateValues, 'aiIndexId'>)
-  | ({ template: 'unit_profile' } & Omit<UnitProfileTemplateValues, 'aiIndexId'>)
-  | ({ template: 'targeted_ki_writer' } & Omit<TargetedKiWriterTemplateValues, 'aiIndexId'>);
+    > &
+      WithWorkflowId)
+  | ({ template: 'index_metadata' } & Omit<IndexMetadataTemplateValues, 'aiIndexId'> &
+      WithWorkflowId)
+  | ({ template: 'unit_profile' } & Omit<UnitProfileTemplateValues, 'aiIndexId'> & WithWorkflowId)
+  | ({ template: 'targeted_ki_writer' } & Omit<TargetedKiWriterTemplateValues, 'aiIndexId'> &
+      WithWorkflowId);
 
 const aiIndexIdFromAttachments = (attachments: AttachmentStateManager): string => {
   try {
@@ -171,16 +179,28 @@ export const installAutomationTemplateHandler = async ({
 
   const aiIndexId = aiIndexIdFromAttachments(attachments);
   const workflowYaml = renderTemplate(params, aiIndexId);
-  const existingWorkflowId = await findInstalledTemplateWorkflowId({
-    aiIndexId,
-    spaceId,
-    request,
-    template: params.template,
-    workflowYaml,
-    logger,
-    getAiIndexService,
-    getWorkflowsManagement,
-  });
+
+  let existingWorkflowId: string | undefined;
+  if (params.workflowId !== undefined) {
+    // Explicit target: check whether it exists. If not, fall through to a create.
+    const workflow = await getWorkflowsManagement().getWorkflow(
+      params.workflowId,
+      spaceId,
+      request
+    );
+    existingWorkflowId = workflow ? params.workflowId : undefined;
+  } else {
+    existingWorkflowId = await findInstalledTemplateWorkflowId({
+      aiIndexId,
+      spaceId,
+      request,
+      template: params.template,
+      workflowYaml,
+      logger,
+      getAiIndexService,
+      getWorkflowsManagement,
+    });
+  }
 
   const result = await saveAutomationHandler({
     params: {

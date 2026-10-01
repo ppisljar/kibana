@@ -134,6 +134,21 @@ describe('install_automation_template schema', () => {
     expect(parsed.success).toBe(true);
   });
 
+  it('accepts an optional workflowId on any template', () => {
+    const parsed = schema.safeParse({
+      template: 'document_orchestration',
+      sourceIndex: 'loyalty-docs',
+      titleField: 'title',
+      bodyField: 'body',
+      workflowId: 'wf-existing-123',
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.workflowId).toBe('wf-existing-123');
+    }
+  });
+
   it('rejects targeted_ki_writer without kis', () => {
     const parsed = schema.safeParse({ template: 'targeted_ki_writer' });
 
