@@ -39,9 +39,9 @@ import {
 
 type WorkflowsManagementApi = WorkflowsServerPluginSetup['management'];
 
-interface WithWorkflowId {
-  /** When set, targets this workflow directly instead of the tag-based lookup. */
-  workflowId?: string;
+interface WithName {
+  /** Human-readable name scoped to the AI index. Used for name-based lookup and injected as the workflow name. */
+  name: string;
 }
 
 export type InstallAutomationTemplateParams =
@@ -49,12 +49,11 @@ export type InstallAutomationTemplateParams =
       DocumentOrchestrationTemplateValues,
       'aiIndexId'
     > &
-      WithWorkflowId)
-  | ({ template: 'index_metadata' } & Omit<IndexMetadataTemplateValues, 'aiIndexId'> &
-      WithWorkflowId)
-  | ({ template: 'unit_profile' } & Omit<UnitProfileTemplateValues, 'aiIndexId'> & WithWorkflowId)
+      WithName)
+  | ({ template: 'index_metadata' } & Omit<IndexMetadataTemplateValues, 'aiIndexId'> & WithName)
+  | ({ template: 'unit_profile' } & Omit<UnitProfileTemplateValues, 'aiIndexId'> & WithName)
   | ({ template: 'targeted_ki_writer' } & Omit<TargetedKiWriterTemplateValues, 'aiIndexId'> &
-      WithWorkflowId);
+      WithName);
 
 const aiIndexIdFromAttachments = (attachments: AttachmentStateManager): string => {
   try {
@@ -178,29 +177,23 @@ export const installAutomationTemplateHandler = async ({
   await assertContextEngineWriteAccess({ request, spaceId, getCoreStart, getSecurityStart });
 
   const aiIndexId = aiIndexIdFromAttachments(attachments);
-  const workflowYaml = renderTemplate(params, aiIndexId);
+  // Inject the caller-provided name into the rendered YAML so the server derives a stable
+  // workflow ID from it, keeping workflow IDs scoped to names rather than AI index ids.
+  const workflowYaml = renderTemplate(params, aiIndexId).replace(
+    /^name: .*/m,
+    `name: ${JSON.stringify(params.name)}`
+  );
 
-  let existingWorkflowId: string | undefined;
-  if (params.workflowId !== undefined) {
-    // Explicit target: check whether it exists. If not, fall through to a create.
-    const workflow = await getWorkflowsManagement().getWorkflow(
-      params.workflowId,
-      spaceId,
-      request
-    );
-    existingWorkflowId = workflow ? params.workflowId : undefined;
-  } else {
-    existingWorkflowId = await findInstalledTemplateWorkflowId({
-      aiIndexId,
-      spaceId,
-      request,
-      template: params.template,
-      workflowYaml,
-      logger,
-      getAiIndexService,
-      getWorkflowsManagement,
-    });
-  }
+  const existingWorkflowId = await findInstalledTemplateWorkflowId({
+    aiIndexId,
+    spaceId,
+    request,
+    template: params.template,
+    workflowYaml,
+    logger,
+    getAiIndexService,
+    getWorkflowsManagement,
+  });
 
   const result = await saveAutomationHandler({
     params: {

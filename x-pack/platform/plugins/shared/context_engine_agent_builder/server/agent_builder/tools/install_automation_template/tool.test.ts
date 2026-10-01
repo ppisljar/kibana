@@ -27,6 +27,7 @@ describe('install_automation_template schema', () => {
   it('defaults the document bounds and does not ask for an AI index id', () => {
     const parsed = schema.safeParse({
       template: 'document_orchestration',
+      name: 'flight-activity-docs',
       sourceIndex: 'loyalty-docs',
       titleField: 'title',
       bodyField: 'body',
@@ -80,6 +81,7 @@ describe('install_automation_template schema', () => {
   it('takes a unit profile install with only the required fields', () => {
     const parsed = schema.safeParse({
       template: 'unit_profile',
+      name: 'loyalty-province-profile',
       sourceIndex: 'loyalty-history',
       unitKey: 'Province',
       activityField: 'Enrollment Date',
@@ -128,24 +130,25 @@ describe('install_automation_template schema', () => {
   it('accepts targeted_ki_writer with a kis string', () => {
     const parsed = schema.safeParse({
       template: 'targeted_ki_writer',
+      name: 'loyalty-constraints',
       kis: '- ki_id: foo\n  ki:\n    type: constraint\n    title: "T"\n    description: "D"\n    content: "C"\n    tags:\n      - constraint\n    references:\n      - uri: index://foo\n        relation: derived_from',
     });
 
     expect(parsed.success).toBe(true);
   });
 
-  it('accepts an optional workflowId on any template', () => {
+  it('accepts a name on any template and preserves it in the parsed output', () => {
     const parsed = schema.safeParse({
       template: 'document_orchestration',
       sourceIndex: 'loyalty-docs',
       titleField: 'title',
       bodyField: 'body',
-      workflowId: 'wf-existing-123',
+      name: 'flight-activity-docs',
     });
 
     expect(parsed.success).toBe(true);
     if (parsed.success) {
-      expect(parsed.data.workflowId).toBe('wf-existing-123');
+      expect(parsed.data.name).toBe('flight-activity-docs');
     }
   });
 

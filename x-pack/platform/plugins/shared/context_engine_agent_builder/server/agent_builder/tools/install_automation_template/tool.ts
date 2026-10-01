@@ -156,13 +156,12 @@ const installAutomationTemplateSchema = z
           index:// URIs in references. Never invent an id.
         `
       ),
-    workflowId: z
+    name: z
       .string()
       .min(1)
       .max(256)
-      .optional()
       .describe(
-        'ID of an existing workflow to replace. When provided, targets that specific workflow directly instead of using the default tag-based lookup. If the workflow does not exist, a new one is created. Omit to use the default reinstall behaviour: find the attached workflow by template tag and replace it, or create new if none is found.'
+        'Human-readable name for this automation within the AI index (e.g. "flight-activity-docs", "loyalty-tier-profile"). Used to find and replace an existing automation with the same name, or to create a new one when no match exists. Scoped to the AI index — different AI indices may reuse the same name without conflict. Must be unique within an AI index when multiple instances of the same template type are intended.'
       ),
   })
   .superRefine((value, ctx) => {
@@ -205,13 +204,13 @@ type InstallAutomationTemplateInput = z.infer<typeof installAutomationTemplateSc
 const toInstallParams = (
   input: InstallAutomationTemplateInput
 ): InstallAutomationTemplateParams => {
-  const workflowId = input.workflowId;
+  const { name } = input;
 
   if (input.template === 'targeted_ki_writer') {
     if (!input.kis) {
       throw new Error('kis is required for targeted_ki_writer.');
     }
-    return { template: 'targeted_ki_writer', kis: input.kis, workflowId };
+    return { template: 'targeted_ki_writer', kis: input.kis, name };
   }
 
   if (input.template === 'document_orchestration') {
@@ -228,7 +227,7 @@ const toInstallParams = (
       corpusFilter: input.corpusFilter ?? '',
       maxDocuments: input.maxDocuments ?? 50,
       bodyMaxChars: input.bodyMaxChars ?? 12000,
-      workflowId,
+      name,
     };
   }
 
@@ -246,7 +245,7 @@ const toInstallParams = (
       breakdownField: input.breakdownField,
       corpusFilter: '',
       maxUnits: input.maxUnits ?? 100,
-      workflowId,
+      name,
     };
   }
 
@@ -258,7 +257,7 @@ const toInstallParams = (
     template: 'index_metadata',
     sourceIndex: input.sourceIndex,
     categoryField: input.categoryField,
-    workflowId,
+    name,
   };
 };
 
@@ -296,9 +295,10 @@ export const createInstallAutomationTemplateTool = ({
     targeted_ki_writer has triggers: manual and takes no dynamic parameters beyond the AI index id.
     It writes KIs verbatim from a kis array you edit in the installed workflow's consts block, then
     run with platform.core.execute_workflow. Do not pass sourceIndex.
-    If this template is already installed on the AI index, calling this tool again reinstalls it:
-    the workflow definition is replaced in-place and the same workflow id is kept. At most one
-    automation of each template type exists per AI index — reinstalling never adds a second copy.
+    Always provide a descriptive name that identifies this automation within the AI index (e.g.
+    "flight-activity-docs", "loyalty-tier-profile"). If an automation with that name already exists
+    on the AI index it is replaced in-place. A different name installs an additional copy, which
+    allows multiple automations of the same template type on the same AI index.
   `,
   schema: installAutomationTemplateSchema,
   handler: async (params, { request, spaceId, attachments, logger }) => {
