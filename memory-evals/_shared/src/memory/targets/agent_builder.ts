@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 import type { KibanaClient } from '../../kibana_client.js';
 import type { ConverseResponse } from '../../types.js';
-import { ceDeleteKis, ceTriggerDreaming, ceWriteMemories, ceWriteTranscripts } from '../ce.js';
+import { ceDeleteKis, ceTriggerDreaming, ceWriteMemories, ceWriteTranscripts, type CeScope } from '../ce.js';
 import { questionText } from '../answerer.js';
 import { turnsToRounds } from '../normalize.js';
 import {
@@ -21,6 +21,7 @@ export interface AgentBuilderTargetOptions {
   connectorId?: string;
   /** Context Engine AI index the agent reads memories from. */
   aiIndexId: string;
+  spaceId: string;
   runId: string;
 }
 
@@ -43,8 +44,8 @@ const extractAnswer = (raw: ConverseResponse): string => {
 /**
  * Agent Builder as the system under test. Ingest prefers Context Engine
  * memories and transcripts; `ab_import` writes conversations for the
- * conversation-history case. Every question runs in a fresh, non-persisted
- * conversation, so the only way to answer is through memory.
+ * conversation-history case. Each question runs in a fresh conversation that is
+ * deleted after the answer, so the only way to answer is through memory.
  */
 export class AgentBuilderTarget implements MemoryTarget {
   readonly name = 'agent_builder' as const;
@@ -52,15 +53,19 @@ export class AgentBuilderTarget implements MemoryTarget {
 
   constructor(private readonly opts: AgentBuilderTargetOptions) {}
 
+  private scope(): CeScope {
+    const { client, aiIndexId, spaceId, runId } = this.opts;
+    return { client, aiIndexId, spaceId, runId };
+  }
+
   async ingest(sample: NormalizedSample, mode: IngestMode): Promise<IngestReceipt> {
-    const { client, aiIndexId, runId } = this.opts;
-    if (mode === 'ce_memory') return ceWriteMemories(client, aiIndexId, sample, runId);
-    if (mode === 'ce_transcript') return ceWriteTranscripts(client, aiIndexId, sample, runId);
+    if (mode === 'ce_memory') return ceWriteMemories(this.scope(), sample);
+    if (mode === 'ce_transcript') return ceWriteTranscripts(this.scope(), sample);
     return this.importConversations(sample);
   }
 
   async dream(_receipt: IngestReceipt): Promise<void> {
-    await ceTriggerDreaming(this.opts.client, this.opts.aiIndexId);
+    await ceTriggerDreaming(this.scope());
   }
 
   async ask(question: NormalizedQuestion, _receipt: IngestReceipt): Promise<TargetAnswer> {
@@ -68,10 +73,10 @@ export class AgentBuilderTarget implements MemoryTarget {
     const request: Parameters<KibanaClient['converse']>[0] = {
       agent_id: agentId,
       input: questionText(question),
-      persist: false,
     };
     if (connectorId) request.connector_id = connectorId;
     const raw = await client.converse(request);
+    await client.bulkDeleteConversations({ conversation_ids: [raw.conversation_id] });
     return { predicted_answer: extractAnswer(raw), raw };
   }
 
@@ -80,7 +85,7 @@ export class AgentBuilderTarget implements MemoryTarget {
       await this.opts.client.bulkDeleteConversations({ conversation_ids: receipt.handles });
       return;
     }
-    await ceDeleteKis(this.opts.client, this.opts.aiIndexId, receipt.handles);
+    await ceDeleteKis(this.scope(), receipt.handles);
   }
 
   /** Imports each session as its own conversation. On failure, the ones already imported are removed. */

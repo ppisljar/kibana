@@ -1,6 +1,6 @@
 import type { KibanaClient } from '../../kibana_client.js';
 import type { Answerer } from '../answerer.js';
-import { ceTriggerDreaming, ceWriteMemories, ceWriteTranscripts, ceDeleteKis } from '../ce.js';
+import { ceDeleteKis, ceTriggerDreaming, ceWriteMemories, ceWriteTranscripts, type CeScope } from '../ce.js';
 import {
   PendingApiError,
   type IngestMode,
@@ -14,6 +14,7 @@ import {
 export interface ContextEngineTargetOptions {
   client: KibanaClient;
   aiIndexId: string;
+  spaceId: string;
   runId: string;
   answerer: Answerer;
   /**
@@ -42,15 +43,19 @@ export class ContextEngineTarget implements MemoryTarget {
 
   constructor(private readonly opts: ContextEngineTargetOptions) {}
 
+  private scope(): CeScope {
+    const { client, aiIndexId, spaceId, runId } = this.opts;
+    return { client, aiIndexId, spaceId, runId };
+  }
+
   async ingest(sample: NormalizedSample, mode: IngestMode): Promise<IngestReceipt> {
-    const { client, aiIndexId, runId } = this.opts;
-    if (mode === 'ce_memory') return ceWriteMemories(client, aiIndexId, sample, runId);
-    if (mode === 'ce_transcript') return ceWriteTranscripts(client, aiIndexId, sample, runId);
+    if (mode === 'ce_memory') return ceWriteMemories(this.scope(), sample);
+    if (mode === 'ce_transcript') return ceWriteTranscripts(this.scope(), sample);
     throw new Error(`ingest mode ${mode} is not supported by the context_engine target`);
   }
 
   async dream(_receipt: IngestReceipt): Promise<void> {
-    await ceTriggerDreaming(this.opts.client, this.opts.aiIndexId);
+    await ceTriggerDreaming(this.scope());
   }
 
   async ask(question: NormalizedQuestion, _receipt: IngestReceipt): Promise<TargetAnswer> {
@@ -77,6 +82,6 @@ export class ContextEngineTarget implements MemoryTarget {
   }
 
   async cleanup(receipt: IngestReceipt): Promise<void> {
-    await ceDeleteKis(this.opts.client, this.opts.aiIndexId, receipt.handles);
+    await ceDeleteKis(this.scope(), receipt.handles);
   }
 }

@@ -146,6 +146,50 @@ kbn-xsrf: report-it
 A 2xx is treated as success; any 4xx/5xx fails the question with a descriptive
 error. The runner waits for the response before issuing the question.
 
+## Memory runner (targets)
+
+`runner/` runs LongMemEval and LoCoMo against three systems under test with one
+pipeline:
+
+| Target | Who answers | Retrieval path |
+| --- | --- | --- |
+| `agent_builder` (1P) | Agent Builder agent | Agent's memory tools, fresh non-persisted conversation per question |
+| `context_engine` (2P) | Harness model (`ANTHROPIC_API_KEY`) | ES|QL against the AI index (`KBN_CE_RETRIEVAL_QUERY`) |
+| `claude_code` (3P) | `claude -p`, headless | Agent Builder MCP server (`/api/agent_builder/mcp`), built-in tools off |
+
+Ingest modes (`--ingest`):
+
+- `ce_memory` (default): short-term memories (`memory.session`) written through
+  `POST /internal/context_engine/ai_index/{id}/memories/_bulk`. Each memory carries the
+  session reference (`eval-session://<session_id>`) so retrieval maps back to evidence.
+- `ce_transcript`: round transcripts in the conversation transcript index. Not in upstream yet, so the run stops with a `PendingApiError`.
+- `ab_import`: Agent Builder conversations through `_import` (1P only).
+
+`--dream pre_post` asks every question before and after running the managed dreaming
+workflow on the same ingest. The summary reports the paired difference, so you can see
+whether dreaming improves accuracy and evidence recall.
+
+Requirements on the AI index: global Context Engine memory enabled, dreaming configured,
+and a non-pattern destination.
+
+```sh
+npm run runner -- --benchmark longmemeval --dataset tmp/longmemeval_s.json \
+  --target context_engine --ingest ce_memory --dream pre_post --questions 20 --run-id lme-smoke
+```
+
+| Env var | Used by | Notes |
+| --- | --- | --- |
+| `KBN_AI_INDEX_ID` | all targets | Required. The AI index memories are written to. |
+| `KBN_CE_RETRIEVAL_QUERY` | `context_engine` | ES|QL with a `{question}` placeholder, e.g. `FROM <backing-index> \| WHERE content:"{question}" \| LIMIT 10`. |
+| `KBN_ANSWER_MODEL` | `context_engine` | Default `claude-sonnet-5-5`. |
+| `KBN_CLAUDE_BIN`, `KBN_CLAUDE_MODEL` | `claude_code` | Default `claude`. |
+
+Status: memory writes, dreaming, Agent Builder import and bulk delete are wired to the Kibana
+routes added on this branch (`/internal/context_engine/ai_index/{id}/memories/_bulk`,
+`/internal/agent_builder/conversations/_import` and `_bulk_delete`). The wiring is covered by a
+stub-Kibana test (`_shared/src/__tests__/memory_wiring.test.ts`); a run against a live stack is
+still pending. Transcript ingest waits for the conversation transcript index.
+
 ## Development
 
 ```sh
