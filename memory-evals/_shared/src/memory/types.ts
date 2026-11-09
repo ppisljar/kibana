@@ -30,6 +30,19 @@ export interface NormalizedSession {
   turns: SessionTurn[];
 }
 
+/**
+ * How a question is graded. Deterministic kinds are scored in code. `judge` and `rubric` go
+ * through the LLM judge. Questions without a spec are judged.
+ */
+export type QuestionScoring =
+  | { kind: 'judge' }
+  | { kind: 'rubric' }
+  | { kind: 'contains_any'; golds: string[] }
+  | { kind: 'contains_fraction'; golds: string[] }
+  | { kind: 'letter'; letter: string }
+  | { kind: 'letter_set'; letters: string[] }
+  | { kind: 'phrase_set'; phrases: string[]; ordered: boolean };
+
 export interface NormalizedQuestion {
   question_id: string;
   question_type: string;
@@ -38,6 +51,7 @@ export interface NormalizedQuestion {
   question_date?: string;
   /** Sessions that hold the evidence for the answer. Empty for abstention questions. */
   evidence_session_ids: string[];
+  scoring?: QuestionScoring;
 }
 
 export interface NormalizedSample {

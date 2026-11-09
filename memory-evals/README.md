@@ -192,6 +192,49 @@ routes added on this branch (`/internal/context_engine/ai_index/{id}/memories/_b
 stub-Kibana test (`_shared/src/__tests__/memory_wiring.test.ts`); a run against a live stack is
 still pending. Transcript ingest waits for the conversation transcript index.
 
+## Long-context eval sets
+
+The runner also takes five long-context sets. Each one becomes samples the same way: the
+haystack or document is ingested as sessions, then each question is asked against it. Scoring
+follows the source benchmark where it is deterministic. LLM-graded questions go to the judge.
+
+| `--benchmark` | `--dataset` | Haystack | Grading |
+| --- | --- | --- | --- |
+| `longmemeval_v2` | directory with `questions.jsonl`, `haystacks/lme_v2_{small,medium}.json`, `trajectories.jsonl` | web and enterprise agent trajectories, one session each | per question `eval_function`: phrase sets, letter, letter set, LLM rubric |
+| `longbench_v2` | `data.json` (JSON array) | the record's `context`, chunked | letter (A-D) |
+| `infinitebench` | one task file, e.g. `passkey.jsonl`, `longbook_choice_eng.jsonl` | the record's `context`, chunked | letter when options exist; containment for passkey, number_string, kv_retrieval, math_find, math_calc, code_run; judge for QA and summary |
+| `ruler` | a RULER jsonl file (e.g. `niah_multikey_3/validation_8192.jsonl`) | the record's `context` | fraction of gold `outputs` contained |
+| `helmet` | a HELMET recall jsonl file (`json_kv/*.jsonl` or `ruler/*`) | the record's `context` | fraction of gold `answer`/`outputs` contained |
+
+Options: `--split small|medium` and `--domain web|enterprise` (LongMemEval-V2), `--max-state-chars N`
+(LongMemEval-V2 accessibility-tree cap, default 2000), and `--chunk-chars N` (document sessions,
+default 8000). `--questions N` caps the number of questions.
+
+Sources and formats (checked against the published files):
+
+- LongMemEval-V2: `SCHEMA.md` in [xiaowu0162/longmemeval-v2](https://huggingface.co/datasets/xiaowu0162/longmemeval-v2).
+  Image questions (29 of 451) are skipped because the harness sends text only.
+- LongBench v2: `data.json` in [zai-org/LongBench-v2](https://huggingface.co/datasets/zai-org/LongBench-v2).
+- InfiniteBench: per-task jsonl files in [xinrongzhang2022/InfiniteBench](https://huggingface.co/datasets/xinrongzhang2022/InfiniteBench).
+- RULER and HELMET: the pre-generated files in the `data.tar.gz` of [princeton-nlp/HELMET](https://huggingface.co/datasets/princeton-nlp/HELMET).
+
+Deviations and assumptions to know before reading the numbers:
+
+- LongMemEval-V2 trajectories keep each state's accessibility tree only up to `--max-state-chars`.
+  The full trees make a trajectory several hundred kilobytes.
+- LongMemEval-V2 phrase-set questions pass when every gold phrase appears in the response, in
+  order for the `_ordered` evaluator. Free-text answers are not penalised for extra words.
+- LongMemEval-V2 `llm_*` checkers are judged with the gold rubric as the reference, not the
+  LongMemEval prompts.
+- InfiniteBench QA, dialogue, and summary tasks use the judge. The official F1 and ROUGE scores
+  are not reproduced.
+- RULER and HELMET recall score the fraction of gold strings found, which matches RULER's
+  `string_match_all`. Their evidence is not tracked, so recall and hit rate are empty for them.
+- Document sessions are chunked on blank lines and then on line boundaries. Chunks never exceed
+  `--chunk-chars`, so key-value pairs in HELMET stay whole.
+- HELMET's RAG, rerank, citation, ICL, and summary tasks are not wired yet. Only the recall
+  tasks (`json_kv` and the RULER needle tasks) run.
+
 ## Development
 
 ```sh
