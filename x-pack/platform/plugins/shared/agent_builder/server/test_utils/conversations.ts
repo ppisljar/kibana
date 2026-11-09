@@ -81,6 +81,8 @@ export const createConversationClientMock = (): ConversationClientMock => {
     removeAccessControlEntries: jest.fn(),
     applyTemplate: jest.fn(),
     patchMetadata: jest.fn(),
+    import: jest.fn(),
+    bulkDelete: jest.fn(),
   };
 };
 

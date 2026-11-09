@@ -71,3 +71,52 @@ export interface AddConversationEventsRequestBody {
 export interface AddConversationEventsResponse {
   events: ConversationEvent[];
 }
+
+/** One round of an imported transcript. Carries no agent state, tool calls, or attachments. */
+export interface ImportConversationRoundInput {
+  user_message: string;
+  assistant_message: string;
+  /** ISO timestamp. Defaults to the time the import is processed. */
+  started_at?: string;
+}
+
+/**
+ * Body for `POST /internal/agent_builder/conversations/_import`. No agent runs: the rounds are
+ * stored verbatim with empty steps and zeroed usage. `mode: 'overwrite'` replaces an existing
+ * conversation owned by the current user; `create` (default) fails with 409 if the id exists.
+ */
+export interface ImportConversationRequestBody {
+  agent_id: string;
+  id?: string;
+  title?: string;
+  mode?: 'create' | 'overwrite';
+  rounds: ImportConversationRoundInput[];
+}
+
+export interface ImportConversationResponse {
+  conversation_id: string;
+  round_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Body for `POST /internal/agent_builder/conversations/_bulk_delete`. Always scoped to the
+ * current user's conversations. At least one filter must be set.
+ */
+export interface BulkDeleteConversationsRequestBody {
+  conversation_ids?: string[];
+  agent_id?: string;
+  /** Inclusive lower bound on `created_at`, ISO timestamp. */
+  created_after?: string;
+  /** Inclusive upper bound on `created_at`, ISO timestamp. */
+  created_before?: string;
+  /** Report counts without deleting. */
+  dry_run?: boolean;
+}
+
+export interface BulkDeleteConversationsResponse {
+  deleted: number;
+  matched: number;
+  not_found: string[];
+}
