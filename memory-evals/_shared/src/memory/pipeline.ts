@@ -1,6 +1,7 @@
 import type { Judge } from '../judge.js';
 
 import { evidenceHit, evidenceRecall } from './metrics.js';
+import { scoreDeterministic } from './scoring.js';
 import { resolveSessionIds } from './session_ids.js';
 import {
   PendingApiError,
@@ -25,6 +26,8 @@ export interface PhaseResult {
   phase: Phase;
   predicted_answer: string;
   judge_score: number | null;
+  /** Who produced `judge_score`: the LLM judge, code, or nothing when scoring failed. */
+  scorer: 'judge' | 'deterministic' | 'none';
   judge_reason?: string;
   evidence_session_ids: string[];
   retrieved_session_ids: string[];
@@ -65,6 +68,7 @@ const errorRow = (
   phase,
   predicted_answer: '',
   judge_score: null,
+  scorer: 'none',
   evidence_session_ids: question.evidence_session_ids,
   retrieved_session_ids: [],
   recall: null,
@@ -93,20 +97,29 @@ const answerOne = async (
   const retrieved = resolveSessionIds(answer.raw, receipt.session_index);
   let judgeScore: number | null = null;
   let judgeReason: string | undefined;
-  try {
-    const verdict = await opts.judge.score({
-      question: question.question,
-      gold_answer: question.gold_answer,
-      predicted_answer: answer.predicted_answer,
-      category: question.question_type,
-      context: question.question_date ? { question_date: question.question_date } : {},
-    });
-    if (verdict) {
-      judgeScore = verdict.score;
-      if (verdict.reason) judgeReason = verdict.reason;
+  let scorer: PhaseResult['scorer'] = 'none';
+  const deterministic = scoreDeterministic(question.scoring, answer.predicted_answer);
+  if (deterministic) {
+    judgeScore = deterministic.score;
+    judgeReason = deterministic.reason;
+    scorer = 'deterministic';
+  } else {
+    try {
+      const verdict = await opts.judge.score({
+        question: question.question,
+        gold_answer: question.gold_answer,
+        predicted_answer: answer.predicted_answer,
+        category: question.question_type,
+        context: question.question_date ? { question_date: question.question_date } : {},
+      });
+      if (verdict) {
+        judgeScore = verdict.score;
+        if (verdict.reason) judgeReason = verdict.reason;
+        scorer = 'judge';
+      }
+    } catch (e) {
+      opts.warn?.(`judge error for ${question.question_id}: ${(e as Error).message}`);
     }
-  } catch (e) {
-    opts.warn?.(`judge error for ${question.question_id}: ${(e as Error).message}`);
   }
 
   const row: PhaseResult = {
@@ -120,6 +133,7 @@ const answerOne = async (
     phase,
     predicted_answer: answer.predicted_answer,
     judge_score: judgeScore,
+    scorer,
     evidence_session_ids: question.evidence_session_ids,
     retrieved_session_ids: retrieved,
     recall: evidenceRecall(retrieved, question.evidence_session_ids),

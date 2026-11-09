@@ -8,3 +8,7 @@ export * from './ce.js';
 export * from './targets/agent_builder.js';
 export * from './targets/context_engine.js';
 export * from './targets/claude_code.js';
+export * from './scoring.js';
+export * from './normalize_longctx.js';
+export * from './normalize_lme_v2.js';
+export * from './loaders.js';

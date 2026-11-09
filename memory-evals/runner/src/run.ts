@@ -16,8 +16,14 @@ import {
   fromLongMemEval,
   fromLoCoMo,
   type IngestMode,
+  loadLongBenchV2,
   loadLongMemEval,
+  loadLongMemEvalV2,
+  loadInfiniteBench,
   loadLoCoMo,
+  loadRulerJsonl,
+  DEFAULT_CHUNK_CHARS,
+  type JudgeBenchmark,
   log,
   type MemoryTarget,
   type NormalizedSample,
@@ -39,13 +45,15 @@ import {
 import { summarize } from './summary.js';
 
 const USAGE = `Usage:
-  npm run runner -- --benchmark longmemeval|locomo --dataset <path>
+  npm run runner -- --benchmark longmemeval|locomo|longmemeval_v2|longbench_v2|infinitebench|ruler|helmet
+                     --dataset <file, or directory for longmemeval_v2>
                      --target agent_builder|context_engine|claude_code
                      [--ingest ce_memory|ce_transcript|ab_import]
                      [--dream none|pre_post]
                      [--questions N] [--question-ids a,b] [--question-types t1,t2]
                      [--sample-ids s1,s2] [--run-id name] [--results-dir dir]
-                     [--no-teardown] [--dry-run]
+                     [--split small|medium] [--domain web|enterprise] [--max-state-chars N]
+                     [--chunk-chars N] [--no-teardown] [--dry-run]
 
 Environment (see memory-evals/README.md):
   KBN_URL, KBN_API_KEY | KBN_USERNAME + KBN_PASSWORD, KBN_SPACE, KBN_AGENT_ID,
@@ -55,12 +63,26 @@ Environment (see memory-evals/README.md):
 
 const TARGETS: TargetName[] = ['agent_builder', 'context_engine', 'claude_code'];
 const INGEST_MODES: IngestMode[] = ['ce_memory', 'ce_transcript', 'ab_import'];
-const BENCHMARKS = ['longmemeval', 'locomo'] as const;
+const BENCHMARKS = [
+  'longmemeval',
+  'locomo',
+  'longmemeval_v2',
+  'longbench_v2',
+  'infinitebench',
+  'ruler',
+  'helmet',
+] as const;
 type Benchmark = (typeof BENCHMARKS)[number];
 
 interface RunOptions {
   benchmark: Benchmark;
   datasetPath: string;
+  /** LongMemEval-V2 haystack split. */
+  split: 'small' | 'medium';
+  domain?: 'web' | 'enterprise';
+  /** LongMemEval-V2 per-state accessibility tree cap. */
+  maxStateChars: number;
+  chunkChars: number;
   target: TargetName;
   ingest: IngestMode;
   dream: DreamPhase;
@@ -87,7 +109,12 @@ const parseOpts = (argv: string[]): RunOptions => {
   const flags = parseArgs(argv, {
     booleanFlags: ['no-teardown', 'dry-run', 'help'],
     arrayFlags: ['question-ids', 'question-types', 'sample-ids'],
-    flags: { 'run-id': { default: defaultRunId() } },
+    flags: {
+      'run-id': { default: defaultRunId() },
+      split: { default: 'small' },
+      'max-state-chars': { default: '2000' },
+      'chunk-chars': { default: String(DEFAULT_CHUNK_CHARS) },
+    },
   });
   if (flags.help) {
     log(USAGE);
@@ -102,6 +129,9 @@ const parseOpts = (argv: string[]): RunOptions => {
   const opts: RunOptions = {
     benchmark,
     datasetPath: requireFlag(flags, 'dataset'),
+    split: oneOf('split', optionalString(flags, 'split'), ['small', 'medium'] as const, 'small'),
+    maxStateChars: numberFlag(flags, 'max-state-chars', 2000) ?? 2000,
+    chunkChars: numberFlag(flags, 'chunk-chars', DEFAULT_CHUNK_CHARS) ?? DEFAULT_CHUNK_CHARS,
     target: oneOf('target', requireFlag(flags, 'target'), TARGETS, 'agent_builder'),
     ingest: oneOf('ingest', optionalString(flags, 'ingest'), INGEST_MODES, 'ce_memory'),
     dream: oneOf('dream', optionalString(flags, 'dream'), ['none', 'pre_post'] as const, 'none'),
@@ -110,6 +140,8 @@ const parseOpts = (argv: string[]): RunOptions => {
     teardown: !boolFlag(flags, 'no-teardown'),
     dryRun: boolFlag(flags, 'dry-run'),
   };
+  const domain = optionalString(flags, 'domain');
+  if (domain === 'web' || domain === 'enterprise') opts.domain = domain;
   const limit = numberFlag(flags, 'questions');
   if (limit !== undefined) opts.questionLimit = limit;
   const ids = list('question-ids');
@@ -133,14 +165,41 @@ const authorizationHeader = (env: ParsedEnv): string => {
   return `Basic ${basic}`;
 };
 
+/** Benchmarks without their own prompt use the LongMemEval one; their judged questions are rare. */
+const judgeBenchmarkFor = (benchmark: Benchmark): JudgeBenchmark => {
+  if (benchmark === 'longmemeval_v2' || benchmark === 'infinitebench') return benchmark;
+  if (benchmark === 'locomo') return 'locomo';
+  return 'longmemeval';
+};
+
 const loadSamples = async (opts: RunOptions): Promise<NormalizedSample[]> => {
   let samples: NormalizedSample[];
+  const loadOpts = { chunkChars: opts.chunkChars, ...(opts.questionLimit !== undefined ? { limit: opts.questionLimit } : {}) };
   if (opts.benchmark === 'longmemeval') {
     const items = await loadLongMemEval(opts.datasetPath);
     samples = items.map(fromLongMemEval);
-  } else {
+  } else if (opts.benchmark === 'locomo') {
     const items = await loadLoCoMo(opts.datasetPath);
     samples = items.map(fromLoCoMo);
+  } else if (opts.benchmark === 'longmemeval_v2') {
+    const loaded = await loadLongMemEvalV2({
+      ...loadOpts,
+      dir: opts.datasetPath,
+      split: opts.split,
+      maxStateChars: opts.maxStateChars,
+      ...(opts.domain ? { domain: opts.domain } : {}),
+      ...(opts.questionIds ? { questionIds: opts.questionIds } : {}),
+    });
+    if (loaded.skippedImageQuestions > 0) {
+      warn(`Skipped ${loaded.skippedImageQuestions} image question(s); the harness sends text only.`);
+    }
+    samples = loaded.samples;
+  } else if (opts.benchmark === 'longbench_v2') {
+    samples = await loadLongBenchV2(opts.datasetPath, loadOpts);
+  } else if (opts.benchmark === 'infinitebench') {
+    samples = await loadInfiniteBench(opts.datasetPath, loadOpts);
+  } else {
+    samples = await loadRulerJsonl(opts.datasetPath, opts.benchmark, loadOpts);
   }
 
   if (opts.sampleIds) samples = samples.filter((s) => opts.sampleIds!.includes(s.sample_id));
@@ -226,7 +285,7 @@ async function main() {
   }
 
   const env = parseEnv();
-  const judge = buildJudge(env, opts.benchmark);
+  const judge = buildJudge(env, judgeBenchmarkFor(opts.benchmark));
   const anthropicKey = env.anthropicKey;
   const answerer = anthropicKey
     ? createAnthropicAnswerer({ apiKey: anthropicKey, model: process.env.KBN_ANSWER_MODEL ?? 'claude-sonnet-5-5' })

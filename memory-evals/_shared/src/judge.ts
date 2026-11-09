@@ -261,7 +261,44 @@ export class NoopJudge implements Judge {
 
 type Provider = 'anthropic' | 'openai';
 
-export type JudgeBenchmark = 'longmemeval' | 'locomo' | 'memoryagentbench' | 'memground';
+/** LongMemEval-V2 questions graded by an LLM rubric: the gold answer is the rubric. */
+const LME_V2_RUBRIC_PROMPT = `I will give you a question, a grading rubric that describes what a correct response must say or avoid, and a response from a model. Answer yes if the response satisfies the rubric. Answer partial if it satisfies part of it. Answer no otherwise.
+
+Question: {{question}}
+Rubric: {{gold_answer}}
+Model response: {{predicted_answer}}
+
+Does the model response satisfy the rubric? Answer yes, partial, or no only.`;
+
+export const lmeV2RubricPrompt = (req: JudgeRequest): string =>
+  fillPrompt(LME_V2_RUBRIC_PROMPT, {
+    question: req.question,
+    gold_answer: req.gold_answer,
+    predicted_answer: req.predicted_answer,
+  });
+
+const INFINITEBENCH_PROMPT = `I will give you a question, a correct answer, and a response from a model. Answer yes if the response contains the correct answer or says the same thing. Answer partial if it has part of the correct answer. Answer no otherwise.
+
+Question: {{question}}
+Correct answer: {{gold_answer}}
+Model response: {{predicted_answer}}
+
+Is the model response correct? Answer yes, partial, or no only.`;
+
+export const infiniteBenchPrompt = (req: JudgeRequest): string =>
+  fillPrompt(INFINITEBENCH_PROMPT, {
+    question: req.question,
+    gold_answer: req.gold_answer,
+    predicted_answer: req.predicted_answer,
+  });
+
+export type JudgeBenchmark =
+  | 'longmemeval'
+  | 'locomo'
+  | 'memoryagentbench'
+  | 'memground'
+  | 'longmemeval_v2'
+  | 'infinitebench';
 
 interface BaseProviderJudgeOptions extends JudgeOptions {
   benchmark: JudgeBenchmark;
@@ -288,6 +325,10 @@ abstract class BaseProviderJudge implements Judge {
         return mabPrompt(req);
       case 'memground':
         return memgroundPrompt(req);
+      case 'longmemeval_v2':
+        return lmeV2RubricPrompt(req);
+      case 'infinitebench':
+        return infiniteBenchPrompt(req);
     }
   }
 

@@ -15,6 +15,7 @@ const row = (overrides: Partial<PhaseResult>): PhaseResult => ({
   phase: 'single',
   predicted_answer: 'a',
   judge_score: 1,
+  scorer: 'judge',
   evidence_session_ids: ['s1'],
   retrieved_session_ids: ['s1'],
   recall: 1,
