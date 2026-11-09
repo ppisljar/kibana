@@ -15,6 +15,10 @@ import {
 import type { RouteDependencies } from '../types';
 import { getHandlerWrapper } from '../wrap_handler';
 import type {
+  BulkDeleteConversationsRequestBody,
+  BulkDeleteConversationsResponse,
+  ImportConversationRequestBody,
+  ImportConversationResponse,
   MarkPinnedConversationResponse,
   MarkReadConversationResponse,
   RenameConversationResponse,
@@ -24,6 +28,8 @@ import type { ApplyTemplateResponse } from '../../../common/http_api/apply_templ
 import type { PatchConversationMetadataResponse } from '../../../common/http_api/patch_metadata';
 import { apiPrivileges } from '../../../common/features';
 import {
+  CONVERSATION_BULK_DELETE_MAX_IDS,
+  CONVERSATION_IMPORT_MAX_ROUNDS,
   internalApiPath,
   MAX_CONVERSATION_SEARCH_PER_PAGE,
   MAX_RESULT_WINDOW,
@@ -188,6 +194,83 @@ export function registerInternalConversationRoutes({
           read: updatedConversation.read!,
         },
       });
+    })
+  );
+
+  // Writes caller-provided rounds as a conversation. Internal: bypasses the agent and stores the
+  // transcript verbatim, so it is intended for evaluation and migration tooling.
+  router.post(
+    {
+      path: `${internalApiPath}/conversations/_import`,
+      validate: {
+        body: schema.object({
+          agent_id: schema.string({ minLength: 1 }),
+          id: schema.maybe(schema.string({ minLength: 1, maxLength: CONVERSATION_ID_MAX_LENGTH })),
+          title: schema.maybe(schema.string({ maxLength: CONVERSATION_TITLE_MAX_LENGTH })),
+          mode: schema.maybe(schema.oneOf([schema.literal('create'), schema.literal('overwrite')])),
+          rounds: schema.arrayOf(
+            schema.object({
+              user_message: schema.string({ minLength: 1 }),
+              assistant_message: schema.string({ minLength: 1 }),
+              started_at: schema.maybe(schema.string()),
+            }),
+            { minSize: 1, maxSize: CONVERSATION_IMPORT_MAX_ROUNDS }
+          ),
+        }),
+      },
+      options: { access: 'internal' },
+      security: {
+        authz: { requiredPrivileges: [apiPrivileges.writeAgentBuilder] },
+      },
+    },
+    wrapHandler(async (ctx, request, response) => {
+      const { conversations: conversationsService } = getInternalServices();
+      const client = await conversationsService.getScopedClient({ request });
+      const body: ImportConversationRequestBody = request.body;
+      const imported = await client.import(body);
+
+      return response.ok<ImportConversationResponse>({
+        body: {
+          conversation_id: imported.id,
+          round_count: imported.rounds.length,
+          created_at: imported.created_at,
+          updated_at: imported.updated_at,
+        },
+      });
+    })
+  );
+
+  // Deletes the current user's conversations matching the filter. Internal: used by evaluation
+  // runners to clean up the conversations they created.
+  router.post(
+    {
+      path: `${internalApiPath}/conversations/_bulk_delete`,
+      validate: {
+        body: schema.object({
+          conversation_ids: schema.maybe(
+            schema.arrayOf(schema.string({ minLength: 1 }), {
+              minSize: 1,
+              maxSize: CONVERSATION_BULK_DELETE_MAX_IDS,
+            })
+          ),
+          agent_id: schema.maybe(schema.string({ minLength: 1 })),
+          created_after: schema.maybe(schema.string()),
+          created_before: schema.maybe(schema.string()),
+          dry_run: schema.maybe(schema.boolean()),
+        }),
+      },
+      options: { access: 'internal' },
+      security: {
+        authz: { requiredPrivileges: [apiPrivileges.writeAgentBuilder] },
+      },
+    },
+    wrapHandler(async (ctx, request, response) => {
+      const { conversations: conversationsService } = getInternalServices();
+      const client = await conversationsService.getScopedClient({ request });
+      const body: BulkDeleteConversationsRequestBody = request.body;
+      const result = await client.bulkDelete(body);
+
+      return response.ok<BulkDeleteConversationsResponse>({ body: result });
     })
   );
 

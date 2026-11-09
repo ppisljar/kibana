@@ -6,6 +6,11 @@
  */
 
 import type {
+  BulkDeleteConversationsRequestBody,
+  BulkDeleteConversationsResponse,
+  ImportConversationRequestBody,
+} from '../../../../common/http_api/conversations';
+import type {
   ConversationRound,
   ToolCallWithResult,
   ConversationRoundStepMixin,
@@ -259,3 +264,11 @@ export interface ConversationWriteOptions {
   /** The code path performing the write, recorded on the trigger event. */
   source: ConversationWriteSource;
 }
+
+/** Payload accepted by {@link ConversationClient.import}. */
+export type ConversationImportRequest = ImportConversationRequestBody;
+
+/** Filter for {@link ConversationClient.bulkDelete}. At least one field must be set. */
+export type ConversationBulkDeleteFilter = BulkDeleteConversationsRequestBody;
+
+export type ConversationBulkDeleteResult = BulkDeleteConversationsResponse;

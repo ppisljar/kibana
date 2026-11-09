@@ -27,6 +27,12 @@ export const MAX_CONVERSATIONS_PER_PAGE = 1000;
 /** Maximum number of conversation ids a single bulk get may look up. */
 export const CONVERSATION_BULK_GET_MAX_IDS = 1000;
 
+/** Maximum number of rounds a single conversation import may write. */
+export const CONVERSATION_IMPORT_MAX_ROUNDS = 1000;
+
+/** Maximum number of conversation ids a single bulk delete may target. */
+export const CONVERSATION_BULK_DELETE_MAX_IDS = 1000;
+
 /**
  * Maximum number of conversations returned per page of a search query.
  */

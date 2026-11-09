@@ -36,6 +36,10 @@ import {
   CONVERSATION_ACCESS_CONTROL_PRINCIPAL_ID_MAX_LENGTH,
   CONVERSATION_SCHEMA_VERSION,
   CONVERSATION_TITLE_MAX_LENGTH,
+  AgentBuilderErrorCode,
+  ConversationRoundStatus,
+  createAgentBuilderError,
+  type ConversationRound,
   ConversationAccessControlMode,
   isConversationAccessControlRole,
   isPublicConversation,
@@ -84,6 +88,9 @@ import type {
   ConversationWriteOptions,
   NormalizedConversation,
   ReplaceRoundEventsRequest,
+  ConversationBulkDeleteFilter,
+  ConversationBulkDeleteResult,
+  ConversationImportRequest,
   ConversationListResult,
 } from './types';
 import { createSpaceDslFilter, isDefaultSpace } from '../../../utils/spaces';
@@ -99,6 +106,8 @@ import {
   MAX_CONVERSATIONS_PER_PAGE,
   MAX_CONVERSATION_SEARCH_PER_PAGE,
   MAX_RESULT_WINDOW,
+  CONVERSATION_BULK_DELETE_MAX_IDS,
+  CONVERSATION_IMPORT_MAX_ROUNDS,
 } from '../../../../common/constants';
 import { buildConversationIdsFilter } from './build_ids_filter';
 import { isVersionConflictError } from '../../../utils/is_version_conflict_error';
@@ -206,6 +215,10 @@ export interface ConversationClient {
   bulkGet(ids: string[]): Promise<Map<string, ConversationWithoutRoundsWithPermissions>>;
   search(options: ConversationSearchOptions): Promise<ConversationListResult>;
   delete(conversationId: string): Promise<boolean>;
+  /** Writes caller-provided rounds as a conversation. No agent runs. */
+  import(request: ConversationImportRequest): Promise<Conversation>;
+  /** Deletes the current user's conversations matching the filter. Does not cascade to children. */
+  bulkDelete(filter: ConversationBulkDeleteFilter): Promise<ConversationBulkDeleteResult>;
   updateAccessControl(
     conversationId: string,
     update: UpdateConversationAccessControlRequestBody,
@@ -255,6 +268,9 @@ export interface ConversationClient {
  * Caps `title` at the stored bound. HTTP routes already validate it, but server-side callers
  * (LLM title generation in particular) do not, so enforce it here to cover every write path.
  */
+const readTotal = (total: number | { value: number } | undefined): number =>
+  typeof total === 'number' ? total : total?.value ?? 0;
+
 const withBoundedTitle = <T extends { title?: string }>(fields: T): T =>
   fields.title === undefined
     ? fields
@@ -1289,6 +1305,166 @@ class ConversationClientImpl implements ConversationClient {
 
   async delete(conversationId: string): Promise<boolean> {
     return this.deleteWithCascade(conversationId, new Set<string>());
+  }
+
+  async import(request: ConversationImportRequest): Promise<Conversation> {
+    const mode = request.mode ?? 'create';
+
+    if (request.rounds.length === 0) {
+      throw createBadRequestError('At least one round is required to import a conversation.');
+    }
+    if (request.rounds.length > CONVERSATION_IMPORT_MAX_ROUNDS) {
+      throw createBadRequestError(
+        `Too many rounds (${request.rounds.length}); maximum is ${CONVERSATION_IMPORT_MAX_ROUNDS}.`
+      );
+    }
+    request.rounds.forEach((round, idx) => {
+      if (round.started_at !== undefined && Number.isNaN(Date.parse(round.started_at))) {
+        throw createBadRequestError(`rounds[${idx}].started_at is not a valid ISO timestamp.`);
+      }
+    });
+
+    if (request.id) {
+      const existing = await this.storage
+        .getClient()
+        .search({
+          track_total_hits: false,
+          size: 1,
+          terminate_after: 1,
+          query: {
+            bool: {
+              filter: [createSpaceDslFilter(this.space), { term: { _id: request.id } }],
+            },
+          },
+        })
+        .then((response) => response.hits.hits[0]);
+      if (existing) {
+        if (existing._source?.user_name !== this.user.username) {
+          throw createAgentBuilderError(
+            AgentBuilderErrorCode.badRequest,
+            `Conversation ${request.id} already exists in this space but is owned by another user.`,
+            { conversationId: request.id, statusCode: 403 }
+          );
+        }
+        if (mode === 'create') {
+          throw createConversationAlreadyExistsError({ conversationId: request.id });
+        }
+        await this.delete(request.id);
+      }
+    }
+
+    const nowIso = new Date().toISOString();
+    const rounds: ConversationRound[] = request.rounds.map((round) => ({
+      id: uuidv4(),
+      status: ConversationRoundStatus.completed,
+      input: { message: round.user_message },
+      response: { message: round.assistant_message },
+      steps: [],
+      started_at: round.started_at ?? nowIso,
+      time_to_first_token: 0,
+      time_to_last_token: 0,
+      model_usage: {
+        connector_id: 'imported',
+        llm_calls: 0,
+        input_tokens: 0,
+        output_tokens: 0,
+      },
+    }));
+
+    const title =
+      request.title?.trim() || request.rounds[0]!.user_message.slice(0, CONVERSATION_TITLE_MAX_LENGTH);
+
+    return this.create(
+      { id: request.id, agent_id: request.agent_id, title, rounds },
+      { source: 'http_api' }
+    );
+  }
+
+  async bulkDelete(filter: ConversationBulkDeleteFilter): Promise<ConversationBulkDeleteResult> {
+    const { conversation_ids: conversationIds, agent_id: agentId } = filter;
+    const { created_after: createdAfter, created_before: createdBefore, dry_run: dryRun } = filter;
+
+    if (!conversationIds?.length && !agentId && !createdAfter && !createdBefore) {
+      throw createBadRequestError(
+        'bulkDelete requires at least one of: conversation_ids, agent_id, created_after, created_before.'
+      );
+    }
+    if (conversationIds && conversationIds.length > CONVERSATION_BULK_DELETE_MAX_IDS) {
+      throw createBadRequestError(
+        `conversation_ids exceeds maximum of ${CONVERSATION_BULK_DELETE_MAX_IDS} per call.`
+      );
+    }
+    for (const [name, value] of [
+      ['created_after', createdAfter],
+      ['created_before', createdBefore],
+    ] as const) {
+      if (value !== undefined && Number.isNaN(Date.parse(value))) {
+        throw createBadRequestError(`${name} is not a valid ISO timestamp.`);
+      }
+    }
+
+    const filters: QueryDslQueryContainer[] = [
+      createSpaceDslFilter(this.space),
+      { term: { user_name: this.user.username } },
+    ];
+    if (conversationIds?.length) filters.push({ terms: { _id: conversationIds } });
+    if (agentId) filters.push({ term: { agent_id: agentId } });
+    if (createdAfter || createdBefore) {
+      filters.push({
+        range: {
+          created_at: {
+            ...(createdAfter ? { gte: createdAfter } : {}),
+            ...(createdBefore ? { lte: createdBefore } : {}),
+          },
+        },
+      });
+    }
+    const query = { bool: { filter: filters } };
+
+    const countResponse = await this.storage.getClient().search({
+      track_total_hits: true,
+      size: 0,
+      query,
+    });
+    const matched = readTotal(countResponse.hits.total);
+
+    let notFound: string[] = [];
+    if (conversationIds?.length) {
+      const idHits = await this.storage.getClient().search({
+        track_total_hits: false,
+        size: conversationIds.length,
+        _source: false,
+        query,
+      });
+      const foundIds = new Set(idHits.hits.hits.map((hit) => hit._id));
+      notFound = conversationIds.filter((id) => !foundIds.has(id));
+    }
+
+    if (dryRun) return { deleted: 0, matched, not_found: notFound };
+
+    // Each page is deleted before the next search, so the next page never revisits a document.
+    let deleted = 0;
+    let remaining = matched;
+    while (remaining > 0) {
+      const page = await this.storage.getClient().search({
+        track_total_hits: false,
+        size: 1000,
+        _source: false,
+        query,
+      });
+      const hits = page.hits.hits;
+      if (hits.length === 0) break;
+      const results = await Promise.all(
+        hits.map((hit) => this.storage.getClient().delete({ id: hit._id! }))
+      );
+      const pageDeleted = results.filter((res) => res.result === 'deleted').length;
+      deleted += pageDeleted;
+      remaining -= hits.length;
+      // Nothing deleted on a full page means a concurrent writer is racing us; stop rather than spin.
+      if (pageDeleted === 0) break;
+    }
+
+    return { deleted, matched, not_found: notFound };
   }
 
   private async deleteWithCascade(conversationId: string, visited: Set<string>): Promise<boolean> {
