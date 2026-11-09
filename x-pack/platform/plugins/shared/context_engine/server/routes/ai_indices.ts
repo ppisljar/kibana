@@ -33,6 +33,7 @@ import {
   AI_INDEX_KI_BY_ID_PATH,
   AI_INDEX_KI_RESTORE_PATH,
   AI_INDEX_KI_LIST_PATH,
+  AI_INDEX_MEMORIES_PATH,
   AI_INDEX_PATH,
   AI_INDEX_QUERY_PATH,
 } from '../../common/constants';
@@ -59,6 +60,7 @@ import {
   type AiIndexDreamingConfig,
   type GetAiIndexDreamingResponse,
 } from '../../common/dreaming';
+import type { WriteMemoriesRequestBody, WriteMemoriesResponse } from '../../common/memory';
 import { apiPrivileges } from '../../common/features';
 import {
   InvalidAiIndexDestError,
@@ -91,6 +93,7 @@ import type { GetAiIndexDataReadServiceParams } from '../types';
 import { getKi } from '../ai_indices/ki_get';
 import { getKis } from '../ai_indices/ki_list';
 import { buildKiApiWriter, restoreKi, softDeleteKi, updateKi } from '../ai_indices/ki_write';
+import { writeMemories } from '../ai_indices/memory_write';
 import { validateConnectorSources } from '../ai_indices/validate_connector_sources';
 import { validateEsqlSources } from '../ai_indices/validate_esql_sources';
 import { validateTraces } from '../ai_indices/validate_traces';
@@ -120,6 +123,8 @@ import {
   updateKiResponseSchema,
   deleteKiResponseSchema,
   restoreKiResponseSchema,
+  writeMemoriesBodySchema,
+  writeMemoriesResponseSchema,
 } from './schemas/ai_indices_schema';
 import { dreamingConfigSchema, dreamingResponseSchema } from './schemas/dreaming_schema';
 import type { ContextEngineAnalyticsService } from '../telemetry';
@@ -1089,6 +1094,68 @@ export const registerAiIndexRoutes = ({
           auditLogger.log(
             aiIndexAuditEvent({ action: AiIndexAuditAction.UPDATE, id: aiIndexId, error })
           );
+          return handleAiIndexError(error, response, logger);
+        }
+      })
+    );
+
+  // Write memories to an AI Index without an agent
+  router.versioned
+    .post({
+      path: AI_INDEX_MEMORIES_PATH,
+      security: WRITE_SECURITY,
+      access: 'internal',
+      summary: 'Write memories to an AI Index',
+      description:
+        'Writes memories as knowledge items through the same write path as the `remember` tool, without an agent. Requires the global memory setting, and dreaming configured on the AI Index. Intended for evaluation and migration tooling.',
+    })
+    .addVersion(
+      {
+        version: AI_INDEX_INTERNAL_API_VERSION,
+        validate: {
+          request: {
+            params: aiIndexIdParamsSchema,
+            body: writeMemoriesBodySchema,
+          },
+          response: {
+            200: {
+              body: writeMemoriesResponseSchema,
+              description: 'The ids of the written memories, in request order.',
+            },
+            400: {
+              body: errorResponseSchema,
+              description: 'Memory is disabled, dreaming is not set up, or a memory is invalid.',
+            },
+            404: {
+              body: errorResponseSchema,
+              description: 'The AI Index does not exist.',
+            },
+          },
+        },
+      },
+      withContextEngineFeatureFlag(async (ctx, request, response) => {
+        const auditLogger = (await ctx.core).security.audit.logger;
+        const { aiIndexId } = request.params;
+        const spaceId = resolveSpaceId(await getSpaces(), request);
+        try {
+          if (!(await isMemoryEnabled(request))) {
+            throw new MemoryFeatureDisabledError(MEMORY_FEATURE_DISABLED_MESSAGE);
+          }
+          const aiIndex = await getAiIndexService().get(aiIndexId, spaceId);
+          const esClient = (await ctx.core).elasticsearch.client.asCurrentUser;
+          const body: WriteMemoriesRequestBody = request.body;
+          const ids = await writeMemories({
+            esClient,
+            aiIndex,
+            spaceId,
+            memories: body.memories,
+          });
+          for (const kiId of ids) {
+            auditLogger.log(kiAuditEvent({ action: AiIndexAuditAction.KI_CREATE, aiIndexId, kiId }));
+          }
+          const responseBody: WriteMemoriesResponse = { ids };
+          return response.ok({ body: responseBody });
+        } catch (error) {
           return handleAiIndexError(error, response, logger);
         }
       })

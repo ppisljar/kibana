@@ -8,6 +8,12 @@
 import type { Type } from '@kbn/config-schema';
 import { schema } from '@kbn/config-schema';
 import {
+  MAX_KI_DESCRIPTION_LENGTH,
+  MAX_KI_TAG_LENGTH,
+  MAX_KI_TAGS,
+  MAX_KI_TITLE_LENGTH,
+} from '../../../common/step_types/ki';
+import {
   DEFAULT_AI_INDEX_QUERY_LIMIT,
   DEFAULT_FEEDBACK_ANALYSIS_INTERVAL,
   DEFAULT_FEEDBACK_ANALYSIS_SIGNAL_TIME_RANGE_FROM,
@@ -675,3 +681,37 @@ export const errorResponseSchema = () =>
     },
     { meta: { description: 'Generic error response.' } }
   );
+
+export const writeMemoriesBodySchema = schema.object({
+  memories: schema.arrayOf(
+    schema.object({
+      id: schema.maybe(schema.string({ minLength: 1, maxLength: MAX_KI_ID_LENGTH })),
+      type: schema.oneOf([schema.literal('memory.session'), schema.literal('memory.session_fact')]),
+      title: schema.string({ minLength: 1, maxLength: MAX_KI_TITLE_LENGTH }),
+      description: schema.maybe(schema.string({ maxLength: MAX_KI_DESCRIPTION_LENGTH })),
+      content: schema.string({ minLength: 1, maxLength: MAX_KI_CONTENT_LENGTH }),
+      tags: schema.maybe(
+        schema.arrayOf(schema.string({ maxLength: MAX_KI_TAG_LENGTH }), { maxSize: MAX_KI_TAGS })
+      ),
+      references: schema.maybe(
+        schema.arrayOf(
+          schema.object({
+            uri: schema.string({ minLength: 1 }),
+            relation: schema.maybe(schema.string()),
+            description: schema.maybe(schema.string()),
+          }),
+          { maxSize: 50 }
+        )
+      ),
+      attributes: schema.maybe(schema.object({}, { unknowns: 'allow' })),
+    }),
+    { minSize: 1, maxSize: 500 }
+  ),
+});
+
+export const writeMemoriesResponseSchema = () =>
+  schema.object({
+    ids: schema.arrayOf(schema.string(), {
+      meta: { description: 'The ids of the written memories, in request order.' },
+    }),
+  });
