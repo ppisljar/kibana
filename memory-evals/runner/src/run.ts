@@ -177,6 +177,7 @@ const buildTarget = (opts: RunOptions, env: ParsedEnv, answerer: Answerer | unde
       client,
       agentId: env.agentId,
       aiIndexId,
+      spaceId: env.space,
       runId: opts.runId,
     };
     if (env.connectorId) t.connectorId = env.connectorId;
@@ -187,6 +188,7 @@ const buildTarget = (opts: RunOptions, env: ParsedEnv, answerer: Answerer | unde
     const t: ConstructorParameters<typeof ContextEngineTarget>[0] = {
       client,
       aiIndexId,
+      spaceId: env.space,
       runId: opts.runId,
       answerer,
     };
@@ -199,6 +201,7 @@ const buildTarget = (opts: RunOptions, env: ParsedEnv, answerer: Answerer | unde
     kbnUrl: env.url,
     authorization: authorizationHeader(env),
     aiIndexId,
+    spaceId: env.space,
     runId: opts.runId,
   };
   const bin = process.env.KBN_CLAUDE_BIN;

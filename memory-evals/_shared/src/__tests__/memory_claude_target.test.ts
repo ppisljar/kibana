@@ -52,6 +52,7 @@ describe('ClaudeCodeTarget.ask', () => {
       kbnUrl: 'http://localhost:5601/',
       authorization: 'ApiKey abc',
       aiIndexId: 'idx',
+      spaceId: 'default',
       runId: 'run',
       claudeBin: join(dir, 'claude'),
     });
