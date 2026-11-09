@@ -20,6 +20,11 @@ export interface CeScope {
   runId: string;
 }
 
+/** Context Engine routes under `/internal` take this version header. */
+export const CE_INTERNAL_HEADERS: Record<string, string> = { 'elastic-api-version': '1' };
+/** Public Context Engine routes take a date version. Keep in sync with `AI_INDEX_API_VERSION`. */
+export const CE_PUBLIC_HEADERS: Record<string, string> = { 'elastic-api-version': '2023-10-31' };
+
 /** Keeps each memory well under the knowledge item content limit while leaving room for context. */
 const CHUNK_CHARS = 8000;
 const WRITE_BATCH = 500;
@@ -106,7 +111,8 @@ export const ceWriteMemories = async (
       const response = await client.call<WriteMemoriesResponse>(
         'POST',
         `/internal/context_engine/ai_index/${encodeURIComponent(aiIndexId)}/memories/_bulk`,
-        { memories: batch }
+        { memories: batch },
+        CE_INTERNAL_HEADERS
       );
       response.ids.forEach((id, i) => {
         handles.push(id);
@@ -179,7 +185,9 @@ export const ceDeleteKis = async (scope: CeScope, kiIds: readonly string[]): Pro
   for (const kiId of kiIds) {
     await scope.client.call(
       'DELETE',
-      `/internal/context_engine/ai_index/${encodeURIComponent(scope.aiIndexId)}/kis/${encodeURIComponent(kiId)}`
+      `/internal/context_engine/ai_index/${encodeURIComponent(scope.aiIndexId)}/kis/${encodeURIComponent(kiId)}`,
+      undefined,
+      CE_INTERNAL_HEADERS
     );
   }
 };

@@ -1,6 +1,13 @@
 import type { KibanaClient } from '../../kibana_client.js';
 import type { Answerer } from '../answerer.js';
-import { ceDeleteKis, ceTriggerDreaming, ceWriteMemories, ceWriteTranscripts, type CeScope } from '../ce.js';
+import {
+  CE_PUBLIC_HEADERS,
+  ceDeleteKis,
+  ceTriggerDreaming,
+  ceWriteMemories,
+  ceWriteTranscripts,
+  type CeScope,
+} from '../ce.js';
 import {
   PendingApiError,
   type IngestMode,
@@ -67,9 +74,12 @@ export class ContextEngineTarget implements MemoryTarget {
       );
     }
     const query = retrievalQuery.replace('{question}', escapeEsql(question.question));
-    const response = await client.call<QueryResponse>('POST', '/api/context_engine/ai_index/_query', {
-      query,
-    });
+    const response = await client.call<QueryResponse>(
+      'POST',
+      '/api/context_engine/ai_index/_query',
+      { query },
+      CE_PUBLIC_HEADERS
+    );
     const memories = response.values.map((row) =>
       response.columns.map((col, i) => `${col.name}: ${JSON.stringify(row[i])}`).join(' | ')
     );
