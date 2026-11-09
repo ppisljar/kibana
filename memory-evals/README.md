@@ -170,7 +170,9 @@ workflow on the same ingest. The summary reports the paired difference, so you c
 whether dreaming improves accuracy and evidence recall.
 
 Requirements on the AI index: global Context Engine memory enabled, dreaming configured,
-and a non-pattern destination.
+and a non-pattern destination. Dreaming builds nothing unless the config declares at least one
+fact or entity type, and its `connector_id` must be an LLM connector that works in your Kibana.
+Agent Builder runs need a real agent id, for example `KBN_AGENT_ID=elastic-ai-agent`.
 
 ```sh
 npm run runner -- --benchmark longmemeval --dataset tmp/longmemeval_s.json \
