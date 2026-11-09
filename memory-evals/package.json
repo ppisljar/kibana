@@ -5,6 +5,7 @@
   "description": "External evaluation runners for Agent Builder memory benchmarks. Standalone — not part of the Kibana monorepo.",
   "workspaces": [
     "_shared",
+    "runner",
     "longmemeval",
     "locomo",
     "memoryagentbench",
@@ -18,8 +19,9 @@
     "mem2act": "npm run -w mem2act start --",
     "memground": "npm run -w memground start --",
     "test": "npm run -w @memory-evals/shared test",
-    "typecheck": "tsc -b _shared longmemeval locomo memoryagentbench mem2act memground",
-    "lint": "eslint --max-warnings=0 _shared/src longmemeval/src locomo/src memoryagentbench/src mem2act/src memground/src"
+    "typecheck": "tsc -b _shared runner longmemeval locomo memoryagentbench mem2act memground",
+    "lint": "eslint --max-warnings=0 _shared/src runner/src longmemeval/src locomo/src memoryagentbench/src mem2act/src memground/src",
+    "runner": "npm run -w @memory-evals/runner start --"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
