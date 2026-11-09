@@ -1,0 +1,17 @@
+{
+  "name": "@memory-evals/runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/run.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@memory-evals/shared": "*"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}

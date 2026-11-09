@@ -180,6 +180,11 @@ export class KibanaClient {
     return this.request<ConverseResponse>('POST', `${PUBLIC}/converse`, req);
   }
 
+  /** Untyped request for routes without a dedicated method, e.g. Context Engine. `path` is relative to the Kibana root. */
+  async call<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+    return this.request<T>(method, path, body);
+  }
+
   // -------------------------------------------------------------------------
   // Tools (Mem2Act)
   // -------------------------------------------------------------------------
