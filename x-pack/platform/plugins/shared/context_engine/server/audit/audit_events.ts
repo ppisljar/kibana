@@ -17,6 +17,7 @@ export enum AiIndexAuditAction {
   DELETE = 'ai_index_delete',
   KI_RESTORE = 'ki_restore',
   KI_UPDATE = 'ki_update',
+  KI_CREATE = 'ki_create',
   KI_DELETE = 'ki_delete',
   DELETE_RESOURCES = 'ai_index_delete_resources',
   QUERY = 'ai_index_query',
@@ -33,6 +34,7 @@ const eventVerbs: Record<AiIndexAuditAction, VerbsTuple> = {
   ai_index_list: ['access', 'accessing', 'accessed'],
   ai_index_delete: ['delete', 'deleting', 'deleted'],
   ki_restore: ['restore', 'restoring', 'restored'],
+  ki_create: ['create', 'creating', 'created'],
   ki_update: ['update', 'updating', 'updated'],
   ki_delete: ['delete', 'deleting', 'deleted'],
   ai_index_delete_resources: [
@@ -52,6 +54,7 @@ const eventTypes: Record<AiIndexAuditAction, string> = {
   ai_index_list: 'access',
   ai_index_delete: 'deletion',
   ki_restore: 'change',
+  ki_create: 'creation',
   ki_update: 'change',
   ki_delete: 'deletion',
   ai_index_delete_resources: 'deletion',
@@ -65,6 +68,7 @@ type AiIndexOnlyAuditAction = Exclude<
 >;
 
 export type KiAuditAction =
+  | AiIndexAuditAction.KI_CREATE
   | AiIndexAuditAction.KI_UPDATE
   | AiIndexAuditAction.KI_DELETE
   | AiIndexAuditAction.KI_RESTORE;

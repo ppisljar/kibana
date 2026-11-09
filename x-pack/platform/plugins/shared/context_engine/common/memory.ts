@@ -14,3 +14,23 @@ export const RETRIEVAL_EXCLUDED_MEMORY_KI_TYPES: readonly string[] = [
   ...MEMORY_KI_TYPES,
   RELATIONSHIP_KI_TYPE,
 ];
+
+export type MemoryKiType = (typeof MEMORY_KI_TYPES)[number];
+
+export interface WriteMemoriesRequestBody {
+  memories: Array<{
+    id?: string;
+    type: MemoryKiType;
+    title: string;
+    description?: string;
+    content: string;
+    tags?: string[];
+    references?: Array<{ uri: string; relation?: string; description?: string }>;
+    attributes?: Record<string, string | number | boolean | string[]>;
+  }>;
+}
+
+export interface WriteMemoriesResponse {
+  /** Ids of the written memories, in request order. */
+  ids: string[];
+}
