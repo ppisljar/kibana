@@ -50,6 +50,13 @@ beforeAll(async () => {
     const path = url.pathname;
     const body = await readBody(req);
     recorded.push({ method: req.method ?? 'GET', path, body });
+    const version = req.headers['elastic-api-version'];
+    if (path.startsWith('/internal/context_engine') && version !== '1') {
+      return json(res, 400, { message: 'internal Context Engine route needs elastic-api-version 1' });
+    }
+    if (path.startsWith('/api/context_engine') && version !== '2023-10-31') {
+      return json(res, 400, { message: 'public Context Engine route needs its date version' });
+    }
 
     if (req.method === 'POST' && path === '/internal/context_engine/ai_index/idx/memories/_bulk') {
       const { memories: items } = body as { memories: Array<Record<string, any>> };

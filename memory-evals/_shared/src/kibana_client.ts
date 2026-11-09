@@ -181,8 +181,13 @@ export class KibanaClient {
   }
 
   /** Untyped request for routes without a dedicated method, e.g. Context Engine. `path` is relative to the Kibana root. */
-  async call<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
-    return this.request<T>(method, path, body);
+  async call<T = unknown>(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers?: Record<string, string>
+  ): Promise<T> {
+    return this.request<T>(method, path, body, headers);
   }
 
   // -------------------------------------------------------------------------
@@ -262,14 +267,19 @@ export class KibanaClient {
   // Internals
   // -------------------------------------------------------------------------
 
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers?: Record<string, string>
+  ): Promise<T> {
     const basePath = await this.getBasePath();
     const full = `${this.url}${basePath}${sanitize(path)}`;
 
     const res = await this.retrying(() =>
       this.fetchImpl(full, {
         method,
-        headers: this.jsonHeaders(),
+        headers: { ...this.jsonHeaders(), ...headers },
         body: body === undefined ? undefined : JSON.stringify(body),
       })
     );
