@@ -1433,7 +1433,8 @@ class ConversationClientImpl implements ConversationClient {
       const idHits = await this.storage.getClient().search({
         track_total_hits: false,
         size: conversationIds.length,
-        _source: false,
+        // The storage adapter maps every hit's `_source`, so it must be present even when unused.
+        _source: ['user_name'],
         query,
       });
       const foundIds = new Set(idHits.hits.hits.map((hit) => hit._id));
@@ -1449,7 +1450,8 @@ class ConversationClientImpl implements ConversationClient {
       const page = await this.storage.getClient().search({
         track_total_hits: false,
         size: 1000,
-        _source: false,
+        // The storage adapter maps every hit's `_source`, so it must be present even when unused.
+        _source: ['user_name'],
         query,
       });
       const hits = page.hits.hits;

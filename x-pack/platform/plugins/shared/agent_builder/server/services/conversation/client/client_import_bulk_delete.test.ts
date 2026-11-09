@@ -196,6 +196,14 @@ describe('ConversationClient.bulkDelete', () => {
     expect(result).toEqual({ deleted: 2, matched: 2, not_found: [] });
   });
 
+  it('never asks for _source false, which the storage adapter cannot map', async () => {
+    mockEs.search.mockResolvedValue({ hits: { hits: [], total: { value: 0, relation: 'eq' } } });
+    await client.bulkDelete({ agent_id: 'agent-1' });
+    for (const [request] of mockEs.search.mock.calls) {
+      expect(request._source).not.toBe(false);
+    }
+  });
+
   it('stops when a full page deletes nothing', async () => {
     mockEs.search
       .mockResolvedValueOnce({ hits: { hits: [], total: { value: 5, relation: 'eq' } } })
