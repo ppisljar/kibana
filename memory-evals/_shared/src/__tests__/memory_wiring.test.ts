@@ -6,7 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { KibanaClient } from '../kibana_client.js';
 import type { Judge } from '../judge.js';
 import { fromLongMemEval } from '../memory/normalize.js';
-import { dreamingWorkflowIdFor } from '../memory/ce.js';
+import { dreamingWorkflowIdFor, transcriptDreamingWorkflowIdFor } from '../memory/ce.js';
 import { runSample, type PhaseResult } from '../memory/pipeline.js';
 import { AgentBuilderTarget } from '../memory/targets/agent_builder.js';
 import { ContextEngineTarget } from '../memory/targets/context_engine.js';
@@ -43,6 +43,7 @@ const readBody = (req: IncomingMessage): Promise<unknown> =>
   });
 
 const WORKFLOW_ID = dreamingWorkflowIdFor('idx', 'default');
+const TRANSCRIPT_WORKFLOW_ID = transcriptDreamingWorkflowIdFor('idx', 'default');
 let nextId = 0;
 
 beforeAll(async () => {
@@ -71,7 +72,10 @@ beforeAll(async () => {
     if (req.method === 'POST' && path === `/api/workflows/workflow/${WORKFLOW_ID}/run`) {
       return json(res, 200, { workflowExecutionId: 'exec-1' });
     }
-    if (req.method === 'GET' && path === '/api/workflows/executions/exec-1') {
+    if (req.method === 'POST' && path === `/api/workflows/workflow/${TRANSCRIPT_WORKFLOW_ID}/run`) {
+      return json(res, 200, { workflowExecutionId: 'exec-2' });
+    }
+    if (req.method === 'GET' && /^\/api\/workflows\/executions\/exec-[12]$/.test(path)) {
       return json(res, 200, { status: 'completed' });
     }
     if (req.method === 'POST' && path === '/api/context_engine/ai_index/_query') {
@@ -231,7 +235,7 @@ describe('context_engine target against a stub Kibana', () => {
     expect(memories.size).toBe(0);
   });
 
-  it('ingests transcripts, recalls from the sample sessions only, and deletes them', async () => {
+  it('ingests transcripts, dreams on them, recalls from the sample sessions only, and deletes them', async () => {
     const target = new ContextEngineTarget({
       client: client(),
       aiIndexId: 'idx',
@@ -244,15 +248,21 @@ describe('context_engine target against a stub Kibana', () => {
       target,
       judge,
       ingestMode: 'ce_transcript',
-      dream: 'none',
+      dream: 'pre_post',
       teardown: true,
     });
 
-    expect(rows).toHaveLength(1);
-    expect(rows[0]!.error).toBeUndefined();
-    expect(rows[0]!.predicted_answer).toBe('Ljubljana');
-    expect(rows[0]!.retrieved_session_ids).toEqual(['s2']);
-    expect(rows[0]!.hit).toBe(true);
+    expect(rows.map((r) => r.phase)).toEqual(['pre_dream', 'post_dream']);
+    for (const row of rows) {
+      expect(row.error).toBeUndefined();
+      expect(row.predicted_answer).toBe('Ljubljana');
+      expect(row.retrieved_session_ids).toEqual(['s2']);
+      expect(row.hit).toBe(true);
+    }
+    expect(recorded.map((r) => r.path)).toContain(
+      `/api/workflows/workflow/${TRANSCRIPT_WORKFLOW_ID}/run`
+    );
+    expect(recorded.map((r) => r.path)).not.toContain(`/api/workflows/workflow/${WORKFLOW_ID}/run`);
 
     const puts = recorded.filter((r) => r.method === 'PUT');
     expect(puts.map((r) => r.path)).toEqual([

@@ -31,13 +31,21 @@ const DREAMING_POLL_MS = 5000;
 const DREAMING_TIMEOUT_MS = 30 * 60 * 1000;
 
 const DREAMING_WORKFLOW_ID = 'system-context-engine-dreaming';
+const TRANSCRIPT_DREAMING_WORKFLOW_ID = 'system-context-engine-transcript-dreaming';
 const SPACE_HASH_LENGTH = 16;
 
-/** Mirrors `dreamingWorkflowIdFor` in the Context Engine plugin. */
-export const dreamingWorkflowIdFor = (aiIndexId: string, spaceId: string): string => {
+const workflowIdFor = (definitionId: string, aiIndexId: string, spaceId: string): string => {
   const spaceHash = createHash('sha256').update(spaceId).digest('hex').slice(0, SPACE_HASH_LENGTH);
-  return `${DREAMING_WORKFLOW_ID}-${aiIndexId}-${spaceHash}`;
+  return `${definitionId}-${aiIndexId}-${spaceHash}`;
 };
+
+/** Mirrors `dreamingWorkflowIdFor` in the Context Engine plugin. */
+export const dreamingWorkflowIdFor = (aiIndexId: string, spaceId: string): string =>
+  workflowIdFor(DREAMING_WORKFLOW_ID, aiIndexId, spaceId);
+
+/** Mirrors `transcriptDreamingWorkflowIdFor` in the Context Engine plugin. */
+export const transcriptDreamingWorkflowIdFor = (aiIndexId: string, spaceId: string): string =>
+  workflowIdFor(TRANSCRIPT_DREAMING_WORKFLOW_ID, aiIndexId, spaceId);
 
 const renderTurns = (session: NormalizedSession): string[] =>
   session.turns.map((t) => `${t.role === 'user' ? 'User' : 'Assistant'}: ${t.content}`);
@@ -269,12 +277,19 @@ interface WorkflowExecutionResponse {
 const TERMINAL_STATUSES = new Set(['completed', 'failed', 'cancelled', 'timed_out', 'skipped']);
 
 /**
- * Runs the managed dreaming workflow for the AI index and waits for the execution to finish. The
- * workflow is scheduled by the Context Engine, so this only adds an on-demand run.
+ * Runs a managed dreaming workflow for the AI index and waits for the execution to finish:
+ * dreaming for memories, transcript dreaming for transcripts. The Context Engine schedules both,
+ * so this only adds an on-demand run; transcript dreaming must be turned on in the dreaming config.
  */
-export const ceTriggerDreaming = async (scope: CeScope): Promise<void> => {
+export const ceTriggerDreaming = async (
+  scope: CeScope,
+  source: 'memories' | 'transcripts' = 'memories'
+): Promise<void> => {
   const { client, aiIndexId, spaceId } = scope;
-  const workflowId = dreamingWorkflowIdFor(aiIndexId, spaceId);
+  const workflowId =
+    source === 'transcripts'
+      ? transcriptDreamingWorkflowIdFor(aiIndexId, spaceId)
+      : dreamingWorkflowIdFor(aiIndexId, spaceId);
   const run = await client.call<WorkflowRunResponse>(
     'POST',
     `/api/workflows/workflow/${encodeURIComponent(workflowId)}/run`,

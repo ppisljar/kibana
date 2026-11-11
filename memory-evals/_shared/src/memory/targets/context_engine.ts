@@ -66,8 +66,11 @@ export class ContextEngineTarget implements MemoryTarget {
     throw new Error(`ingest mode ${mode} is not supported by the context_engine target`);
   }
 
-  async dream(_receipt: IngestReceipt): Promise<void> {
-    await ceTriggerDreaming(this.scope());
+  async dream(receipt: IngestReceipt): Promise<void> {
+    await ceTriggerDreaming(
+      this.scope(),
+      receipt.ingest_mode === 'ce_transcript' ? 'transcripts' : 'memories'
+    );
   }
 
   async ask(question: NormalizedQuestion, receipt: IngestReceipt): Promise<TargetAnswer> {

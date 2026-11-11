@@ -169,7 +169,8 @@ Ingest modes (`--ingest`):
 - `ab_import`: Agent Builder conversations through `_import` (1P only).
 
 `--dream pre_post` asks every question before and after running the managed dreaming
-workflow on the same ingest. The summary reports the paired difference, so you can see
+workflow on the same ingest. With `--ingest ce_transcript` it runs the transcript dreaming
+workflow instead, which needs `transcripts.enabled` in the AI index dreaming config. The summary reports the paired difference, so you can see
 whether dreaming improves accuracy and evidence recall.
 
 Requirements on the AI index: global Context Engine memory enabled, dreaming configured,
