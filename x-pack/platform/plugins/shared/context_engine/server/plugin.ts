@@ -32,7 +32,14 @@ import type {
 import type { KiVerifierWorkflowRunner } from './ki_verification';
 import { registerFeatures } from './features';
 import { registerAiIndexRoutes } from './routes/ai_indices';
+import { registerMemoryStoreRoutes } from './routes/memory_stores';
 import { registerSignalRoutes } from './routes/signals';
+import { SessionMemoryService } from './memory_stores/session_memory_service';
+import { TranscriptService } from './memory_stores/transcript_service';
+import {
+  createSessionMemoriesStorageClient,
+  createTranscriptsStorageClient,
+} from './memory_stores/storage';
 import type {
   FeedbackAnalysisScheduleService,
   WorkflowEnablementApi,
@@ -81,6 +88,8 @@ export class ContextEnginePlugin
     params: GetAiIndexDataReadServiceParams
   ) => AiIndexDataReadService;
   private esClient?: ElasticsearchClient;
+  private sessionMemoryService?: SessionMemoryService;
+  private transcriptService?: TranscriptService;
   private scheduleService?: FeedbackAnalysisScheduleService;
   private dreamingScheduleService?: DreamingScheduleService;
   /** Captured at setup because the schedule service, built at start, enables workflows with it. */
@@ -283,6 +292,39 @@ export class ContextEnginePlugin
       analyticsService,
     });
 
+    registerMemoryStoreRoutes({
+      router,
+      logger: this.logger.get('memory_stores'),
+      getSpaces: async () => {
+        const [, startDeps] = await coreSetup.getStartServices();
+        return startDeps.spaces;
+      },
+      getSecurity: async () => {
+        const [coreStart] = await coreSetup.getStartServices();
+        return coreStart.security;
+      },
+      isMemoryEnabled,
+      getSessionMemoryService: () => {
+        if (!this.sessionMemoryService) {
+          throw new Error('Session memory service not available — plugin has not started');
+        }
+        return this.sessionMemoryService;
+      },
+      getTranscriptService: () => {
+        if (!this.transcriptService) {
+          throw new Error('Transcript service not available — plugin has not started');
+        }
+        return this.transcriptService;
+      },
+      getAiIndexService,
+      getAiIndexDataReadService: (params) => {
+        if (!this.createAiIndexDataReadService) {
+          throw new Error('AI index read service not available — plugin has not started');
+        }
+        return this.createAiIndexDataReadService(params);
+      },
+    });
+
     const isContextEngineEnabled = async (spaceId: string) => {
       const [coreStart] = await coreSetup.getStartServices();
       return isContextEngineEnabledInSpace({
@@ -416,6 +458,24 @@ export class ContextEnginePlugin
       logger: this.logger.get('signals'),
     });
     const signalsService = this.signalsService;
+
+    const memoryStoresLogger = this.logger.get('memory_stores');
+    this.sessionMemoryService = new SessionMemoryService({
+      storage: createSessionMemoriesStorageClient({
+        esClient: this.esClient,
+        logger: memoryStoresLogger,
+      }),
+      esClient: this.esClient,
+      logger: memoryStoresLogger,
+    });
+    this.transcriptService = new TranscriptService({
+      storage: createTranscriptsStorageClient({
+        esClient: this.esClient,
+        logger: memoryStoresLogger,
+      }),
+      esClient: this.esClient,
+      logger: memoryStoresLogger,
+    });
 
     const improvementsLogger = this.logger.get('improvements');
     this.createImprovementsService = (esClient: ElasticsearchClient, spaceId: string) =>

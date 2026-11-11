@@ -88,6 +88,90 @@ export interface KiAuditEventParams {
   error?: Error;
 }
 
+export enum MemoryStoreAuditAction {
+  SESSION_MEMORY_WRITE = 'context_engine_session_memory_write',
+  SESSION_MEMORY_LIST = 'context_engine_session_memory_list',
+  SESSION_MEMORY_DELETE = 'context_engine_session_memory_delete',
+  TRANSCRIPT_WRITE = 'context_engine_transcript_write',
+  TRANSCRIPT_GET = 'context_engine_transcript_get',
+  TRANSCRIPT_DELETE = 'context_engine_transcript_delete',
+  RECALL = 'context_engine_recall',
+}
+
+const memoryStoreEvents: Record<
+  MemoryStoreAuditAction,
+  { verbs: VerbsTuple; type: string; doc: (id?: string) => string }
+> = {
+  [MemoryStoreAuditAction.SESSION_MEMORY_WRITE]: {
+    verbs: ['write', 'writing', 'written'],
+    type: 'change',
+    doc: () => 'session memories',
+  },
+  [MemoryStoreAuditAction.SESSION_MEMORY_LIST]: {
+    verbs: ['access', 'accessing', 'accessed'],
+    type: 'access',
+    doc: () => 'session memories',
+  },
+  [MemoryStoreAuditAction.SESSION_MEMORY_DELETE]: {
+    verbs: ['delete', 'deleting', 'deleted'],
+    type: 'deletion',
+    doc: () => 'session memories',
+  },
+  [MemoryStoreAuditAction.TRANSCRIPT_WRITE]: {
+    verbs: ['write', 'writing', 'written'],
+    type: 'change',
+    doc: (id) => (id ? `the transcript of session [id=${id}]` : 'a transcript'),
+  },
+  [MemoryStoreAuditAction.TRANSCRIPT_GET]: {
+    verbs: ['access', 'accessing', 'accessed'],
+    type: 'access',
+    doc: (id) => (id ? `the transcript of session [id=${id}]` : 'a transcript'),
+  },
+  [MemoryStoreAuditAction.TRANSCRIPT_DELETE]: {
+    verbs: ['delete', 'deleting', 'deleted'],
+    type: 'deletion',
+    doc: (id) => (id ? `the transcript of session [id=${id}]` : 'transcripts'),
+  },
+  [MemoryStoreAuditAction.RECALL]: {
+    verbs: ['recall from', 'recalling from', 'recalled from'],
+    type: 'access',
+    doc: () => 'AI indices, session memories and transcripts',
+  },
+};
+
+export interface MemoryStoreAuditEventParams {
+  action: MemoryStoreAuditAction;
+  /** A session id, for transcript events on one session. */
+  id?: string;
+  error?: Error;
+}
+
+/** Audits reads and writes of the session memory and transcript stores, and recall. */
+export const memoryStoreAuditEvent = ({
+  action,
+  id,
+  error,
+}: MemoryStoreAuditEventParams): AuditEvent => {
+  const {
+    verbs: [present, , past],
+    type,
+    doc,
+  } = memoryStoreEvents[action];
+  return {
+    message: error ? `Failed attempt to ${present} ${doc(id)}` : `User has ${past} ${doc(id)}`,
+    event: {
+      action,
+      category: ['database'],
+      type: [type],
+      outcome: error ? 'failure' : 'success',
+    },
+    error: error && {
+      code: error.name,
+      message: error.message,
+    },
+  };
+};
+
 export enum ImprovementAuditAction {
   RECORD = 'context_engine_improvement_record',
 }

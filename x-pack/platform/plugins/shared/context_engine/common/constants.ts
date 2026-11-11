@@ -23,6 +23,19 @@ export const AI_INDEX_KI_BY_ID_PATH = `${AI_INDEX_KI_LIST_PATH}/{kiId}`;
 export const AI_INDEX_KI_RESTORE_PATH = `${AI_INDEX_KI_BY_ID_PATH}/_restore`;
 export const AI_INDEX_MEMORIES_PATH = `${INTERNAL_API_PATH}/ai_index/{aiIndexId}/memories/_bulk`;
 
+/** Session memory store routes (internal): the caller's own memories, across AI indices and agents. */
+export const SESSION_MEMORIES_PATH = `${INTERNAL_API_PATH}/session_memories`;
+export const SESSION_MEMORIES_BULK_PATH = `${SESSION_MEMORIES_PATH}/_bulk`;
+export const SESSION_MEMORIES_BULK_DELETE_PATH = `${SESSION_MEMORIES_PATH}/_bulk_delete`;
+
+/** Transcript store routes (internal). `_bulk_delete` cannot collide: session ids cannot start with `_`. */
+export const TRANSCRIPTS_PATH = `${INTERNAL_API_PATH}/transcripts`;
+export const TRANSCRIPT_BY_SESSION_PATH = `${TRANSCRIPTS_PATH}/{sessionId}`;
+export const TRANSCRIPTS_BULK_DELETE_PATH = `${TRANSCRIPTS_PATH}/_bulk_delete`;
+
+/** Recall across AI indices, the session memory store and the transcript store (internal). */
+export const RECALL_PATH = `${INTERNAL_API_PATH}/_recall`;
+
 /** Default and maximum page size when listing Knowledge Indicators for an AI index. */
 export const DEFAULT_KI_PAGE_SIZE = 25;
 export const MAX_KI_PAGE_SIZE = 100;
