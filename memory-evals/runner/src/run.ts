@@ -58,6 +58,7 @@ const USAGE = `Usage:
 Environment (see memory-evals/README.md):
   KBN_URL, KBN_API_KEY | KBN_USERNAME + KBN_PASSWORD, KBN_SPACE, KBN_AGENT_ID,
   KBN_CONNECTOR_ID, KBN_AI_INDEX_ID (required), KBN_CE_RETRIEVAL_QUERY,
+  KBN_CE_RECALL_LIMIT, KBN_CE_RECALL_RERANK,
   KBN_ANSWER_MODEL, KBN_CLAUDE_BIN, KBN_CLAUDE_MODEL, ANTHROPIC_API_KEY,
   KBN_JUDGE, KBN_JUDGE_MODEL`;
 
@@ -253,6 +254,11 @@ const buildTarget = (opts: RunOptions, env: ParsedEnv, answerer: Answerer | unde
     };
     const query = process.env.KBN_CE_RETRIEVAL_QUERY;
     if (query) t.retrievalQuery = query;
+    const recallLimit = Number(process.env.KBN_CE_RECALL_LIMIT);
+    t.recall = {
+      ...(Number.isInteger(recallLimit) && recallLimit > 0 ? { limit: recallLimit } : {}),
+      rerank: process.env.KBN_CE_RECALL_RERANK !== 'false',
+    };
     return new ContextEngineTarget(t);
   }
   const t: ConstructorParameters<typeof ClaudeCodeTarget>[0] = {

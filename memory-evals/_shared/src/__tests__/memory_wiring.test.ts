@@ -25,6 +25,7 @@ interface Recorded {
 }
 
 const memories = new Map<string, { content: string; references: Array<{ uri: string }> }>();
+const transcripts = new Map<string, string>();
 let recorded: Recorded[] = [];
 let server: Server;
 let baseUrl: string;
@@ -85,6 +86,34 @@ beforeAll(async () => {
         values: rows,
       });
     }
+    if (req.method === 'PUT' && path.startsWith('/internal/context_engine/transcripts/')) {
+      const sessionId = decodeURIComponent(path.split('/').pop()!);
+      const { turns } = body as { turns: Array<{ role: string; content: string }> };
+      transcripts.set(sessionId, turns.map((t) => `${t.role}: ${t.content}`).join('\n'));
+      return json(res, 201, { session_id: sessionId, result: 'created', turn_count: turns.length, chunk_count: 1 });
+    }
+    if (req.method === 'POST' && path === '/internal/context_engine/transcripts/_bulk_delete') {
+      const { session_ids: ids } = body as { session_ids: string[] };
+      ids.forEach((id) => transcripts.delete(id));
+      return json(res, 200, { deleted: ids.length });
+    }
+    if (req.method === 'POST' && path === '/internal/context_engine/_recall') {
+      const { query, sources, filters } = body as {
+        query: string;
+        sources: string[];
+        filters?: { session_ids?: string[] };
+      };
+      const words = query.toLowerCase().split(/\s+/).filter((w) => w.length >= 4);
+      const matches = (content: string) => words.some((w) => content.toLowerCase().includes(w));
+      const results = sources.includes('transcripts')
+        ? [...transcripts.entries()]
+            .filter(([id, content]) => (filters?.session_ids ?? [id]).includes(id) && matches(content))
+            .map(([id, content]) => ({ source: 'transcript', id: `${id}#0`, score: 1, content, session_id: id }))
+        : [...memories.entries()]
+            .filter(([, m]) => matches(m.content))
+            .map(([id, m]) => ({ source: 'ai_index', id, score: 1, content: m.content, references: m.references }));
+      return json(res, 200, { results, reranked: true, sources: [], truncated: false });
+    }
     if (req.method === 'DELETE' && path.startsWith('/internal/context_engine/ai_index/idx/kis/')) {
       memories.delete(decodeURIComponent(path.split('/').pop()!));
       return json(res, 200, {});
@@ -121,6 +150,7 @@ afterAll(() => {
 
 beforeEach(() => {
   memories.clear();
+  transcripts.clear();
   recorded = [];
   nextId = 0;
 });
@@ -199,6 +229,83 @@ describe('context_engine target against a stub Kibana', () => {
     expect(memoriesSent[1]!.content).toContain('[eval-session://s2]');
     expect(recorded.filter((r) => r.method === 'DELETE')).toHaveLength(2);
     expect(memories.size).toBe(0);
+  });
+
+  it('ingests transcripts, recalls from the sample sessions only, and deletes them', async () => {
+    const target = new ContextEngineTarget({
+      client: client(),
+      aiIndexId: 'idx',
+      spaceId: 'default',
+      runId: 'run-t',
+      answerer,
+    });
+
+    const rows = await runSample(fromLongMemEval(item), {
+      target,
+      judge,
+      ingestMode: 'ce_transcript',
+      dream: 'none',
+      teardown: true,
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.error).toBeUndefined();
+    expect(rows[0]!.predicted_answer).toBe('Ljubljana');
+    expect(rows[0]!.retrieved_session_ids).toEqual(['s2']);
+    expect(rows[0]!.hit).toBe(true);
+
+    const puts = recorded.filter((r) => r.method === 'PUT');
+    expect(puts.map((r) => r.path)).toEqual([
+      '/internal/context_engine/transcripts/run-t.q-live.s1',
+      '/internal/context_engine/transcripts/run-t.q-live.s2',
+    ]);
+    expect(puts[0]!.body).toMatchObject({
+      source: 'memory-evals',
+      source_ref: 'eval-session://s1',
+      ai_index_id: 'idx',
+      refresh: false,
+      started_at: '2024-04-01T09:00:00.000Z',
+      attributes: { 'eval.session_id': 's1', 'eval.started_at': '2024-04-01T09:00:00.000Z' },
+    });
+    expect(puts[1]!.body).toMatchObject({ refresh: true });
+
+    const recall = recorded.find((r) => r.path === '/internal/context_engine/_recall')!;
+    expect(recall.body).toMatchObject({
+      query: item.question,
+      sources: ['transcripts'],
+      filters: { session_ids: ['run-t.q-live.s1', 'run-t.q-live.s2'] },
+      rerank: { enabled: true },
+    });
+    expect(transcripts.size).toBe(0);
+  });
+
+  it('recalls memories from the AI index when no ES|QL query is configured', async () => {
+    const target = new ContextEngineTarget({
+      client: client(),
+      aiIndexId: 'idx',
+      spaceId: 'default',
+      runId: 'run-r',
+      answerer,
+      recall: { limit: 5, rerank: false },
+    });
+
+    const rows = await runSample(fromLongMemEval(item), {
+      target,
+      judge,
+      ingestMode: 'ce_memory',
+      dream: 'none',
+      teardown: true,
+    });
+
+    expect(rows[0]!.predicted_answer).toBe('Ljubljana');
+    expect(rows[0]!.retrieved_session_ids).toEqual(['s2']);
+    const recall = recorded.find((r) => r.path === '/internal/context_engine/_recall')!;
+    expect(recall.body).toMatchObject({
+      sources: ['ai_indices'],
+      ai_index_ids: ['idx'],
+      limit: 5,
+      rerank: { enabled: false },
+    });
   });
 
   it('stops before asking when dreaming reports a failed run', async () => {

@@ -154,7 +154,7 @@ pipeline:
 | Target | Who answers | Retrieval path |
 | --- | --- | --- |
 | `agent_builder` (1P) | Agent Builder agent | Agent's memory tools, fresh non-persisted conversation per question |
-| `context_engine` (2P) | Harness model (`ANTHROPIC_API_KEY`) | ES|QL against the AI index (`KBN_CE_RETRIEVAL_QUERY`) |
+| `context_engine` (2P) | Harness model (`ANTHROPIC_API_KEY`) | Recall (`POST /internal/context_engine/_recall`), or ES|QL against the AI index when `KBN_CE_RETRIEVAL_QUERY` is set |
 | `claude_code` (3P) | `claude -p`, headless | Agent Builder MCP server (`/api/agent_builder/mcp`), built-in tools off |
 
 Ingest modes (`--ingest`):
@@ -162,7 +162,10 @@ Ingest modes (`--ingest`):
 - `ce_memory` (default): short-term memories (`memory.session`) written through
   `POST /internal/context_engine/ai_index/{id}/memories/_bulk`. Each memory carries the
   session reference (`eval-session://<session_id>`) so retrieval maps back to evidence.
-- `ce_transcript`: round transcripts in the conversation transcript index. Not in upstream yet, so the run stops with a `PendingApiError`.
+- `ce_transcript`: whole sessions in the Context Engine transcript store, through
+  `PUT /internal/context_engine/transcripts/{session_id}`. Session ids are scoped to the run and
+  sample; recall searches only the sample's sessions, and cleanup deletes them with
+  `POST /internal/context_engine/transcripts/_bulk_delete`.
 - `ab_import`: Agent Builder conversations through `_import` (1P only).
 
 `--dream pre_post` asks every question before and after running the managed dreaming
@@ -182,7 +185,9 @@ npm run runner -- --benchmark longmemeval --dataset tmp/longmemeval_s.json \
 | Env var | Used by | Notes |
 | --- | --- | --- |
 | `KBN_AI_INDEX_ID` | all targets | Required. The AI index memories are written to. |
-| `KBN_CE_RETRIEVAL_QUERY` | `context_engine` | ES|QL with a `{question}` placeholder, e.g. `FROM <backing-index> \| WHERE content:"{question}" \| LIMIT 10`. |
+| `KBN_CE_RETRIEVAL_QUERY` | `context_engine` | Optional. ES|QL with a `{question}` placeholder, e.g. `FROM <backing-index> \| WHERE content:"{question}" \| LIMIT 10`, used instead of recall. |
+| `KBN_CE_RECALL_LIMIT` | `context_engine` | Results recall returns per question. Default 20. |
+| `KBN_CE_RECALL_RERANK` | `context_engine` | `false` skips model reranking (fused lexical and semantic order only). |
 | `KBN_ANSWER_MODEL` | `context_engine` | Default `claude-sonnet-5-5`. |
 | `KBN_CLAUDE_BIN`, `KBN_CLAUDE_MODEL` | `claude_code` | Default `claude`. |
 
@@ -190,7 +195,8 @@ Status: memory writes, dreaming, Agent Builder import and bulk delete are wired 
 routes added on this branch (`/internal/context_engine/ai_index/{id}/memories/_bulk`,
 `/internal/agent_builder/conversations/_import` and `_bulk_delete`). The wiring is covered by a
 stub-Kibana test (`_shared/src/__tests__/memory_wiring.test.ts`); a run against a live stack is
-still pending. Transcript ingest waits for the conversation transcript index.
+still pending. Transcript ingest and recall use the transcript store and recall routes
+(`/internal/context_engine/transcripts`, `/internal/context_engine/_recall`).
 
 ## Long-context eval sets
 

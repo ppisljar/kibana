@@ -5,7 +5,6 @@ import type { KibanaClient } from '../kibana_client.js';
 
 import { evalSessionRef } from './session_ids.js';
 import {
-  PendingApiError,
   type IngestReceipt,
   type NormalizedSample,
   type NormalizedSession,
@@ -127,14 +126,135 @@ export const ceWriteMemories = async (
   return { sample_id: sample.sample_id, ingest_mode: 'ce_memory', session_index: sessionIndex, handles };
 };
 
-/** Transcript ingest needs the conversation transcript index, which is not in upstream yet. */
+const TRANSCRIPTS_PATH = '/internal/context_engine/transcripts';
+const TRANSCRIPT_DELETE_BATCH = 1000;
+/** The most session ids a recall filter takes. */
+const RECALL_SESSION_FILTER_MAX = 1000;
+
+/**
+ * Transcript session id for an eval session. Scoped to the run and sample, so samples that share
+ * a haystack session do not overwrite or delete each other's copy. The transcript API rejects a
+ * leading `_`, whitespace and `/`.
+ */
+export const transcriptSessionId = (runId: string, sampleId: string, sessionId: string): string =>
+  `${runId}.${sampleId}.${sessionId}`.replace(/[\s/]+/g, '-').replace(/^_+/, '');
+
+const isIsoDate = (value: string): boolean => /^\d{4}-\d{2}-\d{2}/.test(value) && !Number.isNaN(Date.parse(value));
+
+/** Deletes transcripts by session id. */
+export const ceDeleteTranscripts = async (scope: CeScope, sessionIds: readonly string[]): Promise<void> => {
+  for (let start = 0; start < sessionIds.length; start += TRANSCRIPT_DELETE_BATCH) {
+    await scope.client.call(
+      'POST',
+      `${TRANSCRIPTS_PATH}/_bulk_delete`,
+      { session_ids: sessionIds.slice(start, start + TRANSCRIPT_DELETE_BATCH) },
+      CE_INTERNAL_HEADERS
+    );
+  }
+};
+
+/**
+ * Writes each session of a sample as a whole transcript. Only the last write waits for a refresh,
+ * which makes every earlier one searchable too.
+ */
 export const ceWriteTranscripts = async (
-  _scope: CeScope,
-  _sample: NormalizedSample
+  scope: CeScope,
+  sample: NormalizedSample
 ): Promise<IngestReceipt> => {
-  throw new PendingApiError(
-    'Writing round transcripts to the conversation transcript index',
-    'stage 2: conversation_transcript index, not in upstream yet'
+  const { client, aiIndexId, runId } = scope;
+  const sessions = sample.sessions.filter((session) => session.turns.length > 0);
+  const sessionIndex: SessionIndex = new Map();
+  const handles: string[] = [];
+
+  try {
+    for (const [position, session] of sessions.entries()) {
+      const id = transcriptSessionId(runId, sample.sample_id, session.session_id);
+      const startedAt = session.started_at;
+      await client.call(
+        'PUT',
+        `${TRANSCRIPTS_PATH}/${encodeURIComponent(id)}`,
+        {
+          source: 'memory-evals',
+          source_ref: evalSessionRef(session.session_id),
+          ai_index_id: aiIndexId,
+          title: `${sample.sample_id} ${session.session_id}`,
+          ...(startedAt && isIsoDate(startedAt) ? { started_at: startedAt } : {}),
+          turns: session.turns.map(({ role, content }) => ({ role, content })),
+          tags: [`eval-run:${runId}`],
+          attributes: {
+            'eval.run_id': runId,
+            'eval.sample_id': sample.sample_id,
+            'eval.session_id': session.session_id,
+            ...(startedAt ? { 'eval.started_at': startedAt } : {}),
+          },
+          refresh: position === sessions.length - 1,
+        },
+        CE_INTERNAL_HEADERS
+      );
+      handles.push(id);
+      sessionIndex.set(id, session.session_id);
+    }
+  } catch (e) {
+    await ceDeleteTranscripts(scope, handles).catch(() => undefined);
+    throw e;
+  }
+
+  return { sample_id: sample.sample_id, ingest_mode: 'ce_transcript', session_index: sessionIndex, handles };
+};
+
+export interface CeRecallResult {
+  source: 'ai_index' | 'session_memory' | 'transcript';
+  id: string;
+  score: number;
+  title?: string;
+  content: string;
+  session_id?: string;
+  timestamp?: string;
+  references?: Array<{ uri: string }>;
+}
+
+export interface CeRecallResponse {
+  results: CeRecallResult[];
+  reranked: boolean;
+  rerank_error?: string;
+}
+
+export interface CeRecallOptions {
+  limit?: number;
+  maxTotalChars?: number;
+  rerank?: boolean;
+}
+
+/**
+ * Recalls what a receipt ingested for a question: the transcripts of the sample's sessions, or the
+ * memories and dreamed knowledge in the AI index.
+ */
+export const ceRecall = async (
+  scope: CeScope,
+  question: string,
+  receipt: IngestReceipt,
+  { limit = 20, maxTotalChars = 40_000, rerank = true }: CeRecallOptions = {}
+): Promise<CeRecallResponse> => {
+  const target =
+    receipt.ingest_mode === 'ce_transcript'
+      ? {
+          sources: ['transcripts'],
+          ...(receipt.handles.length > 0 && receipt.handles.length <= RECALL_SESSION_FILTER_MAX
+            ? { filters: { session_ids: receipt.handles } }
+            : {}),
+        }
+      : { sources: ['ai_indices'], ai_index_ids: [scope.aiIndexId] };
+  return scope.client.call<CeRecallResponse>(
+    'POST',
+    '/internal/context_engine/_recall',
+    {
+      query: question,
+      ...target,
+      limit,
+      max_total_chars: maxTotalChars,
+      rerank: { enabled: rerank },
+    },
+    CE_INTERNAL_HEADERS
   );
 };
 
