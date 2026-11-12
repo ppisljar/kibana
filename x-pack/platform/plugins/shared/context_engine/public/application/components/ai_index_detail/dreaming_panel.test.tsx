@@ -172,6 +172,52 @@ describe('DreamingPanel', () => {
     );
   });
 
+  it('turns transcript dreaming on with its own interval', async () => {
+    renderPanel(aiIndexWith(factsOnly));
+
+    expect(screen.getByTestId('contextAiIndexDreamingTranscriptsEnabled')).not.toBeChecked();
+    fireEvent.click(screen.getByTestId('contextAiIndexDreamingTranscriptsEnabled'));
+    fireEvent.change(screen.getByTestId('contextAiIndexDreamingTranscriptsInterval'), {
+      target: { value: '6h' },
+    });
+    fireEvent.click(screen.getByTestId('contextAiIndexDreamingSave'));
+
+    await waitFor(() =>
+      expect(saveConfig).toHaveBeenCalledWith({
+        aiIndexId: 'tickets',
+        config: expect.objectContaining({
+          transcripts: { enabled: true, schedule: { interval: '6h' } },
+        }),
+      })
+    );
+  });
+
+  it('turns transcript dreaming off, clearing its config', async () => {
+    renderPanel(aiIndexWith({ ...factsOnly, transcripts: { enabled: true } }));
+
+    expect(screen.getByTestId('contextAiIndexDreamingTranscriptsEnabled')).toBeChecked();
+    fireEvent.click(screen.getByTestId('contextAiIndexDreamingTranscriptsEnabled'));
+    fireEvent.click(screen.getByTestId('contextAiIndexDreamingSave'));
+
+    await waitFor(() =>
+      expect(saveConfig).toHaveBeenCalledWith({
+        aiIndexId: 'tickets',
+        config: expect.objectContaining({ transcripts: null }),
+      })
+    );
+  });
+
+  it('does not save a transcript interval shorter than the floor', () => {
+    renderPanel(aiIndexWith(factsOnly));
+
+    fireEvent.change(screen.getByTestId('contextAiIndexDreamingTranscriptsInterval'), {
+      target: { value: '5m' },
+    });
+
+    expect(screen.getByText('Must be at least 15 minutes.')).toBeInTheDocument();
+    expect(screen.getByTestId('contextAiIndexDreamingSave')).toBeDisabled();
+  });
+
   it('does not save an interval shorter than the floor', () => {
     renderPanel(aiIndexWith(factsOnly));
 

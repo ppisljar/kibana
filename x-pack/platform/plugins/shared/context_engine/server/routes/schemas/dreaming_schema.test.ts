@@ -93,6 +93,29 @@ describe('dreamingConfigSchema', () => {
     ).toThrow();
   });
 
+  it('accepts transcript dreaming, with or without its own interval, and null to turn it off', () => {
+    for (const transcripts of [
+      { enabled: true },
+      { enabled: false, schedule: { interval: '6h' } },
+      null,
+    ]) {
+      expect(dreamingConfigSchema.validate({ ...config, transcripts })).toEqual({
+        ...config,
+        transcripts,
+      });
+    }
+  });
+
+  it('rejects a transcript interval shorter than the floor, and transcripts without enabled', () => {
+    expect(() =>
+      dreamingConfigSchema.validate({
+        ...config,
+        transcripts: { enabled: true, schedule: { interval: '5m' } },
+      })
+    ).toThrow('Must be at least 15 minutes.');
+    expect(() => dreamingConfigSchema.validate({ ...config, transcripts: {} })).toThrow();
+  });
+
   it('bounds the instructions', () => {
     expect(() =>
       dreamingConfigSchema.validate({ ...config, instructions: 'x'.repeat(8193) })

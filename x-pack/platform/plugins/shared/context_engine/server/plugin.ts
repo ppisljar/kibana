@@ -292,6 +292,19 @@ export class ContextEnginePlugin
       analyticsService,
     });
 
+    const getSessionMemoryService = () => {
+      if (!this.sessionMemoryService) {
+        throw new Error('Session memory service not available — plugin has not started');
+      }
+      return this.sessionMemoryService;
+    };
+    const getTranscriptService = () => {
+      if (!this.transcriptService) {
+        throw new Error('Transcript service not available — plugin has not started');
+      }
+      return this.transcriptService;
+    };
+
     registerMemoryStoreRoutes({
       router,
       logger: this.logger.get('memory_stores'),
@@ -304,18 +317,8 @@ export class ContextEnginePlugin
         return coreStart.security;
       },
       isMemoryEnabled,
-      getSessionMemoryService: () => {
-        if (!this.sessionMemoryService) {
-          throw new Error('Session memory service not available — plugin has not started');
-        }
-        return this.sessionMemoryService;
-      },
-      getTranscriptService: () => {
-        if (!this.transcriptService) {
-          throw new Error('Transcript service not available — plugin has not started');
-        }
-        return this.transcriptService;
-      },
+      getSessionMemoryService,
+      getTranscriptService,
       getAiIndexService,
       getAiIndexDataReadService: (params) => {
         if (!this.createAiIndexDataReadService) {
@@ -375,6 +378,8 @@ export class ContextEnginePlugin
         isContextEngineEnabled,
         isMemoryEnabled: () => this.isGlobalMemoryEnabled(),
         checkReadPrivilege: checkContextEnginePrivilege(apiPrivileges.readContextEngine),
+        getSessionMemoryService,
+        getTranscriptService,
       },
     });
 

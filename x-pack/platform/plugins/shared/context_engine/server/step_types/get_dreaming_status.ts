@@ -12,7 +12,7 @@ import {
   type GetDreamingStatusOutput,
 } from '../../common/step_types/get_dreaming_status';
 import { AiIndexNotFoundError } from '../ai_indices/errors';
-import { shouldDream } from '../dreaming/schedule';
+import { shouldDream, shouldDreamTranscripts } from '../dreaming/schedule';
 import type { DreamingStepDependencies } from './helpers';
 
 export const getDreamingStatusStepDefinition = ({
@@ -44,7 +44,10 @@ export const getDreamingStatusStepDefinition = ({
       }
       try {
         const aiIndex = await getAiIndexService().get(aiIndexId, spaceId);
-        if (!shouldDream(aiIndex)) {
+        if (source === 'transcripts' && !shouldDreamTranscripts(aiIndex)) {
+          return skip(`Transcript dreaming is not turned on for AI index '${aiIndexId}'.`);
+        }
+        if (source !== 'transcripts' && !shouldDream(aiIndex)) {
           return skip(`Dreaming is not turned on for AI index '${aiIndexId}'.`);
         }
         if (source === 'traces' && aiIndex.traces.length === 0) {

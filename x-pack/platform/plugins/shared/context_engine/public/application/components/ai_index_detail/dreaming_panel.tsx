@@ -114,6 +114,8 @@ const DreamingEditor = ({ aiIndexId, dreaming }: DreamingEditorProps) => {
   const [editedInstructions, setEditedInstructions] = useState<string>();
   const [editedEnabled, setEditedEnabled] = useState<boolean>();
   const [editedInterval, setEditedInterval] = useState<string>();
+  const [editedTranscriptsEnabled, setEditedTranscriptsEnabled] = useState<boolean>();
+  const [editedTranscriptsInterval, setEditedTranscriptsInterval] = useState<string>();
   const { saveConfig, isSaving } = useSaveDreamingConfig();
   const { templates } = useAllDreamingTemplates();
 
@@ -124,11 +126,22 @@ const DreamingEditor = ({ aiIndexId, dreaming }: DreamingEditorProps) => {
   const savedInterval = dreaming.schedule?.interval ?? DEFAULT_DREAMING_INTERVAL;
   const interval = editedInterval ?? savedInterval;
   const intervalError = validateDreamingInterval(interval.trim());
+  const savedTranscriptsEnabled = dreaming.transcripts?.enabled ?? false;
+  const transcriptsEnabled = editedTranscriptsEnabled ?? savedTranscriptsEnabled;
+  // Empty: transcript dreaming runs on the dreaming interval.
+  const savedTranscriptsInterval = dreaming.transcripts?.schedule?.interval ?? '';
+  const transcriptsInterval = editedTranscriptsInterval ?? savedTranscriptsInterval;
+  const transcriptsIntervalError =
+    transcriptsInterval.trim() === ''
+      ? undefined
+      : validateDreamingInterval(transcriptsInterval.trim());
   const isDirty =
     (edited !== undefined && !sameTypes(edited, saved)) ||
     instructions !== savedInstructions ||
     enabled !== dreaming.enabled ||
-    interval.trim() !== savedInterval;
+    interval.trim() !== savedInterval ||
+    transcriptsEnabled !== savedTranscriptsEnabled ||
+    transcriptsInterval.trim() !== savedTranscriptsInterval;
   const suggestedId = matchingTemplateId(dreaming, templates);
   const suggestedEntities = templates.find(({ id }) => id === suggestedId)?.dreaming.entities;
 
@@ -137,17 +150,31 @@ const DreamingEditor = ({ aiIndexId, dreaming }: DreamingEditorProps) => {
     setEditedInstructions(undefined);
     setEditedEnabled(undefined);
     setEditedInterval(undefined);
+    setEditedTranscriptsEnabled(undefined);
+    setEditedTranscriptsInterval(undefined);
   };
 
   const save = async () => {
-    const { instructions: _, schedule: __, ...rest } = dreaming;
+    const { instructions: _, schedule: __, transcripts: ___, ...rest } = dreaming;
     const trimmed = instructions.trim();
+    const trimmedTranscriptsInterval = transcriptsInterval.trim();
+    const transcripts =
+      transcriptsEnabled || trimmedTranscriptsInterval
+        ? {
+            enabled: transcriptsEnabled,
+            ...(trimmedTranscriptsInterval && {
+              schedule: { interval: trimmedTranscriptsInterval },
+            }),
+          }
+        : null;
     const config: AiIndexDreamingConfig = {
       ...rest,
       enabled,
       schedule: { interval: interval.trim() },
       ...(trimmed && { instructions: trimmed }),
       ...typesOfDraft(draft),
+      // A config that never used transcripts stays without them.
+      ...((transcripts || dreaming.transcripts) && { transcripts }),
     };
     if (await saveConfig({ aiIndexId, config })) {
       discard();
@@ -194,6 +221,53 @@ const DreamingEditor = ({ aiIndexId, dreaming }: DreamingEditorProps) => {
           </EuiFormRow>
         </EuiFlexItem>
       </EuiFlexGroup>
+      <EuiSpacer size="l" />
+      <EuiFlexGroup gutterSize="l" alignItems="flexEnd" responsive={false} wrap>
+        <EuiFlexItem grow={false}>
+          <EuiFormRow
+            hasEmptyLabelSpace
+            helpText={i18n.translate(
+              'xpack.contextEngine.aiIndexDetail.dreaming.transcriptsEnabledHelp',
+              {
+                defaultMessage:
+                  'Runs a separate workflow that learns the same types from the transcripts stored for this AI index.',
+              }
+            )}
+          >
+            <EuiSwitch
+              label={i18n.translate(
+                'xpack.contextEngine.aiIndexDetail.dreaming.transcriptsEnabledLabel',
+                { defaultMessage: 'Dream on transcripts' }
+              )}
+              checked={transcriptsEnabled}
+              onChange={(event) => setEditedTranscriptsEnabled(event.target.checked)}
+              data-test-subj="contextAiIndexDreamingTranscriptsEnabled"
+            />
+          </EuiFormRow>
+        </EuiFlexItem>
+        <EuiFlexItem grow={false} css={{ minWidth: 200 }}>
+          <EuiFormRow
+            label={i18n.translate(
+              'xpack.contextEngine.aiIndexDetail.dreaming.transcriptsIntervalLabel',
+              { defaultMessage: 'Every' }
+            )}
+            helpText={i18n.translate(
+              'xpack.contextEngine.aiIndexDetail.dreaming.transcriptsIntervalHelp',
+              { defaultMessage: 'Empty: as often as dreaming.' }
+            )}
+            isInvalid={transcriptsIntervalError !== undefined}
+            error={transcriptsIntervalError}
+          >
+            <EuiFieldText
+              value={transcriptsInterval}
+              placeholder={interval.trim()}
+              isInvalid={transcriptsIntervalError !== undefined}
+              onChange={(event) => setEditedTranscriptsInterval(event.target.value)}
+              data-test-subj="contextAiIndexDreamingTranscriptsInterval"
+            />
+          </EuiFormRow>
+        </EuiFlexItem>
+      </EuiFlexGroup>
       <EuiHorizontalRule margin="xl" />
       <EuiFormRow
         fullWidth
@@ -235,7 +309,11 @@ const DreamingEditor = ({ aiIndexId, dreaming }: DreamingEditorProps) => {
                 fill
                 onClick={save}
                 isLoading={isSaving}
-                isDisabled={!draftBuildsAnything(draft) || intervalError !== undefined}
+                isDisabled={
+                  !draftBuildsAnything(draft) ||
+                  intervalError !== undefined ||
+                  transcriptsIntervalError !== undefined
+                }
                 data-test-subj="contextAiIndexDreamingSave"
               >
                 {i18n.translate('xpack.contextEngine.aiIndexDetail.dreaming.save', {

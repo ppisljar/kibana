@@ -11,6 +11,7 @@ import { httpServerMock, loggingSystemMock } from '@kbn/core/server/mocks';
 import {
   CONTEXT_ENGINE_DREAMING_WORKFLOW_ID,
   CONTEXT_ENGINE_TRACE_DREAMING_WORKFLOW_ID,
+  CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID,
 } from '@kbn/workflows/managed';
 import type { PluginScopedManagedWorkflowsApi } from '@kbn/workflows/server/types';
 import type { AiIndexHttpItem } from '../../common/http_api/ai_indices';
@@ -20,7 +21,9 @@ import {
   createDreamingScheduleService,
   dreamingWorkflowIdFor,
   shouldDream,
+  shouldDreamTranscripts,
   traceDreamingWorkflowIdFor,
+  transcriptDreamingWorkflowIdFor,
 } from './schedule';
 
 const SPACE = 'marketing';
@@ -55,6 +58,25 @@ describe('shouldDream', () => {
     expect(shouldDream(aiIndex({ dreaming: { ...dreaming, enabled: false } }))).toBe(false);
     expect(shouldDream(aiIndex({ dreaming: { enabled: true } }))).toBe(false);
     expect(shouldDream(aiIndex({ dreaming: undefined }))).toBe(false);
+  });
+});
+
+describe('shouldDreamTranscripts', () => {
+  it('dreams on transcripts only with transcript dreaming on and a type to build', () => {
+    expect(
+      shouldDreamTranscripts(aiIndex({ dreaming: { ...dreaming, transcripts: { enabled: true } } }))
+    ).toBe(true);
+    expect(
+      shouldDreamTranscripts(
+        aiIndex({ dreaming: { ...dreaming, enabled: false, transcripts: { enabled: true } } })
+      )
+    ).toBe(true);
+    expect(shouldDreamTranscripts(aiIndex())).toBe(false);
+    expect(
+      shouldDreamTranscripts(
+        aiIndex({ dreaming: { enabled: true, transcripts: { enabled: true } } })
+      )
+    ).toBe(false);
   });
 });
 
@@ -258,6 +280,110 @@ describe('createDreamingScheduleService', () => {
     });
   });
 
+  describe('transcript dreaming', () => {
+    const transcriptWorkflowId = `${CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID}-${suffix}`;
+
+    it('installs, enables and attaches its own workflow, on its own interval', async () => {
+      await createService(workflowsManagement).reconcile({
+        aiIndex: aiIndex({
+          dreaming: { ...dreaming, transcripts: { enabled: true, schedule: { interval: '2h' } } },
+        }),
+        spaceId: SPACE,
+        request,
+      });
+
+      expect(transcriptDreamingWorkflowIdFor('support', SPACE)).toBe(transcriptWorkflowId);
+      expect(client.install).toHaveBeenCalledWith(CONTEXT_ENGINE_DREAMING_WORKFLOW_ID, {
+        spaceId: SPACE,
+        workflowIdSuffix: suffix,
+        values: expect.objectContaining({ intervalMinutes: 360 }),
+      });
+      expect(client.install).toHaveBeenCalledWith(CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID, {
+        spaceId: SPACE,
+        workflowIdSuffix: suffix,
+        values: expect.objectContaining({
+          aiIndexId: 'support',
+          intervalMinutes: 120,
+          factTypes: dreaming.facts,
+        }),
+      });
+      expect(workflowsManagement.updateWorkflow).toHaveBeenCalledWith(
+        transcriptWorkflowId,
+        { enabled: true },
+        SPACE,
+        request
+      );
+      expect(aiIndexService.addAutomation).toHaveBeenCalledWith('support', SPACE, {
+        type: 'workflow',
+        value: transcriptWorkflowId,
+      });
+    });
+
+    it('runs on the dreaming interval without one of its own, and without memory dreaming on', async () => {
+      await createService(workflowsManagement).reconcile({
+        aiIndex: aiIndex({
+          dreaming: { ...dreaming, enabled: false, transcripts: { enabled: true } },
+        }),
+        spaceId: SPACE,
+        request,
+      });
+
+      expect(client.install).toHaveBeenCalledTimes(1);
+      expect(client.install).toHaveBeenCalledWith(
+        CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID,
+        expect.objectContaining({ values: expect.objectContaining({ intervalMinutes: 360 }) })
+      );
+      expect(client.uninstall).toHaveBeenCalledWith(CONTEXT_ENGINE_DREAMING_WORKFLOW_ID, {
+        spaceId: SPACE,
+        workflowIdSuffix: suffix,
+      });
+    });
+
+    it.each([
+      ['transcript dreaming is off', { ...dreaming, transcripts: { enabled: false } }],
+      ['transcript dreaming was never configured', dreaming],
+      ['there is nothing to build', { enabled: true, transcripts: { enabled: true } }],
+    ])('removes and detaches its workflow when %s', async (_, config) => {
+      await createService(workflowsManagement).reconcile({
+        aiIndex: aiIndex({ dreaming: config }),
+        spaceId: SPACE,
+        request,
+      });
+
+      expect(client.install).not.toHaveBeenCalledWith(
+        CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID,
+        expect.anything()
+      );
+      expect(client.uninstall).toHaveBeenCalledWith(
+        CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID,
+        {
+          spaceId: SPACE,
+          workflowIdSuffix: suffix,
+        }
+      );
+      expect(aiIndexService.removeAutomation).toHaveBeenCalledWith('support', SPACE, {
+        type: 'workflow',
+        value: transcriptWorkflowId,
+      });
+    });
+
+    it('removes its workflow with the AI index', async () => {
+      await createService(workflowsManagement).remove({
+        aiIndexId: 'support',
+        spaceId: SPACE,
+        request,
+      });
+
+      expect(client.uninstall).toHaveBeenCalledWith(
+        CONTEXT_ENGINE_TRANSCRIPT_DREAMING_WORKFLOW_ID,
+        {
+          spaceId: SPACE,
+          workflowIdSuffix: suffix,
+        }
+      );
+    });
+  });
+
   it('refuses to install a workflow it could not enable', async () => {
     await expect(
       createService(undefined).reconcile({ aiIndex: aiIndex(), spaceId: SPACE, request })
@@ -300,8 +426,8 @@ describe('createDreamingScheduleService', () => {
       SPACE,
       request
     );
-    // Three attempts for dreaming, then one for trace dreaming.
-    expect(client.uninstall).toHaveBeenCalledTimes(4);
+    // Three attempts for dreaming, then one each for trace and transcript dreaming.
+    expect(client.uninstall).toHaveBeenCalledTimes(5);
   });
 
   it('does not cancel runs when the uninstall fails for another reason', async () => {

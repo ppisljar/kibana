@@ -19,10 +19,12 @@ import {
 } from './ids';
 
 describe('dreaming ids', () => {
-  it('cites memory KIs as ki:// and rounds read from traces as trace://', () => {
+  it('cites memory KIs as ki://, trace rounds as trace://, and stored sources by their store', () => {
     expect(memoryUri('m-1')).toBe('ki://m-1');
     expect(memoryUri('trace:51fff8a2')).toBe('trace://51fff8a2');
-    for (const id of ['m-1', 'trace:51fff8a2']) {
+    expect(memoryUri('session-memory:abc')).toBe('session-memory://abc');
+    expect(memoryUri('transcript:def')).toBe('transcript://def');
+    for (const id of ['m-1', 'trace:51fff8a2', 'session-memory:abc', 'transcript:def']) {
       expect(memoryIdFromUri(memoryUri(id))).toBe(id);
     }
     expect(memoryIdFromUri('https://example.com')).toBeUndefined();

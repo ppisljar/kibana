@@ -88,6 +88,17 @@ export interface DreamingRelationshipType {
 }
 
 /**
+ * Transcript dreaming: a separate workflow that extracts facts, entities and relationships of the
+ * same types from the transcripts stored for the AI index.
+ */
+export interface DreamingTranscriptsConfig {
+  /** Whether transcript dreaming runs on its schedule. */
+  enabled: boolean;
+  /** How often it runs. Defaults to the dreaming schedule. */
+  schedule?: { interval: string };
+}
+
+/**
  * What an AI index learns from its memories: facts, entities, and the relationships between them.
  * A kind with no types configured is not built.
  */
@@ -109,6 +120,8 @@ export interface AiIndexDreamingConfig {
    * also link to the entities they are about, with the built-in `about` type.
    */
   relationships?: DreamingRelationshipType[] | null;
+  /** Missing or null: transcripts are not dreamed on. */
+  transcripts?: DreamingTranscriptsConfig | null;
 }
 
 /** The parts of a dreaming config that say what it builds. */
@@ -151,6 +164,13 @@ export const dreamingTypesOf = ({
  */
 export const isDreamingConfigured = (dreaming: AiIndexDreamingConfig | undefined): boolean =>
   dreaming !== undefined && (dreaming.enabled || dreamingBuildsAnything(dreaming));
+
+/** How often transcript dreaming runs: its own interval, else the dreaming one. */
+export const transcriptDreamingIntervalOf = ({
+  schedule,
+  transcripts,
+}: Pick<AiIndexDreamingConfig, 'schedule' | 'transcripts'>): string =>
+  transcripts?.schedule?.interval ?? schedule?.interval ?? DEFAULT_DREAMING_INTERVAL;
 
 /** Whether a config builds anything at all: at least one fact or entity type. */
 export const dreamingBuildsAnything = (config: DreamingTypesConfig): boolean => {

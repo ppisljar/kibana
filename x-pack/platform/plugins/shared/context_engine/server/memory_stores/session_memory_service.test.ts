@@ -233,6 +233,79 @@ describe('SessionMemoryService', () => {
     });
   });
 
+  describe('readForDreaming', () => {
+    it("reads every owner's unexpired memories for the AI index since a time, oldest first", async () => {
+      storage.search.mockResolvedValue({
+        hits: {
+          hits: [
+            { _id: 'doc-1', _source: { id: 'm1', updated_at: '2026-11-02T00:00:00.000Z' } },
+            {
+              _id: 'doc-2',
+              _source: { id: 'm2', updated_at: '2026-11-03T00:00:00.000Z' },
+              sort: [1762128000000, 'u2', 'm2'],
+            },
+          ],
+        },
+      });
+
+      const read = await service.readForDreaming({
+        spaceId: 'default',
+        aiIndexId: 'support',
+        since: '2026-11-01T00:00:00.000Z',
+        size: 2,
+      });
+
+      expect(storage.search).toHaveBeenCalledWith({
+        track_total_hits: false,
+        size: 2,
+        sort: [
+          { updated_at: { order: 'asc' } },
+          { owner_id: { order: 'asc' } },
+          { id: { order: 'asc' } },
+        ],
+        query: {
+          bool: {
+            filter: [
+              { term: { space: 'default' } },
+              { term: { ai_index_id: 'support' } },
+              { range: { updated_at: { gte: '2026-11-01T00:00:00.000Z' } } },
+              notExpired,
+            ],
+          },
+        },
+      });
+      expect(read.memories.map(({ documentId }) => documentId)).toEqual(['doc-1', 'doc-2']);
+      // Two read with size 2: there may be more, after the last one.
+      expect(read.resumeFrom).toBe('2026-11-03T00:00:00.000Z');
+      expect(read.resumeAfter).toEqual([1762128000000, 'u2', 'm2']);
+    });
+
+    it('continues after the last memory of the read that stopped', async () => {
+      storage.search.mockResolvedValue({ hits: { hits: [] } });
+      await service.readForDreaming({
+        spaceId: 'default',
+        aiIndexId: 'support',
+        since: '2026-11-03T00:00:00.000Z',
+        after: [1762128000000, 'u2', 'm2'],
+        size: 500,
+      });
+      expect(storage.search.mock.calls[0][0].search_after).toEqual([1762128000000, 'u2', 'm2']);
+    });
+
+    it('has nowhere to resume from when it read fewer than it could', async () => {
+      storage.search.mockResolvedValue({
+        hits: { hits: [{ _id: 'doc-1', _source: { id: 'm1', updated_at: 'x' } }] },
+      });
+      const read = await service.readForDreaming({
+        spaceId: 'default',
+        aiIndexId: 'support',
+        since: '2026-11-01T00:00:00.000Z',
+        size: 500,
+      });
+      expect(read.resumeFrom).toBeUndefined();
+    });
+  });
+
   describe('search', () => {
     const hit = {
       _source: {

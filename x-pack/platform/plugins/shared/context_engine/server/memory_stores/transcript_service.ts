@@ -325,6 +325,96 @@ export class TranscriptService {
     return sessionCount;
   }
 
+  /**
+   * Every owner's transcript chunks for an AI index written since a time, oldest first, with
+   * their session title, for transcript dreaming. `resumeFrom` is set when `size` cut the list.
+   */
+  async readForDreaming({
+    spaceId,
+    aiIndexId,
+    since,
+    after,
+    size,
+  }: {
+    spaceId: string;
+    aiIndexId: string;
+    since: string;
+    /** The sort values of the last document of the read that stopped at `since`. */
+    after?: FieldValue[];
+    size: number;
+  }): Promise<{
+    chunks: Array<{ documentId: string; chunk: StoredTranscriptChunk; title?: string }>;
+    resumeFrom?: string;
+    resumeAfter?: FieldValue[];
+  }> {
+    const { storage } = this.deps;
+    const response = await storage.search({
+      track_total_hits: false,
+      size,
+      sort: [
+        { created_at: { order: 'asc' } },
+        { owner_id: { order: 'asc' } },
+        { session_id: { order: 'asc' } },
+        { chunk_index: { order: 'asc' } },
+      ],
+      query: {
+        bool: {
+          filter: [
+            { term: { space: spaceId } },
+            { term: { ai_index_id: aiIndexId } },
+            { term: { kind: 'chunk' } },
+            { range: { created_at: { gte: since } } },
+          ],
+        },
+      },
+      ...(after !== undefined && { search_after: after }),
+    });
+    const { hits } = response.hits;
+    const chunks = hits.flatMap((hit) =>
+      hit._source?.kind === 'chunk' ? [{ documentId: hit._id ?? '', chunk: hit._source }] : []
+    );
+
+    const headerIds = [
+      ...new Set(
+        chunks.map(({ chunk }) =>
+          headerDocumentId(
+            { spaceId, owner: { id: chunk.owner_id, username: chunk.owner_username } },
+            chunk.session_id
+          )
+        )
+      ),
+    ];
+    const titles = new Map<string, string>();
+    if (headerIds.length > 0) {
+      const headers = await storage.search({
+        track_total_hits: false,
+        size: headerIds.length,
+        _source: ['owner_id', 'session_id', 'title'],
+        query: {
+          bool: { filter: [{ ids: { values: headerIds } }, { term: { kind: 'session' } }] },
+        },
+      });
+      for (const { _source: header } of headers.hits.hits) {
+        if (header?.kind !== 'chunk' && header?.title) {
+          titles.set(JSON.stringify([header.owner_id, header.session_id]), header.title);
+        }
+      }
+    }
+
+    const last = hits[hits.length - 1];
+    return {
+      chunks: chunks.map((entry) => {
+        const title = titles.get(JSON.stringify([entry.chunk.owner_id, entry.chunk.session_id]));
+        return title !== undefined ? { ...entry, title } : entry;
+      }),
+      ...(hits.length === size &&
+        last?._source?.kind === 'chunk' && {
+          resumeFrom: last._source.created_at,
+          resumeAfter: last.sort,
+        }),
+    };
+  }
+
   /** Recall candidates over transcript chunks: a lexical list, and a semantic list unless inference fails. */
   async search(
     scope: SessionMemoryScope,

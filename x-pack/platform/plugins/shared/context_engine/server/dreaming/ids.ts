@@ -61,18 +61,29 @@ export const kiUri = (kiId: string): string => `${KI_URI_PREFIX}${kiId}`;
 export const kiIdFromUri = (uri: string): string | undefined =>
   uri.startsWith(KI_URI_PREFIX) ? uri.slice(KI_URI_PREFIX.length) : undefined;
 
-/** Memory ids of agent rounds read from traces: the prefix, then the trace id. */
+/**
+ * Memory ids of the sources outside the AI index, by where they come from. The rest of the id is
+ * the trace id of an agent round, or the store's document id, which is unique across owners where a
+ * caller's own id is not.
+ */
 export const TRACE_ROUND_ID_PREFIX = 'trace:';
-const TRACE_URI_PREFIX = 'trace://';
+export const SESSION_MEMORY_ID_PREFIX = 'session-memory:';
+export const TRANSCRIPT_CHUNK_ID_PREFIX = 'transcript:';
 
-/** The URI a dreamed KI cites a memory by: `trace://` for a round, `ki://` for a memory KI. */
-export const memoryUri = (memoryId: string): string =>
-  memoryId.startsWith(TRACE_ROUND_ID_PREFIX)
-    ? `${TRACE_URI_PREFIX}${memoryId.slice(TRACE_ROUND_ID_PREFIX.length)}`
-    : kiUri(memoryId);
+const SOURCE_URI_SCHEMES: ReadonlyArray<{ idPrefix: string; uriPrefix: string }> = [
+  { idPrefix: TRACE_ROUND_ID_PREFIX, uriPrefix: 'trace://' },
+  { idPrefix: SESSION_MEMORY_ID_PREFIX, uriPrefix: 'session-memory://' },
+  { idPrefix: TRANSCRIPT_CHUNK_ID_PREFIX, uriPrefix: 'transcript://' },
+];
+
+/** The URI a dreamed KI cites a memory by: `ki://` for a memory KI, the source's scheme otherwise. */
+export const memoryUri = (memoryId: string): string => {
+  const scheme = SOURCE_URI_SCHEMES.find(({ idPrefix }) => memoryId.startsWith(idPrefix));
+  return scheme ? `${scheme.uriPrefix}${memoryId.slice(scheme.idPrefix.length)}` : kiUri(memoryId);
+};
 
 /** The memory id a `derived_from` reference cites, the reverse of {@link memoryUri}. */
-export const memoryIdFromUri = (uri: string): string | undefined =>
-  uri.startsWith(TRACE_URI_PREFIX)
-    ? `${TRACE_ROUND_ID_PREFIX}${uri.slice(TRACE_URI_PREFIX.length)}`
-    : kiIdFromUri(uri);
+export const memoryIdFromUri = (uri: string): string | undefined => {
+  const scheme = SOURCE_URI_SCHEMES.find(({ uriPrefix }) => uri.startsWith(uriPrefix));
+  return scheme ? `${scheme.idPrefix}${uri.slice(scheme.uriPrefix.length)}` : kiIdFromUri(uri);
+};

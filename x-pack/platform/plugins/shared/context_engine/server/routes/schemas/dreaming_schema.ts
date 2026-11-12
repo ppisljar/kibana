@@ -53,6 +53,13 @@ const typeDescriptionSchema = schema.maybe(
   })
 );
 
+const intervalSchema = (description: string) =>
+  schema.string({
+    maxLength: MAX_DREAMING_INTERVAL_LENGTH,
+    validate: validateDreamingInterval,
+    meta: { description },
+  });
+
 export const dreamingConfigSchema = schema.object(
   {
     enabled: schema.boolean({
@@ -60,14 +67,34 @@ export const dreamingConfigSchema = schema.object(
     }),
     schedule: schema.maybe(
       schema.object({
-        interval: schema.string({
-          maxLength: MAX_DREAMING_INTERVAL_LENGTH,
-          validate: validateDreamingInterval,
-          meta: {
-            description: `How often to dream, for example \`1h\` or \`24h\`. At least ${MIN_DREAMING_INTERVAL_MINUTES} minutes. Defaults to \`24h\`.`,
-          },
-        }),
+        interval: intervalSchema(
+          `How often to dream, for example \`1h\` or \`24h\`. At least ${MIN_DREAMING_INTERVAL_MINUTES} minutes. Defaults to \`24h\`.`
+        ),
       })
+    ),
+    transcripts: schema.maybe(
+      schema.nullable(
+        schema.object(
+          {
+            enabled: schema.boolean({
+              meta: { description: 'Whether transcript dreaming runs on its schedule.' },
+            }),
+            schedule: schema.maybe(
+              schema.object({
+                interval: intervalSchema(
+                  `How often to dream on transcripts. At least ${MIN_DREAMING_INTERVAL_MINUTES} minutes. Defaults to the dreaming interval.`
+                ),
+              })
+            ),
+          },
+          {
+            meta: {
+              description:
+                'Transcript dreaming: a separate workflow that extracts the same fact, entity and relationship types from the transcripts stored for this AI Index. Omitted or null: off.',
+            },
+          }
+        )
+      )
     ),
     instructions: schema.maybe(
       schema.string({

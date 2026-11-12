@@ -23,6 +23,8 @@ import {
 import type { AiIndexService } from '../ai_indices/service';
 import type { ImprovementsServiceApi } from '../improvements/service';
 import type { KiVerificationSummary } from '../ki_verification';
+import type { SessionMemoryService } from '../memory_stores/session_memory_service';
+import type { TranscriptService } from '../memory_stores/transcript_service';
 import { WORKFLOW_VERIFIER_ID_PREFIX } from '../ki_verification';
 import type { ContextEngineAnalyticsService, KiWriteAction } from '../telemetry';
 import { errorTypeForTelemetry, isAbortError } from '../telemetry';
@@ -46,6 +48,8 @@ export interface DreamingStepDependencies {
   isMemoryEnabled: () => Promise<boolean>;
   /** Whether the request has the Context Engine read API privilege in this space. */
   checkReadPrivilege: (request: KibanaRequest, spaceId: string) => Promise<boolean>;
+  getSessionMemoryService: () => SessionMemoryService;
+  getTranscriptService: () => TranscriptService;
 }
 
 /** Dependencies injected into the feedback analysis step definition factories. */

@@ -292,6 +292,116 @@ describe('TranscriptService', () => {
     });
   });
 
+  describe('readForDreaming', () => {
+    const chunk = (sessionId: string, ownerId: string, createdAt: string) => ({
+      kind: 'chunk',
+      space: 'default',
+      owner_id: ownerId,
+      owner_username: ownerId,
+      session_id: sessionId,
+      source: 'scout',
+      chunk_index: 0,
+      turn_start: 0,
+      turn_end: 1,
+      content: 'User: hi',
+      timestamp: '2026-10-01T00:00:00.000Z',
+      created_at: createdAt,
+    });
+
+    it("reads every owner's chunks for the AI index since a time, with their session titles", async () => {
+      storage.search
+        .mockResolvedValueOnce({
+          hits: {
+            hits: [
+              { _id: 'c-1', _source: chunk('sess-1', 'alice', '2026-11-02T00:00:00.000Z') },
+              {
+                _id: 'c-2',
+                _source: chunk('sess-1', 'bob', '2026-11-03T00:00:00.000Z'),
+                sort: [1762128000000, 'bob', 'sess-1', 0],
+              },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          hits: {
+            hits: [{ _source: { owner_id: 'alice', session_id: 'sess-1', title: "Alice's trip" } }],
+          },
+        });
+
+      const read = await service.readForDreaming({
+        spaceId: 'default',
+        aiIndexId: 'support',
+        since: '2026-11-01T00:00:00.000Z',
+        size: 2,
+      });
+
+      expect(storage.search.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          sort: [
+            { created_at: { order: 'asc' } },
+            { owner_id: { order: 'asc' } },
+            { session_id: { order: 'asc' } },
+            { chunk_index: { order: 'asc' } },
+          ],
+          query: {
+            bool: {
+              filter: [
+                { term: { space: 'default' } },
+                { term: { ai_index_id: 'support' } },
+                { term: { kind: 'chunk' } },
+                { range: { created_at: { gte: '2026-11-01T00:00:00.000Z' } } },
+              ],
+            },
+          },
+        })
+      );
+      // Two owners with the same session id are two sessions: two headers to look up.
+      expect(storage.search.mock.calls[1][0].query.bool.filter[0]).toEqual({
+        ids: {
+          values: [
+            scopedDocumentId('default', { id: 'alice', username: 'alice' }, 'transcript', 'sess-1'),
+            scopedDocumentId('default', { id: 'bob', username: 'bob' }, 'transcript', 'sess-1'),
+          ],
+        },
+      });
+      expect(read.chunks.map(({ documentId, title }) => [documentId, title])).toEqual([
+        ['c-1', "Alice's trip"],
+        ['c-2', undefined],
+      ]);
+      expect(read.resumeFrom).toBe('2026-11-03T00:00:00.000Z');
+      expect(read.resumeAfter).toEqual([1762128000000, 'bob', 'sess-1', 0]);
+    });
+
+    it('continues after the last chunk of the read that stopped', async () => {
+      storage.search.mockResolvedValue({ hits: { hits: [] } });
+      await service.readForDreaming({
+        spaceId: 'default',
+        aiIndexId: 'support',
+        since: '2026-11-03T00:00:00.000Z',
+        after: [1762128000000, 'bob', 'sess-1', 0],
+        size: 200,
+      });
+      expect(storage.search.mock.calls[0][0].search_after).toEqual([
+        1762128000000,
+        'bob',
+        'sess-1',
+        0,
+      ]);
+    });
+
+    it('looks up no headers when there are no chunks', async () => {
+      storage.search.mockResolvedValue({ hits: { hits: [] } });
+      const read = await service.readForDreaming({
+        spaceId: 'default',
+        aiIndexId: 'support',
+        since: '2026-11-01T00:00:00.000Z',
+        size: 200,
+      });
+      expect(storage.search).toHaveBeenCalledTimes(1);
+      expect(read).toEqual({ chunks: [] });
+    });
+  });
+
   describe('search', () => {
     it('searches chunks only, with the session, agent and time filters', async () => {
       storage.search.mockResolvedValue({

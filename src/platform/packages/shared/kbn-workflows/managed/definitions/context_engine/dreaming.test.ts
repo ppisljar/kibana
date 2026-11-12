@@ -194,6 +194,107 @@ describe('CONTEXT_ENGINE_DREAMING_WORKFLOW', () => {
     );
   });
 
+  it('reads the session memories written for the AI index from their own resume point', () => {
+    const readSessionMemories = findStep(render().steps, 'read_session_memories');
+    const engine = createWorkflowLiquidEngine();
+    const { since, after } = readSessionMemories.with as { since: string; after: string };
+    const lastRun = { output: { since: '2026-11-01T00:00:00.000Z' } };
+    const lastOutput = {
+      output: {
+        context: {
+          output: {
+            resume_from: '2026-10-01T00:00:00.000Z',
+            session_resume_from: '2026-10-20T00:00:00.000Z',
+            session_resume_after: '[1,"u","m"]',
+          },
+        },
+      },
+    };
+
+    expect(readSessionMemories).toEqual(
+      expect.objectContaining({
+        type: 'context-engine.readSessionMemories',
+        with: expect.objectContaining({ ai_index_id: '{{ consts.ai_index_id }}', size: 500 }),
+      })
+    );
+    expect(engine.parseAndRenderSync(since, { inputs: {}, steps: { last_run: lastRun } })).toBe(
+      '2026-11-01T00:00:00.000Z'
+    );
+    expect(
+      engine.parseAndRenderSync(since, {
+        inputs: {},
+        steps: { last_run: lastRun, last_output: lastOutput },
+      })
+    ).toBe('2026-10-20T00:00:00.000Z');
+    expect(
+      engine.parseAndRenderSync(after, {
+        inputs: {},
+        steps: { last_run: lastRun, last_output: lastOutput },
+      })
+    ).toBe('[1,"u","m"]');
+    expect(
+      engine.parseAndRenderSync(after, {
+        inputs: { since: '2026-09-01T00:00:00.000Z' },
+        steps: { last_run: lastRun, last_output: lastOutput },
+      })
+    ).toBe('');
+  });
+
+  it('dreams on the memories and the session memories together', () => {
+    const memories = findStep(render().steps, 'active').with?.memories ?? '';
+    const sessionMemory = { id: 'session-memory:abc', type: 'memory.session_fact' };
+
+    expect(
+      createWorkflowLiquidEngine().evalValueSync(memories.slice(3, -2).trim(), {
+        execution: { startedAt: '2026-11-09T12:00:00.000Z' },
+        steps: {
+          read_memories: {
+            output: {
+              hits: {
+                hits: [
+                  { inner_hits: { latest: { hits: { hits: [{ _source: { id: 'm-1' } }] } } } },
+                ],
+              },
+            },
+          },
+          read_session_memories: { output: { memories: [sessionMemory] } },
+        },
+      })
+    ).toEqual([{ id: 'm-1' }, sessionMemory]);
+  });
+
+  it('outputs where the session memory read stopped apart from the memory read', () => {
+    const active = findStep(render().steps, 'active').with;
+    const output = findStep(render().steps, 'output_result').with;
+    const engine = createWorkflowLiquidEngine();
+    const scope = {
+      steps: {
+        read_memories: { output: { hits: { hits: [] } } },
+        read_session_memories: {
+          output: {
+            memories: [],
+            resume_from: '2026-11-07T00:00:00.000Z',
+            resume_after: '[1,"u","m"]',
+          },
+        },
+      },
+    };
+
+    expect(engine.parseAndRenderSync(String(active?.session_resume_from), scope)).toBe(
+      '2026-11-07T00:00:00.000Z'
+    );
+    expect(engine.parseAndRenderSync(String(active?.session_resume_after), scope)).toBe(
+      '[1,"u","m"]'
+    );
+    expect(engine.parseAndRenderSync(String(active?.resume_from), scope)).toBe('');
+    expect(output).toEqual(
+      expect.objectContaining({
+        session_resume_from: '{{ variables.session_resume_from }}',
+        session_resume_after: '{{ variables.session_resume_after }}',
+      })
+    );
+  });
+
   it('ends a dry run cancelled, so it does not move the window the next run reads', () => {
     const dryRun = findStep(render().steps, 'dry_run_result');
 
@@ -665,6 +766,7 @@ describe('CONTEXT_ENGINE_DREAMING_WORKFLOW', () => {
       'last_run',
       'resume',
       'read_memories',
+      'read_session_memories',
       'active',
       'dream',
       'dry_run_result',

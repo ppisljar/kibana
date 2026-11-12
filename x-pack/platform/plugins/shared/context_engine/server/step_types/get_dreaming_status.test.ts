@@ -7,6 +7,8 @@
 
 import { AiIndexNotFoundError } from '../ai_indices/errors';
 import type { AiIndexService } from '../ai_indices/service';
+import type { SessionMemoryService } from '../memory_stores/session_memory_service';
+import type { TranscriptService } from '../memory_stores/transcript_service';
 import { getDreamingStatusStepDefinition } from './get_dreaming_status';
 import { createMockStepContext } from './test_utils';
 
@@ -24,13 +26,15 @@ describe('getDreamingStatusStepDefinition', () => {
     memoryEnabled?: boolean;
     canRead?: boolean;
     get?: jest.Mock;
-    source?: 'memories' | 'traces';
+    source?: 'memories' | 'traces' | 'transcripts';
   } = {}) =>
     getDreamingStatusStepDefinition({
       getAiIndexService: () => ({ get } as unknown as AiIndexService),
       isContextEngineEnabled: async () => contextEngineEnabled,
       isMemoryEnabled: async () => memoryEnabled,
       checkReadPrivilege: async () => canRead,
+      getSessionMemoryService: () => ({} as SessionMemoryService),
+      getTranscriptService: () => ({} as TranscriptService),
     }).handler(
       createMockStepContext({
         input: { ai_index_id: 'support', ...(source && { source }) },
@@ -106,6 +110,33 @@ describe('getDreamingStatusStepDefinition', () => {
     });
     // Memory dreaming does not need trace sources.
     await expect(run()).resolves.toEqual({ output: { dream: true } });
+  });
+
+  it('dreams on transcripts only with transcript dreaming on, whatever memory dreaming is set to', async () => {
+    const withTranscripts = (enabled: boolean) =>
+      jest.fn().mockResolvedValue({
+        id: 'support',
+        dreaming: { ...dreaming, enabled: false, transcripts: { enabled } },
+      });
+
+    await expect(run({ source: 'transcripts', get: withTranscripts(true) })).resolves.toEqual({
+      output: { dream: true },
+    });
+    await expect(run({ source: 'transcripts', get: withTranscripts(false) })).resolves.toEqual({
+      output: {
+        dream: false,
+        reason: "Transcript dreaming is not turned on for AI index 'support'.",
+      },
+    });
+    await expect(run({ source: 'transcripts' })).resolves.toEqual({
+      output: {
+        dream: false,
+        reason: "Transcript dreaming is not turned on for AI index 'support'.",
+      },
+    });
+    await expect(run({ get: withTranscripts(true) })).resolves.toEqual({
+      output: { dream: false, reason: "Dreaming is not turned on for AI index 'support'." },
+    });
   });
 
   it('fails on any other error reading the AI index', async () => {

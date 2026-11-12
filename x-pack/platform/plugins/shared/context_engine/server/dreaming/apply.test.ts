@@ -137,6 +137,55 @@ describe('applyOperations', () => {
     );
   });
 
+  it('cites session memories and transcript excerpts by their own schemes, visible only in their space', async () => {
+    const sourcePermissions = { kibana: { privileges: [{ space: 'team-a' }] } };
+    await applyOperations(
+      context(
+        undefined,
+        new Map([
+          ['session-memory:abc', sourcePermissions],
+          ['transcript:def', sourcePermissions],
+        ])
+      ),
+      [
+        {
+          op: 'upsert_entity',
+          id: 'entity-customer-825464',
+          type: 'customer',
+          title: 'Customer 825464',
+          attributes: {},
+          sourceMemoryIds: ['session-memory:abc', 'transcript:def'],
+        },
+      ]
+    );
+
+    expect(written()[0]).toEqual(
+      expect.objectContaining({
+        references: [
+          { uri: 'session-memory://abc', relation: 'derived_from' },
+          { uri: 'transcript://def', relation: 'derived_from' },
+        ],
+        attributes: { 'memory.number_of_occurrences': 2 },
+        permissions: sourcePermissions,
+      })
+    );
+
+    stored.set('entity-customer-825464', written()[0]);
+    jest.mocked(putKiRevision).mockClear();
+    await applyOperations(context(undefined, new Map([['transcript:def', sourcePermissions]])), [
+      {
+        op: 'upsert_entity',
+        id: 'entity-customer-825464',
+        type: 'customer',
+        title: 'Customer 825464',
+        attributes: {},
+        sourceMemoryIds: ['transcript:def'],
+      },
+    ]);
+    // Seen again in an excerpt it already cites: no new sighting.
+    expect(written()[0].attributes).toEqual({ 'memory.number_of_occurrences': 2 });
+  });
+
   it('counts only memories an item does not cite yet, and keeps the latest sighting', async () => {
     stored.set('entity-person-bob', {
       id: 'entity-person-bob',

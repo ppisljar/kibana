@@ -1,6 +1,6 @@
 version: '1'
 name: __NAME__
-description: 'Turns the memories agents save in a Context Engine AI index into long-term facts, entities and the relationships between them, as the AI index dreaming config describes.'
+description: 'Turns the memories agents save in a Context Engine AI index, and the session memories written for it, into long-term facts, entities and the relationships between them, as the AI index dreaming config describes.'
 enabled: false
 tags:
   - context-engine
@@ -43,6 +43,10 @@ outputs:
   - name: resume_from
     type: string
   - name: resume_after_id
+    type: string
+  - name: session_resume_from
+    type: string
+  - name: session_resume_after
     type: string
 triggers:
   - type: scheduled
@@ -169,15 +173,25 @@ steps:
                           minimum_should_match: 1
                 minimum_should_match: 1
 
+  - name: read_session_memories
+    type: context-engine.readSessionMemories
+    with:
+      ai_index_id: '{{ consts.ai_index_id }}'
+      since: '{{ inputs.since | default: steps.last_output.output.context.output.session_resume_from | default: steps.last_run.output.since }}'
+      after: '{% if inputs.since == blank %}{{ steps.last_output.output.context.output.session_resume_after }}{% endif %}'
+      size: 500
+
   - name: active
     type: data.set
     with:
       memories: >-
         ${{ steps.read_memories.output.hits.hits | map: "inner_hits.latest.hits.hits.first"
         | reject_exp: "memory", "memory._source.governance.lifecycle.status == 'deleted' or memory._source.governance.lifecycle.status == 'verification_failed' or memory.fields.expires_at.first <= execution.startedAt"
-        | map: "_source" }}
+        | map: "_source" | concat: steps.read_session_memories.output.memories }}
       resume_from: '{% if steps.read_memories.output.hits.hits.size == 500 %}{{ steps.read_memories.output.hits.hits.last._source.updated_at }}{% endif %}'
       resume_after_id: '{% if steps.read_memories.output.hits.hits.size == 500 %}{{ steps.read_memories.output.hits.hits.last._source.id }}{% endif %}'
+      session_resume_from: '{{ steps.read_session_memories.output.resume_from }}'
+      session_resume_after: '{{ steps.read_session_memories.output.resume_after }}'
       created: 0
       updated: 0
       deleted: 0
@@ -672,3 +686,5 @@ steps:
       relationships_rejected: '${{ variables.relationships_rejected | default: 0 }}'
       resume_from: '{{ variables.resume_from }}'
       resume_after_id: '{{ variables.resume_after_id }}'
+      session_resume_from: '{{ variables.session_resume_from }}'
+      session_resume_after: '{{ variables.session_resume_after }}'

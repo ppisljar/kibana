@@ -6,7 +6,11 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import type { QueryDslQueryContainer, SearchHit } from '@elastic/elasticsearch/lib/api/types';
+import type {
+  FieldValue,
+  QueryDslQueryContainer,
+  SearchHit,
+} from '@elastic/elasticsearch/lib/api/types';
 import type { ElasticsearchClient, Logger } from '@kbn/core/server';
 import {
   DEFAULT_SESSION_MEMORIES_PAGE_SIZE,
@@ -240,6 +244,60 @@ export class SessionMemoryService {
       query: { bool: { filter: [...this.scopeFilters(scope), ...criteria] } },
     });
     return deleted ?? 0;
+  }
+
+  /**
+   * Every owner's unexpired memories written for an AI index and updated since a time, oldest
+   * first, for dreaming. `resumeFrom` is set when `size` cut the list: where the next read starts.
+   */
+  async readForDreaming({
+    spaceId,
+    aiIndexId,
+    since,
+    after,
+    size,
+  }: {
+    spaceId: string;
+    aiIndexId: string;
+    since: string;
+    /** The sort values of the last document of the read that stopped at `since`. */
+    after?: FieldValue[];
+    size: number;
+  }): Promise<{
+    memories: Array<{ documentId: string; memory: StoredSessionMemory }>;
+    resumeFrom?: string;
+    resumeAfter?: FieldValue[];
+  }> {
+    const response = await this.deps.storage.search({
+      track_total_hits: false,
+      size,
+      sort: [
+        { updated_at: { order: 'asc' } },
+        { owner_id: { order: 'asc' } },
+        { id: { order: 'asc' } },
+      ],
+      query: {
+        bool: {
+          filter: [
+            { term: { space: spaceId } },
+            { term: { ai_index_id: aiIndexId } },
+            { range: { updated_at: { gte: since } } },
+            notExpiredFilter(this.now().toISOString()),
+          ],
+        },
+      },
+      ...(after !== undefined && { search_after: after }),
+    });
+    const { hits } = response.hits;
+    const memories = hits.flatMap((hit) =>
+      hit._source ? [{ documentId: hit._id ?? '', memory: hit._source }] : []
+    );
+    const last = hits[hits.length - 1];
+    return {
+      memories,
+      ...(hits.length === size &&
+        last?._source && { resumeFrom: last._source.updated_at, resumeAfter: last.sort }),
+    };
   }
 
   /** Recall candidates: a lexical list, and a semantic list unless the inference step fails. */
